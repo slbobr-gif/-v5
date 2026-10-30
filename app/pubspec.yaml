@@ -1,7 +1,7 @@
 name: putnik
 description: Путник — пешее путешествие от Кремля до Териберки на твоих шагах.
 publish_to: none
-version: 0.5.0+5
+version: 0.5.2+7
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

@@ -20,9 +20,14 @@ class StepWorker(context: Context, params: WorkerParameters) : Worker(context, p
 
     companion object {
         fun schedule(context: Context) {
-            val req = PeriodicWorkRequestBuilder<StepWorker>(15, TimeUnit.MINUTES).build()
-            WorkManager.getInstance(context)
-                .enqueueUniquePeriodicWork("putnik_steps", ExistingPeriodicWorkPolicy.KEEP, req)
+            // Сбой WorkManager не должен ронять приложение: без фона шаги подтянутся при открытии
+            try {
+                val req = PeriodicWorkRequestBuilder<StepWorker>(15, TimeUnit.MINUTES).build()
+                WorkManager.getInstance(context)
+                    .enqueueUniquePeriodicWork("putnik_steps", ExistingPeriodicWorkPolicy.KEEP, req)
+            } catch (e: Throwable) {
+                android.util.Log.e("Putnik", "step worker schedule failed", e)
+            }
         }
     }
 }

@@ -15,6 +15,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.work.Configuration
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.text.SimpleDateFormat
@@ -31,7 +32,7 @@ object CrashLog {
     private const val KEY_TEXT = "text"
     private const val KEY_LAUNCHING = "launching"
 
-    fun install(app: Application) {
+    fun install(app: Context) {
         val previous = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, e ->
             try {
@@ -81,11 +82,20 @@ object CrashLog {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_LAUNCHING, false)
 }
 
-class PutnikApplication : Application() {
-    override fun onCreate() {
-        CrashLog.install(this)
-        super.onCreate()
+/**
+ * Ловушка ставится в attachBaseContext — раньше всех ContentProvider-ов библиотек,
+ * чтобы поймать и падения при старте процесса.
+ * WorkManager запускается по требованию (Configuration.Provider), а не при старте процесса:
+ * сбой в нём больше не роняет приложение до первого экрана.
+ */
+class PutnikApplication : Application(), Configuration.Provider {
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(base)
+        CrashLog.install(base)
     }
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().setMinimumLoggingLevel(android.util.Log.INFO).build()
 }
 
 /**

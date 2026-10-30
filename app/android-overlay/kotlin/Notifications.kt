@@ -65,6 +65,15 @@ object Notifications {
     }
 
     fun replaceAll(context: Context, items: List<Map<String, Any?>>) {
+        // Сбой WorkManager не должен ронять приложение: просто не будет уведомлений
+        try {
+            enqueueAll(context, items)
+        } catch (e: Throwable) {
+            android.util.Log.e("Putnik", "notifications schedule failed", e)
+        }
+    }
+
+    private fun enqueueAll(context: Context, items: List<Map<String, Any?>>) {
         val wm = WorkManager.getInstance(context)
         wm.cancelAllWorkByTag(TAG)
         val now = System.currentTimeMillis()

@@ -22,6 +22,10 @@ android {
     buildTypes {
         getByName("release") {
             signingConfig = signingConfigs.getByName("putnikTest")
+            // Тестовая сборка без R8: он вырезал конструктор базы WorkManager (WorkDatabase_Impl),
+            // и приложение падало при запуске. APK станет на пару МБ больше — для теста неважно.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles("proguard-rules.pro")
         }
     }
