@@ -1,0 +1,499 @@
+{
+  "@@locale": "ru",
+  "appName": "Путник",
+  "errorLoading": "Не удалось загрузить приложение: {error}",
+  "@errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "onbSkip": "Пропустить",
+  "onbNext": "Далее",
+  "onbStart": "Начать",
+  "onb1Title": "Выйти из рутины",
+  "onb1Body": "Офис, созвоны, отчёты, которые никто не читает. Год сливается в один длинный четверг. Сергей решил, что хватит, — и вышел из дома пешком. До Баренцева моря.",
+  "onb2Title": "Считаем сами — фоном",
+  "onb2Body": "Телефон сам считает твои шаги — без GPS и лишнего расхода батареи. Каждый твой шаг — пять шагов Сергея по настоящей дороге от Кремля до Териберки.",
+  "onb3Title": "Живой мир",
+  "onb3Body": "По пути — люди, деревни, реки и существа из русских преданий. Леший, водяной, Баба-яга. Выбирай, как поступить: от этого зависит, дойдёт ли Сергей.",
+  "onb4Title": "Знакомься: Сергей",
+  "onb4Body": "34 года, аналитик из Москвы. Всю жизнь мечтал увидеть море, китов и северное сияние. Всё это сходится в одном месте — в Териберке. Туда он и идёт. Вместе с тобой.",
+  "profileTitle": "Знакомство",
+  "profileIntro": "Это тестовая версия для друзей. Всё хранится только на твоём телефоне.",
+  "profileName": "Как тебя зовут",
+  "profileEmail": "Почта (по желанию)",
+  "profileEmailHelp": "Только чтобы мы могли спросить твоё мнение о тесте. Никаких рассылок.",
+  "profileEmailBad": "Похоже, в адресе опечатка",
+  "profileConsent": "Согласен, что приложение обрабатывает мои шаги и имя на телефоне, а обезличенная статистика игры и почта (если указана) передаются в Яндекс AppMetrica, чтобы авторы улучшили игру.",
+  "permTitle": "Шаги и уведомления",
+  "permIntro": "Чтобы Сергей шёл вместе с тобой, приложению нужны твои шаги. Подключи хотя бы один источник.",
+  "permSensorTitle": "Шагомер телефона",
+  "permSensorBody": "Встроенный датчик считает шаги, даже когда приложение закрыто. Нужно разрешение «Физическая активность».",
+  "permSensorMissing": "В этом телефоне нет встроенного шагомера. Подключи Health Connect ниже.",
+  "permHcTitle": "Health Connect",
+  "permHcBody": "Шаги из Samsung Health, Mi Fitness, Google Fit, часов и браслетов — и история за последние 30 дней.",
+  "permHcUpdate": "Нужно обновить приложение Health Connect.",
+  "permHcInstall": "Health Connect не установлен. Он нужен, если шаги считают часы или другое приложение.",
+  "permHcUnavailable": "Health Connect недоступен на этом телефоне — хватит шагомера телефона.",
+  "permHcInstallAction": "Установить",
+  "permNotifyTitle": "Уведомления",
+  "permNotifyBody": "Утренняя мысль Сергея и 1–3 напоминания в день, когда на пути что-то происходит. Ночью — тишина.",
+  "permNotifyAllow": "Разрешить уведомления",
+  "permAllow": "Разрешить",
+  "permOptional": "по желанию",
+  "permNoSource": "Шаги пока не подключены — Сергей не сдвинется с места. Можно подключить позже в настройках.",
+  "permContinueAnyway": "Продолжить без шагов",
+  "prologueTitle": "ПРОЛОГ",
+  "prologueGo": "Выйти на нулевой километр",
+  "tabPath": "Путь",
+  "tabHero": "Герой",
+  "tabJournal": "Журнал",
+  "chapterLabel": "Глава {n}",
+  "@chapterLabel": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTitle": "Настройки",
+  "mapWhole": "Весь путь",
+  "mapNear": "Рядом",
+  "delayBanner": "Сергей пережидает. Ещё {hours, plural, one{{hours} час} few{{hours} часа} many{{hours} часов} other{{hours} часа}} — шаги не пропадут.",
+  "@delayBanner": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "detourBanner": "Ответвление от пути: осталось {km} км",
+  "@detourBanner": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "finishedShort": "Сергей у моря",
+  "daysLeftUnknown": "Сделай первые шаги — и посчитаем, когда Сергей дойдёт",
+  "daysLeft": "При твоём темпе до Териберки {days, plural, one{остался {days} день} few{осталось {days} дня} many{осталось {days} дней} other{осталось {days} дня}}",
+  "@daysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "kmLeft": "Осталось {left} км · пройдено {done} км",
+  "@kmLeft": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "done": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherLine": "{part}, {weather}, {month}",
+  "@weatherLine": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      },
+      "weather": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "dayMorning": "Утро",
+  "dayDay": "День",
+  "dayEvening": "Вечер",
+  "dayNight": "Ночь",
+  "wxClear": "ясно",
+  "wxCloudy": "пасмурно",
+  "wxRain": "дождь",
+  "wxWind": "ветер",
+  "wxFog": "туман",
+  "wxHeat": "жара",
+  "wxSnow": "снег",
+  "noStepsSource": "Шаги не поступают. Открой настройки и подключи шагомер.",
+  "stopEvent": "НА ПУТИ",
+  "stopPlace": "ПРИВАЛ",
+  "stopChapter": "ГЛАВА ПРОЙДЕНА",
+  "stopDeath": "СЕРГЕЙ НЕ ДОШЁЛ",
+  "stopFinish": "ФИНИШ",
+  "bufferWaiting": "Ждут {km} км твоих шагов — пойдём дальше после остановки",
+  "@bufferWaiting": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "statSatiety": "Сытость",
+  "statWater": "Вода",
+  "statWarmth": "Тепло",
+  "bonusOn": "Сыт и напоен — шаг лёгкий, встреч больше, но и еды уходит больше.",
+  "bonusNoticed": "Сергей слишком долго благополучен — его стали замечать. Будь осторожнее.",
+  "todaySteps": "Сегодня {steps} шагов",
+  "@todaySteps": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "nextGoal": "Цель дня: {steps} шагов — +{coins} монет",
+  "@nextGoal": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      },
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "allGoalsDone": "Все цели дня взяты. Сергей гордится тобой.",
+  "loginClaim": "Забрать монеты за день (+{coins})",
+  "@loginClaim": {
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "loginClaimed": "+{coins} монет",
+  "@loginClaimed": {
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "stepsSources": "Сегодня: датчик телефона {sensor} · Health Connect {hc}",
+  "@stepsSources": {
+    "placeholders": {
+      "sensor": {
+        "type": "String"
+      },
+      "hc": {
+        "type": "String"
+      }
+    }
+  },
+  "thoughtCardTitle": "Утренняя мысль",
+  "surveyTitle": "Один вопрос",
+  "surveyBody": "Если бы полная версия «Путника» стоила 149 ₽ в месяц — оформил бы подписку?",
+  "surveyYes": "Да",
+  "surveyLikely": "Скорее да",
+  "surveyUnlikely": "Скорее нет",
+  "surveyNo": "Нет",
+  "kindCreature": "Встреча",
+  "kindChapter": "История",
+  "kindCompanion": "Попутчик",
+  "kindRegional": "Дорога",
+  "kindRandom": "Случай",
+  "needItem": "Нужно: {item}",
+  "@needItem": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "needCoins": "Нужно монет: {n}",
+  "@needCoins": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "needFlag": "Нужно кое-что знать заранее",
+  "riskFatal": "Смертельно опасно",
+  "riskHigh": "Рискованно",
+  "riskLow": "Небольшой риск",
+  "fxCoins": "Монеты {v}",
+  "@fxCoins": {
+    "placeholders": {
+      "v": {
+        "type": "String"
+      }
+    }
+  },
+  "fxGained": "Получено: {items}",
+  "@fxGained": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "fxLost": "Потеряно: {items}",
+  "@fxLost": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "fxDelay": "Задержка {hours} ч",
+  "@fxDelay": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "fxDetour": "Ответвление {km} км",
+  "@fxDetour": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "fxShortcut": "Срезал {km} км",
+  "@fxShortcut": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "fxDied": "Этот выбор стоил Сергею жизни.",
+  "next": "Дальше",
+  "goOn": "Идти дальше",
+  "close": "Закрыть",
+  "cancel": "Отмена",
+  "roadsideDesc": "Придорожная точка: можно перекусить, налить воды и отдохнуть полчаса.",
+  "placeRest": "Сергей отдохнул и согрелся, набрал воды.",
+  "market": "Лавка",
+  "marketEmpty": "Здесь ничего не продают.",
+  "inBackpack": "в рюкзаке {n}",
+  "@inBackpack": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "buyNoCoins": "Не хватает монет",
+  "buyFull": "Рюкзак полон",
+  "buyHave": "Уже есть",
+  "gearSocks": "меньше мёрзнет",
+  "gearRaincoat": "непогода не так страшна",
+  "gearAmulet": "оберег на удачу",
+  "chapterDone": "ГЛАВА {n} ПРОЙДЕНА",
+  "@chapterDone": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "chapterComingSoon": "Сюжет этой главы откроется в следующем обновлении. Путь не останавливается: города, рынки, встречи на дороге и утренние мысли — с тобой.",
+  "deathTitle": "Сергей не дошёл",
+  "deathCauseEvent": "Этот выбор оказался последним. Темнота, тишина — и чей-то голос: «Рано тебе, иди обратно».",
+  "deathCauseStats": "Голод, жажда или холод взяли своё. Сергей сел на обочине и закрыл глаза. _Ну вот и всё?_ — Не всё.",
+  "deathDetails": "Он очнулся у места «{place}» — на {km} км позади. Часть припасов пропала, монет потеряно: {coins}. Пройденный заново отрезок будет спокойнее.",
+  "@deathDetails": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      },
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "deathWake": "Очнуться",
+  "finishTitle": "Териберка",
+  "finishText": "Баренцево море, серое и бесконечное. Над водой — спина кита. Ночью небо загорается зелёным. Сергей дошёл. {days, plural, one{{days} день} few{{days} дня} many{{days} дней} other{{days} дня}} пути, падений — {deaths}. _Сам. Пешком._",
+  "@finishText": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "deaths": {
+        "type": "int"
+      }
+    }
+  },
+  "heroTitle": "Герой",
+  "heroName": "Сергей, 34 года",
+  "heroAbout": "Аналитик из Москвы. Идёт к Баренцеву морю — увидеть китов и северное сияние.",
+  "heroWalked": "Пройдено {km} км · твоих шагов {steps}",
+  "@heroWalked": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      },
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "heroDeaths": "Падал {n, plural, one{{n} раз} few{{n} раза} many{{n} раз} other{{n} раза}} — и вставал",
+  "@heroDeaths": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "statsHint": "Сергей сам ест и пьёт из рюкзака, когда показатель падает ниже 40. Ноль любого показателя — смерть и откат на день пути назад.",
+  "backpack": "Рюкзак",
+  "backpackEmpty": "Рюкзак пуст. Загляни в лавку на ближайшем привале.",
+  "useItem": "Использовать",
+  "gear": "Снаряжение",
+  "gearEmpty": "Пока ничего.",
+  "journalTitle": "Журнал",
+  "journalRoad": "Дорога",
+  "journalThoughts": "Мысли на дороге",
+  "journalEmpty": "Здесь будет записана дорога Сергея.",
+  "logEvent": "{title} — «{choice}»",
+  "@logEvent": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "logPlace": "Привал: {place}",
+  "@logPlace": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "logDeath": "Сергей погиб и очнулся у места «{place}»",
+  "@logDeath": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "logGoal": "Цель дня {steps} шагов: +{coins} монет",
+  "@logGoal": {
+    "placeholders": {
+      "steps": {
+        "type": "int"
+      },
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "logLogin": "Монеты за день: +{coins}",
+  "@logLogin": {
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "logBuy": "Куплено: {item} за {price}",
+  "@logBuy": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "logEat": "Сергей съел или выпил: {item}",
+  "@logEat": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "logQuestDone": "История завершена",
+  "logDetourBack": "Сергей вернулся на основной путь",
+  "logFinish": "Сергей дошёл до Териберки",
+  "thoughtDay": "День {day}",
+  "@thoughtDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "yourAnswer": "Твой ответ:",
+  "answerLabel": "Твой ответ Сергею",
+  "answerPrivate": "Видишь только ты. Хранится только на телефоне.",
+  "answerSave": "Сохранить",
+  "answerSaved": "Сохранено",
+  "thoughtLicense": "Цитаты — собственное переложение античных текстов, находящихся в общественном достоянии. Это размышления, а не психологическая помощь.",
+  "settingsSteps": "Шаги",
+  "batteryHint": "Если шаги приходят с опозданием, разреши «Путнику» работать в фоне в настройках батареи телефона — особенно на Xiaomi, Huawei и Honor.",
+  "settingsNotifications": "Уведомления",
+  "settingsNotifyOn": "Утренняя мысль и события пути",
+  "settingsMorningTime": "Время утренней мысли",
+  "settingsAbout": "О приложении",
+  "aboutText": "Тестовая сборка «Путника» для друзей. Карта: {attribution}. Иллюстрации нарисованы для игры. Всё хранится на телефоне.",
+  "@aboutText": {
+    "placeholders": {
+      "attribution": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsOn": "Статистика отправляется в AppMetrica.",
+  "analyticsOff": "Статистика пишется только в журнал на телефоне (ключ AppMetrica не задан).",
+  "analyticsLog": "Журнал событий статистики",
+  "resetJourney": "Начать путь заново",
+  "resetConfirm": "Весь прогресс Сергея и твои ответы будут удалены. Начать сначала?",
+  "resetYes": "Начать заново",
+  "version": "Тестовая сборка MVP v5",
+  "notifMorningTitle": "Утренняя мысль Путника",
+  "notifStopTitle": "Сергей ждёт тебя",
+  "notifStopEvent": "На пути: {title}. Как поступить?",
+  "@notifStopEvent": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "notifStopPlace": "Привал в месте «{place}». Пополнить запасы — и дальше.",
+  "@notifStopPlace": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "notifStopDeath": "Сергей не дошёл. Помоги ему подняться.",
+  "notifStopGeneric": "На пути кое-что случилось.",
+  "notifDelayTitle": "Можно идти дальше",
+  "notifDelayBody": "Непогода стихла, Сергей собирает рюкзак.",
+  "notifLowTitle": "Сергею нужна помощь",
+  "notifLowSatiety": "Сергей проголодался. Проверь рюкзак или загляни на привал.",
+  "notifLowWater": "У Сергея кончается вода.",
+  "notifLowWarmth": "Сергей замёрз. Тёплый чай или привал спасут.",
+  "notifEveningTitle": "Путь зовёт",
+  "notifEvening1": "Вечер — лучшее время пройтись. Каждый твой шаг — пять шагов Сергея.",
+  "notifEvening2": "Сергей смотрит на дорогу и ждёт тебя.",
+  "notifEvening3": "Десять минут прогулки — и, может быть, новая встреча на пути."
+}

@@ -1,0 +1,535 @@
+{
+ "t0": 1777622400000,
+ "seed": 12345,
+ "baseline": 500,
+ "steps": [
+  6000,
+  9000,
+  4000,
+  12000,
+  0,
+  7000,
+  8000,
+  15000,
+  3000,
+  7000,
+  9000,
+  11000,
+  2000,
+  7000,
+  7000,
+  13000,
+  0,
+  9000,
+  8000,
+  10000
+ ],
+ "days": [
+  "2026-05-01",
+  "2026-05-02",
+  "2026-05-03",
+  "2026-05-04",
+  "2026-05-05",
+  "2026-05-06",
+  "2026-05-07",
+  "2026-05-08",
+  "2026-05-09",
+  "2026-05-10",
+  "2026-05-11",
+  "2026-05-12",
+  "2026-05-13",
+  "2026-05-14",
+  "2026-05-15",
+  "2026-05-16",
+  "2026-05-17",
+  "2026-05-18",
+  "2026-05-19",
+  "2026-05-20"
+ ],
+ "routeLengthM": 2098629.4,
+ "expected": [
+  {
+   "day": "2026-05-01",
+   "pos": 22500.0,
+   "buffer": 0.0,
+   "coins": 33,
+   "stats": {
+    "satiety": 54.997,
+    "water": 78.575,
+    "warmth": 99.007
+   },
+   "inv": {
+    "bread": 2,
+    "fish": 2,
+    "raincoat": 1,
+    "tea": 1,
+    "water": 2
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 3,
+   "journal": 8,
+   "rng": 2560230508
+  },
+  {
+   "day": "2026-05-02",
+   "pos": 39898.8,
+   "buffer": 16351.2,
+   "coins": 64,
+   "stats": {
+    "satiety": 32.468,
+    "water": 51.954,
+    "warmth": 94.575
+   },
+   "inv": {
+    "bread": 2,
+    "fish": 2,
+    "raincoat": 1,
+    "tea": 1,
+    "water": 2
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 6,
+   "journal": 16,
+   "rng": 3004788882
+  },
+  {
+   "day": "2026-05-03",
+   "pos": 65898.8,
+   "buffer": 5351.2,
+   "coins": 64,
+   "stats": {
+    "satiety": 36.768,
+    "water": 34.994,
+    "warmth": 82.266
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "bread": 1,
+    "fish": 1,
+    "pie": 1,
+    "raincoat": 1,
+    "socks": 2,
+    "tea": 1,
+    "water": 2
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 10,
+   "journal": 24,
+   "rng": 2850572231
+  },
+  {
+   "day": "2026-05-04",
+   "pos": 75924.6,
+   "buffer": 37325.4,
+   "coins": 96,
+   "stats": {
+    "satiety": 58.394,
+    "water": 82.163,
+    "warmth": 98.419
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "bread": 2,
+    "chocolate": 1,
+    "fish": 1,
+    "raincoat": 1,
+    "socks": 2,
+    "tea": 1,
+    "water": 1
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 12,
+   "journal": 37,
+   "rng": 2900471886
+  },
+  {
+   "day": "2026-05-05",
+   "pos": 79924.6,
+   "buffer": 33325.4,
+   "coins": 101,
+   "stats": {
+    "satiety": 48.594,
+    "water": 70.163,
+    "warmth": 100.0
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "bread": 2,
+    "chocolate": 1,
+    "fish": 1,
+    "raincoat": 1,
+    "socks": 2,
+    "tea": 1,
+    "water": 1
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 13,
+   "journal": 39,
+   "rng": 667024213
+  },
+  {
+   "day": "2026-05-06",
+   "pos": 106923.0,
+   "buffer": 32577.0,
+   "coins": 129,
+   "stats": {
+    "satiety": 51.945,
+    "water": 62.005,
+    "warmth": 100.0
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "bread": 1,
+    "chocolate": 1,
+    "raincoat": 1,
+    "socks": 2,
+    "tea": 1,
+    "water": 1
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 19,
+   "journal": 51,
+   "rng": 66423384
+  },
+  {
+   "day": "2026-05-07",
+   "pos": 130898.8,
+   "buffer": 38601.2,
+   "coins": 154,
+   "stats": {
+    "satiety": 33.168,
+    "water": 47.474,
+    "warmth": 86.071
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "bread": 1,
+    "chocolate": 1,
+    "raincoat": 1,
+    "socks": 2,
+    "tea": 1,
+    "water": 1
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 22,
+   "journal": 59,
+   "rng": 1379265569
+  },
+  {
+   "day": "2026-05-08",
+   "pos": 225750.0,
+   "buffer": 0.0,
+   "coins": 179,
+   "stats": {
+    "satiety": 47.059,
+    "water": 46.159,
+    "warmth": 92.401
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 3,
+    "chocolate": 1,
+    "fish": 1,
+    "raincoat": 1,
+    "socks": 2,
+    "tea": 1
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 32,
+   "journal": 84,
+   "rng": 1963087924
+  },
+  {
+   "day": "2026-05-09",
+   "pos": 237000.0,
+   "buffer": 0.0,
+   "coins": 184,
+   "stats": {
+    "satiety": 30.372,
+    "water": 35.729,
+    "warmth": 97.934
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 3,
+    "chocolate": 1,
+    "fish": 1,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 32,
+   "journal": 86,
+   "rng": 1963087924
+  },
+  {
+   "day": "2026-05-10",
+   "pos": 263250.0,
+   "buffer": 0.0,
+   "coins": 202,
+   "stats": {
+    "satiety": 54.434,
+    "water": 15.686,
+    "warmth": 85.044
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 3,
+    "chocolate": 1,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 0,
+   "seen": 34,
+   "journal": 93,
+   "rng": 1424954246
+  },
+  {
+   "day": "2026-05-11",
+   "pos": 276321.43,
+   "buffer": 0.0,
+   "coins": 166,
+   "stats": {
+    "satiety": 57.938,
+    "water": 36.588,
+    "warmth": 72.893
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 1,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 1,
+   "seen": 34,
+   "journal": 101,
+   "rng": 1424954246
+  },
+  {
+   "day": "2026-05-12",
+   "pos": 279250.0,
+   "buffer": 38321.43,
+   "coins": 207,
+   "stats": {
+    "satiety": 49.155,
+    "water": 25.522,
+    "warmth": 77.904
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 1,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 1,
+   "seen": 34,
+   "journal": 107,
+   "rng": 3270283239
+  },
+  {
+   "day": "2026-05-13",
+   "pos": 325071.43,
+   "buffer": 0.0,
+   "coins": 188,
+   "stats": {
+    "satiety": 34.625,
+    "water": 55.532,
+    "warmth": 99.889
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 1,
+    "fish": 1,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 1,
+   "seen": 35,
+   "journal": 117,
+   "rng": 1681926480
+  },
+  {
+   "day": "2026-05-14",
+   "pos": 354320.43,
+   "buffer": 0.0,
+   "coins": 196,
+   "stats": {
+    "satiety": 38.688,
+    "water": 34.443,
+    "warmth": 98.293
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 2,
+    "pie": 1,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 1,
+   "seen": 37,
+   "journal": 127,
+   "rng": 3421418232
+  },
+  {
+   "day": "2026-05-15",
+   "pos": 357931.32,
+   "buffer": 22639.11,
+   "coins": 219,
+   "stats": {
+    "satiety": 69.257,
+    "water": 20.96,
+    "warmth": 98.551
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 2,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 1,
+   "seen": 37,
+   "journal": 132,
+   "rng": 1735446849
+  },
+  {
+   "day": "2026-05-16",
+   "pos": 400320.43,
+   "buffer": 0.0,
+   "coins": 163,
+   "stats": {
+    "satiety": 68.73,
+    "water": 44.628,
+    "warmth": 98.906
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 2,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 2,
+   "seen": 41,
+   "journal": 152,
+   "rng": 2973183011
+  },
+  {
+   "day": "2026-05-17",
+   "pos": 400320.43,
+   "buffer": 0.0,
+   "coins": 168,
+   "stats": {
+    "satiety": 62.73,
+    "water": 37.428,
+    "warmth": 95.306
+   },
+   "inv": {
+    "amulet_leshy": 1,
+    "ball_yaga": 1,
+    "bread": 2,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 2,
+   "seen": 41,
+   "journal": 153,
+   "rng": 2973183011
+  },
+  {
+   "day": "2026-05-18",
+   "pos": 426715.2,
+   "buffer": 1355.23,
+   "coins": 185,
+   "stats": {
+    "satiety": 60.955,
+    "water": 12.794,
+    "warmth": 100.0
+   },
+   "inv": {
+    "amulet_leshy": 2,
+    "ball_yaga": 2,
+    "bread": 3,
+    "raincoat": 1,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 2,
+   "seen": 47,
+   "journal": 169,
+   "rng": 2651907982
+  },
+  {
+   "day": "2026-05-19",
+   "pos": 433284.71,
+   "buffer": 0.0,
+   "coins": 138,
+   "stats": {
+    "satiety": 35.021,
+    "water": 49.888,
+    "warmth": 72.789
+   },
+   "inv": {
+    "amulet_leshy": 2,
+    "ball_yaga": 2,
+    "bread": 2,
+    "matches": 1,
+    "raincoat": 2,
+    "socks": 2
+   },
+   "stop": null,
+   "deaths": 3,
+   "seen": 47,
+   "journal": 176,
+   "rng": 2485995663
+  },
+  {
+   "day": "2026-05-20",
+   "pos": 467784.71,
+   "buffer": 0.0,
+   "coins": 154,
+   "stats": {
+    "satiety": 53.396,
+    "water": 14.852,
+    "warmth": 92.469
+   },
+   "inv": {
+    "amulet_leshy": 2,
+    "ball_yaga": 2,
+    "bread": 1,
+    "matches": 1,
+    "raincoat": 2,
+    "socks": 3
+   },
+   "stop": null,
+   "deaths": 3,
+   "seen": 50,
+   "journal": 190,
+   "rng": 3785003146
+  }
+ ]
+}

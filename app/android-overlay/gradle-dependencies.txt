@@ -1,0 +1,28 @@
+
+// --- Путник: добавлено tool/bootstrap_android.sh ---
+dependencies {
+    implementation("androidx.health.connect:connect-client:1.1.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.activity:activity-ktx:1.9.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+}
+
+// Постоянный тестовый ключ: обновления APK ставятся поверх и не стирают прогресс.
+// ТОЛЬКО для теста на друзьях. Для RuStore будет отдельный ключ из секретов.
+android {
+    signingConfigs {
+        create("putnikTest") {
+            storeFile = file("putnik-test.jks")
+            storePassword = "putnik-test"
+            keyAlias = "putnik"
+            keyPassword = "putnik-test"
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("putnikTest")
+            proguardFiles("proguard-rules.pro")
+        }
+    }
+}
