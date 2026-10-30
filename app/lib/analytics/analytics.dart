@@ -21,10 +21,15 @@ class Analytics {
 
   bool get remoteEnabled => _active;
 
+  /// Ключ AppMetrica — UUID. Кривой ключ (пробел, кавычки) не передаём в SDK: он может уронить запуск.
+  static String get _cleanKey => _key.trim().replaceAll('"', '').replaceAll("'", '');
+  static final _uuid = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+
   Future<void> init() async {
-    if (_key.isEmpty) return;
+    final key = _cleanKey;
+    if (key.isEmpty || !_uuid.hasMatch(key)) return;
     try {
-      await AppMetrica.activate(AppMetricaConfig(_key));
+      await AppMetrica.activate(AppMetricaConfig(key));
       _active = true;
     } catch (_) {
       _active = false;

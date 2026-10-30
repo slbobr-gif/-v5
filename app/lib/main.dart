@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app/app_controller.dart';
 import 'l10n/app_localizations.dart';
+import 'platform/notify_platform.dart';
 import 'ui/screens/home.dart';
 import 'ui/screens/onboarding.dart';
 import 'ui/theme/tokens.dart';
@@ -13,6 +14,8 @@ import 'ui/theme/tokens.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const ProviderScope(child: PutnikApp()));
+  // Первый кадр нарисован — запуск удался (для ловушки падений на Android)
+  WidgetsBinding.instance.addPostFrameCallback((_) => NotifyPlatform().appStarted());
 }
 
 class PutnikApp extends ConsumerStatefulWidget {

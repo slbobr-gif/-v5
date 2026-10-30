@@ -20,8 +20,20 @@
 
     <application
         android:label="@string/app_name"
-        android:name="${applicationName}"
+        android:name=".PutnikApplication"
         android:icon="@mipmap/ic_launcher">
+        <!-- Точка входа: показывает отчёт о падении, если прошлый запуск упал, иначе сразу открывает приложение -->
+        <activity
+            android:name=".LaunchActivity"
+            android:exported="true"
+            android:theme="@style/LaunchTheme"
+            android:noHistory="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -34,10 +46,6 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             <!-- Health Connect до Android 13: экран с объяснением, зачем нужны шаги -->
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
@@ -59,5 +67,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Тестовая сборка: классический рендер вместо Impeller — меньше риска падений на Xiaomi/MediaTek -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
     </application>
 </manifest>

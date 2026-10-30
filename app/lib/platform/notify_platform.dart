@@ -40,6 +40,17 @@ class NotifyPlatform {
     }
   }
 
+  /// Flutter нарисовал первый кадр — снимаем флаг «запуск оборвался» в ловушке падений.
+  Future<void> appStarted() async {
+    try {
+      await _ch.invokeMethod<bool>('appStarted');
+    } on MissingPluginException {
+      return;
+    } on PlatformException {
+      return;
+    }
+  }
+
   /// id уведомления, по которому открыли приложение (один раз), или null.
   Future<int?> consumeOpened() async {
     try {

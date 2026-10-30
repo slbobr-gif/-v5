@@ -14,6 +14,8 @@ import androidx.health.connect.client.PermissionController
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.util.Log
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,7 +29,11 @@ import kotlinx.coroutines.withContext
  */
 class MainActivity : FlutterFragmentActivity() {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    // Исключение в корутине не должно ронять приложение — только логируется
+    private val scope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Main +
+            CoroutineExceptionHandler { _, e -> Log.e("Putnik", "coroutine failed", e) }
+    )
     private var pendingActivity: MethodChannel.Result? = null
     private var pendingNotify: MethodChannel.Result? = null
     private var pendingHealth: MethodChannel.Result? = null
@@ -62,7 +68,16 @@ class MainActivity : FlutterFragmentActivity() {
 
         MethodChannel(messenger, "putnik/steps").setMethodCallHandler { call, result ->
             when (call.method) {
-                "getStatus" -> scope.launch { result.success(stepsStatus()) }
+                "getStatus" -> scope.launch {
+                    val status = try {
+                        stepsStatus()
+                    } catch (e: Exception) {
+                        Log.e("Putnik", "status failed", e)
+                        mapOf("sensorAvailable" to false, "activityPermission" to hasActivityPermission(),
+                            "hcStatus" to "unavailable", "hcPermission" to false)
+                    }
+                    result.success(status)
+                }
                 "requestActivityPermission" -> requestActivityPermission(result)
                 "requestHealthPermission" -> requestHealthPermission(result)
                 "openHealthConnectInstall" -> {
@@ -75,7 +90,16 @@ class MainActivity : FlutterFragmentActivity() {
                 }
                 "getDailySteps" -> {
                     val days = call.argument<Int>("days") ?: 30
-                    scope.launch { result.success(dailySteps(days)) }
+                    scope.launch {
+                        val data = try {
+                            dailySteps(days)
+                        } catch (e: Exception) {
+                            Log.e("Putnik", "daily steps failed", e)
+                            mapOf("days" to emptyMap<String, Long>(), "sensor" to emptyMap<String, Long>(),
+                                "hc" to emptyMap<String, Long>())
+                        }
+                        result.success(data)
+                    }
                 }
                 else -> result.notImplemented()
             }
@@ -84,6 +108,10 @@ class MainActivity : FlutterFragmentActivity() {
         captureNotification(intent)
         MethodChannel(messenger, "putnik/notify").setMethodCallHandler { call, result ->
             when (call.method) {
+                "appStarted" -> {
+                    CrashLog.markStarted(applicationContext)
+                    result.success(true)
+                }
                 "consumeOpened" -> {
                     result.success(openedNotification)
                     openedNotification = null
