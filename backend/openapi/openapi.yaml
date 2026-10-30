@@ -1,0 +1,1224 @@
+openapi: 3.1.0
+info:
+  title: Путник API
+  version: 0.1.0-draft
+  description: |
+    Черновик контракта этапа 0. Клиент генерируется из этого файла (dio + openapi_generator),
+    сервер (FastAPI) проверяется на соответствие в CI.
+
+    Общие правила:
+    * Все пути под /v1. Авторизация — `Authorization: Bearer <access JWT>` (15 мин).
+      Refresh-токен — непрозрачная строка, 30 дней, ротация при каждом обновлении.
+    * Ошибки — RFC 9457 `application/problem+json`, поле `code` — машинный ключ,
+      клиент показывает текст по ключу локализации `error_<code>`. Сервер текстов для UI не шлёт.
+    * Локализуемый контент (маршруты, факты) приходит на языке из `Accept-Language` (ru|en|zh),
+      пустой перевод → английский → русский.
+    * Справочники отдаются с `ETag`; клиент шлёт `If-None-Match` и получает 304.
+    * Изменяющие запросы с телом принимают `Idempotency-Key` (UUID); повтор с тем же ключом
+      возвращает сохранённый ответ 24 ч. Батч шагов идемпотентен и без ключа.
+    * Ни один ответ не содержит координат пользователя: их у сервера нет.
+servers:
+  - url: https://api.putnik.example/v1
+    description: Заглушка — домен будет выбран на этапе 11
+security:
+  - bearer: []
+
+tags:
+  - name: auth
+  - name: me
+  - name: steps
+  - name: routes
+  - name: journeys
+  - name: friends
+  - name: medals
+  - name: billing
+  - name: system
+
+paths:
+  /auth/email/register:
+    post:
+      tags: [auth]
+      security: []
+      summary: Регистрация по email. Письмо с подтверждением, сразу выдаёт токены.
+      description: |
+        409 на занятый email раскрывает наличие аккаунта — принятый риск (R-13), смягчён лимитами
+        по IP и по хэшу email. Захват чужого адреса невозможен: владелец email через
+        /auth/password/forgot подтверждает адрес, задаёт пароль, и все сессии самозванца отзываются.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailRegisterRequest' }
+      responses:
+        '201': { $ref: '#/components/responses/Tokens' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /auth/email/login:
+    post:
+      tags: [auth]
+      security: []
+      summary: Вход по email и паролю. Одинаковая ошибка для «нет пользователя» и «неверный пароль».
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailLoginRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/Tokens' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /auth/email/verify:
+    post:
+      tags: [auth]
+      security: []
+      summary: Подтверждение email по токену из письма (deep link).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenRequest' }
+      responses:
+        '204': { description: Подтверждено }
+        '410': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /auth/password/forgot:
+    post:
+      tags: [auth]
+      security: []
+      summary: Запрос письма для сброса. Всегда 202, чтобы не раскрывать наличие аккаунта.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+      responses:
+        '202': { description: Если аккаунт есть, письмо отправлено }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /auth/password/reset:
+    post:
+      tags: [auth]
+      security: []
+      summary: Новый пароль по токену. Отзывает все refresh-сессии пользователя.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, new_password]
+              properties:
+                token: { type: string, minLength: 32, maxLength: 128 }
+                new_password: { type: string, minLength: 8, maxLength: 128 }
+      responses:
+        '204': { description: Пароль изменён }
+        '410': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /auth/oauth/{provider}:
+    post:
+      tags: [auth]
+      security: []
+      summary: Вход через Яндекс ID / VK ID. Сервер сам обменивает code на токен провайдера (PKCE).
+      description: |
+        * redirect_uri сверяется с серверным списком разрешённых значений.
+        * Аккаунты НЕ связываются автоматически по совпадению email (адрес у провайдера может быть
+          неподтверждённым — путь к захвату). Новый провайдер = новый аккаунт; привязка к существующему —
+          только из авторизованной сессии через POST /me/providers/{provider}.
+        * Для нового пользователя (ответ 201, is_new_user=true) accept_policy_version обязателен, иначе 422.
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema: { type: string, enum: [yandex, vk, google] }
+          description: google — только если будет решено оставить (см. docs/04-risks.md, R-01).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OAuthRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/Tokens' }
+        '201': { $ref: '#/components/responses/Tokens' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      security: []
+      summary: Ротация refresh-токена. Повтор старого токена отзывает всю цепочку (признак кражи).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string, minLength: 32, maxLength: 256 }
+      responses:
+        '200': { $ref: '#/components/responses/Tokens' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Отзыв текущей refresh-сессии.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        '204': { description: Сессия отозвана }
+
+  /me:
+    get:
+      tags: [me]
+      summary: Профиль и права (премиум, триал, лимиты).
+      responses:
+        '200':
+          description: Профиль
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+    patch:
+      tags: [me]
+      summary: Изменение ника, пояса, языка, мипла, веса, тихих часов, пушей.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MePatch' }
+      responses:
+        '200':
+          description: Обновлённый профиль
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+    delete:
+      tags: [me]
+      summary: Удаление аккаунта (152-ФЗ). Мягкое сразу, жёсткое через 30 дней; подписку отменить в RuStore.
+      description: |
+        Требует свежего входа: access JWT с auth_time не старше 5 минут (иначе 403 reauth_required).
+        Сразу: отзыв всех сессий (token_version + 1), удаление дружб и заявок, новый friend_code,
+        скрытие из ленты. Вход в течение 30 дней восстанавливает аккаунт. Через 30 дней — полное
+        удаление; подписки обезличиваются (хранятся по закону о бухучёте), профиль AppMetrica удаляется
+        через API удаления данных.
+      responses:
+        '202': { description: Аккаунт помечен на удаление }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /me/export:
+    post:
+      tags: [me]
+      summary: Выгрузка своих данных (право субъекта ПДн). Архив забирается по ссылке из приложения.
+      description: |
+        Не отправляется на email: адрес может быть неподтверждённым, а у OAuth-пользователей его нет.
+        На подтверждённый email приходит только уведомление «выгрузка готова».
+      responses:
+        '202':
+          description: Выгрузка поставлена в очередь
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [export_id]
+                properties:
+                  export_id: { type: string, format: uuid }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /me/exports/{export_id}:
+    get:
+      tags: [me]
+      summary: Статус выгрузки и одноразовая ссылка на архив (живёт 15 минут). Только своя выгрузка.
+      parameters:
+        - { name: export_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Статус
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, enum: [pending, ready, expired] }
+                  download_url: { type: [string, 'null'], format: uri }
+                  expires_at: { type: [string, 'null'], format: date-time }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /me/providers/{provider}:
+    post:
+      tags: [me, auth]
+      summary: Привязать способ входа к текущему аккаунту (только из авторизованной сессии).
+      parameters:
+        - { name: provider, in: path, required: true, schema: { type: string, enum: [yandex, vk, google] } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OAuthRequest' }
+      responses:
+        '204': { description: Привязан }
+        '409': { $ref: '#/components/responses/Problem' }
+    delete:
+      tags: [me, auth]
+      summary: Отвязать способ входа. Последний способ отвязать нельзя (409).
+      parameters:
+        - { name: provider, in: path, required: true, schema: { type: string, enum: [email, yandex, vk, google] } }
+      responses:
+        '204': { description: Отвязан }
+        '409': { $ref: '#/components/responses/Problem' }
+
+  /me/friend-code/rotate:
+    post:
+      tags: [me, friends]
+      summary: Новый код друга (старый перестаёт работать). Не чаще 3 раз в сутки.
+      responses:
+        '200':
+          description: Новый код
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [friend_code]
+                properties:
+                  friend_code: { $ref: '#/components/schemas/FriendCode' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /me/devices/current:
+    put:
+      tags: [me]
+      summary: Регистрация установки и push-токена RuStore.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeviceUpsert' }
+      responses:
+        '204': { description: Сохранено }
+
+  /goals:
+    get:
+      tags: [me]
+      summary: Цели на день/неделю/месяц.
+      responses:
+        '200':
+          description: Цели
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Goal' }
+    put:
+      tags: [me]
+      summary: Задать цели (полная замена).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              maxItems: 3
+              items: { $ref: '#/components/schemas/Goal' }
+      responses:
+        '204': { description: Сохранено }
+        '422': { $ref: '#/components/responses/Problem' }
+
+  /steps/days:
+    put:
+      tags: [steps]
+      summary: Батч шагов по локальным дням. Идемпотентно (GREATEST), можно слать сколько угодно раз.
+      description: |
+        Клиент шлёт накопленное за день значение (не дельту) для сегодня и всех дней,
+        которые ещё не подтверждены сервером, не старше 30 дней. Сервер:
+        1) берёт максимум из старого и нового, 2) зачитывает с учётом лимита и бонусов,
+        3) двигает активный маршрут, 4) возвращает события (точки, медали, финиш),
+        которые клиент показывает сразу. Пуши по этим событиям сервер ставит в очередь сам.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StepsBatch' }
+      responses:
+        '200':
+          description: Результат зачёта
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StepsSyncResult' }
+        '422': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /stats/summary:
+    get:
+      tags: [steps]
+      summary: Сводка — сегодня/вчера, км, среднее, калории, прогресс целей, «осталось N дней».
+      responses:
+        '200':
+          description: Сводка
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Summary' }
+
+  /stats/days:
+    get:
+      tags: [steps]
+      summary: История по дням для графиков.
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Дни
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 400
+                items: { $ref: '#/components/schemas/DayStat' }
+
+  /meeples:
+    get:
+      tags: [routes]
+      summary: Каталог миплов с признаком доступности.
+      responses:
+        '200':
+          description: Миплы
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Meeple' }
+        '304': { description: Не изменилось }
+
+  /routes:
+    get:
+      tags: [routes]
+      summary: Каталог маршрутов с замками.
+      responses:
+        '200':
+          description: Маршруты
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/RouteSummary' }
+        '304': { description: Не изменилось }
+
+  /routes/{route_id}:
+    get:
+      tags: [routes]
+      summary: Маршрут с контрольными точками и ссылкой на геометрию в CDN.
+      parameters:
+        - $ref: '#/components/parameters/RouteId'
+      responses:
+        '200':
+          description: Маршрут
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RouteDetail' }
+        '304': { description: Не изменилось }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /routes/{route_id}/facts:
+    get:
+      tags: [routes]
+      summary: Опубликованные карточки фактов маршрута на языке Accept-Language.
+      parameters:
+        - $ref: '#/components/parameters/RouteId'
+      responses:
+        '200':
+          description: Карточки
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/FactCard' }
+        '304': { description: Не изменилось }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /journeys:
+    get:
+      tags: [journeys]
+      summary: История путешествий.
+      responses:
+        '200':
+          description: Путешествия
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Journey' }
+    post:
+      tags: [journeys]
+      summary: Начать маршрут. Активный маршрут при этом ставится на паузу-завершение (abandoned).
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [route_id]
+              properties:
+                route_id: { type: integer }
+                confirm_abandon_current: { type: boolean, default: false }
+      responses:
+        '201':
+          description: Путешествие начато
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Journey' }
+        '402': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+
+  /journeys/current:
+    get:
+      tags: [journeys]
+      summary: Текущее путешествие + попутчики (позиции NPC дошагиваются до сегодня).
+      responses:
+        '200':
+          description: Текущее путешествие
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JourneyCurrent' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /friends:
+    get:
+      tags: [friends]
+      summary: Список друзей — ник, маршрут, процент. Без геолокации.
+      responses:
+        '200':
+          description: Друзья
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Friend' }
+        '402': { $ref: '#/components/responses/Problem' }
+
+  /friends/{user_id}:
+    delete:
+      tags: [friends]
+      summary: Удалить из друзей (для обоих). Удаляется только пара (LEAST, GREATEST) с текущим пользователем.
+      parameters:
+        - { name: user_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Удалён }
+
+  /friends/requests:
+    get:
+      tags: [friends]
+      summary: Входящие и исходящие заявки.
+      responses:
+        '200':
+          description: Заявки
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [incoming, outgoing]
+                properties:
+                  incoming: { type: array, items: { $ref: '#/components/schemas/FriendRequest' } }
+                  outgoing: { type: array, items: { $ref: '#/components/schemas/OutgoingFriendRequest' } }
+    post:
+      tags: [friends]
+      summary: Заявка по 6-символьному коду. Ответ одинаков для существующего и несуществующего кода.
+      description: |
+        Лимиты: 10 попыток в час на пользователя, 30 в час на IP (из заголовка API Gateway),
+        общий счётчик неудачных кодов с тревогой при всплеске. После отказа повторная заявка той же
+        паре — не раньше чем через 30 дней (ответ всё равно 202, заявка не создаётся).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { $ref: '#/components/schemas/FriendCode' }
+      responses:
+        '202': { description: Если код существует, заявка отправлена }
+        '402': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /friends/requests/{request_id}/{action}:
+    post:
+      tags: [friends]
+      summary: Принять / отклонить входящую или отменить исходящую заявку.
+      description: |
+        accept и decline — только если to_user_id = текущий пользователь; cancel — только если
+        from_user_id = текущий пользователь. Иначе 404 (не 403, чтобы не раскрывать существование).
+      parameters:
+        - { name: request_id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: action, in: path, required: true, schema: { type: string, enum: [accept, decline, cancel] } }
+      responses:
+        '204': { description: Готово }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /friends/feed:
+    get:
+      tags: [friends]
+      summary: Лента «кто куда идёт» — старты, точки, финиши друзей. Без рейтингов.
+      description: |
+        Приватность: только локальная дата без времени, события видны через 6 часов после того,
+        как произошли; друзья с выключенным share_activity в ленте не появляются.
+      parameters:
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses:
+        '200':
+          description: Лента
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/FeedItem' } }
+                  next_cursor: { type: [string, 'null'] }
+
+  /medals:
+    get:
+      tags: [medals]
+      summary: Все медали с отметкой «получена».
+      responses:
+        '200':
+          description: Медали
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Medal' }
+
+  /ads/rewards:
+    post:
+      tags: [billing]
+      summary: Бонус +1 000 шагов за досмотренный rewarded-ролик. Только для бесплатного тарифа.
+      description: |
+        `id` — UUID, который клиент генерирует на каждый показ: повтор не начислит дважды.
+        Яндекс Рекламная сеть не даёт серверного подтверждения награды, поэтому сервер
+        ограничивает частоту (не больше N в день, интервал между роликами) и помечает аномалии.
+        Проверка лимитов идёт после блокировки строки пользователя, иначе параллельные запросы её обойдут;
+        затем в той же транзакции — пересчёт дня (sync_daily_steps с steps = null).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, ad_unit_id]
+              properties:
+                id: { type: string, format: uuid }
+                ad_unit_id: { type: string, maxLength: 64 }
+      responses:
+        '200':
+          description: Бонус начислен (или уже был начислен этим id)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdRewardResult' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+
+  /billing/products:
+    get:
+      tags: [billing]
+      summary: Тарифы и id продуктов провайдера. Цены приходят из RuStore SDK, здесь — для витрины.
+      responses:
+        '200':
+          description: Продукты
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Product' }
+
+  /billing/purchases/verify:
+    post:
+      tags: [billing]
+      summary: Клиент передаёт идентификатор покупки, сервер сам проверяет её у провайдера.
+      description: |
+        При покупке клиент передаёт провайдеру billing_account_ref из /me (непрозрачный HMAC от user_id).
+        Сервер сверяет его в ответе провайдера с текущим пользователем. Если подписка уже принадлежит
+        другому аккаунту — 409, перепривязки нет.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, purchase_id]
+              properties:
+                provider: { type: string, enum: [rustore, yookassa] }
+                purchase_id: { type: string, maxLength: 128 }
+                product_id: { type: string, maxLength: 64 }
+      responses:
+        '200':
+          description: Актуальные права
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Entitlements' }
+        '402': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+
+  /billing/webhooks/{provider}:
+    post:
+      tags: [billing]
+      security: []
+      summary: Серверные уведомления провайдера (продление, отмена, возврат).
+      description: |
+        Тело — только сигнал: сервер дедуплицирует по (provider, event_id) в billing_events и заново
+        запрашивает состояние покупки по API провайдера. Подпись проверяется, где провайдер её даёт;
+        уведомления ЮKassa подписи не имеют, поэтому для неё сверка по API обязательна.
+      parameters:
+        - { name: provider, in: path, required: true, schema: { type: string, enum: [rustore, yookassa] } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200': { description: Принято }
+        '401': { $ref: '#/components/responses/Problem' }
+
+  /healthz:
+    get:
+      tags: [system]
+      security: []
+      summary: Проверка живости для балансировщика.
+      responses:
+        '200': { description: OK }
+
+  /app/config:
+    get:
+      tags: [system]
+      security: []
+      summary: Удалённые настройки — минимальная версия, лимиты, флаги функций.
+      responses:
+        '200':
+          description: Конфиг
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AppConfig' }
+
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  headers:
+    ETag:
+      schema: { type: string }
+
+  parameters:
+    RouteId:
+      name: route_id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+
+  responses:
+    Tokens:
+      description: Пара токенов
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Tokens' }
+    Problem:
+      description: Ошибка RFC 9457
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer }
+        code:
+          type: string
+          description: Машинный ключ, напр. premium_required, rate_limited, invalid_credentials.
+        detail: { type: string }
+        retry_after_s: { type: integer }
+
+    Tokens:
+      type: object
+      required: [access_token, refresh_token, expires_in, is_new_user]
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        expires_in: { type: integer, example: 900 }
+        is_new_user: { type: boolean }
+
+    EmailRegisterRequest:
+      type: object
+      required: [email, password, nickname, timezone, locale, accept_policy_version]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 8, maxLength: 128 }
+        nickname: { $ref: '#/components/schemas/Nickname' }
+        timezone: { $ref: '#/components/schemas/Timezone' }
+        locale: { $ref: '#/components/schemas/Locale' }
+        meeple_code: { type: string }
+        accept_policy_version:
+          type: string
+          description: Версия политики ПДн, с которой согласился пользователь (152-ФЗ).
+
+    EmailLoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, maxLength: 128 }
+        install_id: { type: string, maxLength: 64 }
+
+    OAuthRequest:
+      type: object
+      required: [code, code_verifier, redirect_uri]
+      properties:
+        code: { type: string, maxLength: 1024 }
+        code_verifier: { type: string, minLength: 43, maxLength: 128 }
+        redirect_uri: { type: string }
+        device_id:
+          type: string
+          description: Нужен VK ID для обмена кода.
+        timezone: { $ref: '#/components/schemas/Timezone' }
+        locale: { $ref: '#/components/schemas/Locale' }
+        accept_policy_version: { type: string }
+        install_id: { type: string, maxLength: 64 }
+
+    TokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, minLength: 32, maxLength: 128 }
+
+    Nickname:
+      type: string
+      minLength: 2
+      maxLength: 24
+    Locale:
+      type: string
+      enum: [ru, en, zh]
+    Timezone:
+      type: string
+      description: IANA, напр. Europe/Moscow
+      maxLength: 64
+    FriendCode:
+      type: string
+      pattern: '^[2-9A-HJ-NP-Z]{6}$'
+
+    Me:
+      type: object
+      required: [id, nickname, friend_code, locale, timezone, entitlements, quiet_hours, push_enabled, share_activity, billing_account_ref]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: [string, 'null'] }
+        email_verified: { type: boolean }
+        nickname: { $ref: '#/components/schemas/Nickname' }
+        friend_code: { $ref: '#/components/schemas/FriendCode' }
+        locale: { $ref: '#/components/schemas/Locale' }
+        timezone: { $ref: '#/components/schemas/Timezone' }
+        meeple_code: { type: [string, 'null'] }
+        weight_kg:
+          type: [number, 'null']
+          description: null — не указан, калории считаются с 70 кг
+        share_activity: { type: boolean, description: Видят ли друзья маршрут, процент и события ленты }
+        billing_account_ref: { type: string, description: Передаётся провайдеру при покупке для привязки к аккаунту }
+        push_enabled: { type: boolean }
+        quiet_hours:
+          type: object
+          required: [start, end]
+          properties:
+            start: { type: string, example: '22:00' }
+            end: { type: string, example: '09:00' }
+        linked_providers:
+          type: array
+          items: { type: string, enum: [email, yandex, vk, google] }
+        entitlements: { $ref: '#/components/schemas/Entitlements' }
+
+    MePatch:
+      type: object
+      minProperties: 1
+      properties:
+        nickname: { $ref: '#/components/schemas/Nickname' }
+        locale: { $ref: '#/components/schemas/Locale' }
+        timezone: { $ref: '#/components/schemas/Timezone' }
+        meeple_code: { type: string }
+        weight_kg: { type: [number, 'null'], minimum: 30, maximum: 250 }
+        share_activity: { type: boolean }
+        push_enabled: { type: boolean }
+        quiet_hours:
+          type: object
+          required: [start, end]
+          properties:
+            start: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+            end: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+
+    Entitlements:
+      type: object
+      required: [tier, daily_step_limit, ads_enabled, friends_enabled]
+      properties:
+        tier: { type: string, enum: [free, trial, premium] }
+        premium_until: { type: [string, 'null'], format: date-time }
+        trial_available: { type: boolean }
+        daily_step_limit:
+          type: [integer, 'null']
+          description: null — без лимита
+        ad_bonus_steps: { type: integer, example: 1000 }
+        ad_bonuses_left_today: { type: integer }
+        ads_enabled: { type: boolean }
+        friends_enabled: { type: boolean }
+        subscription:
+          type: [object, 'null']
+          properties:
+            plan: { type: string, enum: [monthly, yearly] }
+            status: { type: string }
+            auto_renew: { type: boolean }
+            current_period_end: { type: string, format: date-time }
+
+    DeviceUpsert:
+      type: object
+      required: [install_id, app_version]
+      properties:
+        install_id: { type: string, maxLength: 64 }
+        push_token: { type: [string, 'null'], maxLength: 512 }
+        app_version: { type: string, maxLength: 32 }
+        os_version: { type: string, maxLength: 32 }
+
+    Goal:
+      type: object
+      required: [period, target_steps]
+      properties:
+        period: { type: string, enum: [day, week, month] }
+        target_steps: { type: integer, minimum: 500, maximum: 5000000 }
+
+    StepsBatch:
+      type: object
+      required: [install_id, timezone, days]
+      properties:
+        install_id: { type: string, maxLength: 64 }
+        timezone:
+          $ref: '#/components/schemas/Timezone'
+        days:
+          type: array
+          minItems: 1
+          maxItems: 32
+          items:
+            type: object
+            required: [day, steps, source]
+            properties:
+              day: { type: string, format: date, description: Локальная дата пользователя }
+              steps: { type: integer, minimum: 0, maximum: 150000, description: Накопленное за день, не дельта }
+              source: { type: string, enum: [health_connect, sensor] }
+
+    StepsSyncResult:
+      type: object
+      required: [today, days, rejected, events, entitlements]
+      properties:
+        today: { type: string, format: date }
+        days:
+          type: array
+          items:
+            type: object
+            required: [day, raw, credited, limited]
+            properties:
+              day: { type: string, format: date }
+              raw: { type: integer }
+              credited: { type: integer }
+              tz:
+                type: string
+                description: Пояс, в котором открыт этот день. Клиент считает шаги дня строго в нём, иначе при перелёте вечерние часы попадут в два дня.
+              limited: { type: boolean, description: Часть шагов не зачтена из-за лимита }
+        rejected:
+          type: array
+          items:
+            type: object
+            properties:
+              day: { type: string, format: date }
+              reason: { type: string, enum: [out_of_window, implausible, no_source] }
+        journey: { $ref: '#/components/schemas/JourneyProgress' }
+        events:
+          type: array
+          description: Что случилось в этом синке — клиент показывает анимацию/карточку.
+          items: { $ref: '#/components/schemas/JourneyEvent' }
+        entitlements: { $ref: '#/components/schemas/Entitlements' }
+
+    JourneyEvent:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [point_reached, milestone, finished, medal] }
+        point_code: { type: string }
+        milestone_pct: { type: integer, enum: [25, 50, 75] }
+        medal_code: { type: string }
+
+    JourneyProgress:
+      type: object
+      required: [journey_id, route_id, steps_done, total_steps, percent]
+      properties:
+        journey_id: { type: string, format: uuid }
+        route_id: { type: integer }
+        steps_done: { type: integer }
+        total_steps: { type: integer }
+        percent: { type: number }
+        days_left_at_pace:
+          type: [integer, 'null']
+          description: «При твоём темпе осталось N дней» — по среднему зачтённому за 7 дней; null, если темпа ещё нет.
+
+    Summary:
+      type: object
+      required: [today, yesterday, avg_7d, goals]
+      properties:
+        today: { $ref: '#/components/schemas/DayStat' }
+        yesterday: { $ref: '#/components/schemas/DayStat' }
+        avg_7d: { type: integer }
+        streak_days: { type: integer, description: Текущая серия; 0, если последний день серии раньше вчера }
+        total_km: { type: number, description: Из users.lifetime_steps, без чтения истории }
+        journey: { $ref: '#/components/schemas/JourneyProgress' }
+        goals:
+          type: array
+          items:
+            type: object
+            properties:
+              period: { type: string, enum: [day, week, month] }
+              target_steps: { type: integer }
+              done_steps: { type: integer }
+
+    DayStat:
+      type: object
+      required: [day, steps, km, kcal]
+      properties:
+        day: { type: string, format: date }
+        steps: { type: integer, description: Всё, что насчитал телефон (raw) }
+        credited: { type: integer, description: Зачтено в путешествие }
+        km: { type: number, description: steps × 0,75 м }
+        kcal: { type: integer, description: Оценка по весу из профиля (по умолчанию 70 кг) }
+
+    Meeple:
+      type: object
+      required: [code, name, gender, pose, sprite_url, locked]
+      properties:
+        code: { type: string }
+        name: { type: string }
+        gender: { type: string, enum: [m, f] }
+        pose: { type: string, enum: [walk, run, dog, stroller, backpack] }
+        sprite_url: { type: string, format: uri }
+        locked: { type: boolean }
+
+    RouteSummary:
+      type: object
+      required: [id, slug, title, distance_m, total_steps, tier, locked, is_loop]
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        title: { type: string }
+        distance_m: { type: integer }
+        total_steps: { type: integer }
+        tier: { type: string, enum: [free, premium] }
+        locked: { type: boolean }
+        is_loop: { type: boolean }
+        cover_url: { type: [string, 'null'], format: uri, description: CDN-ссылка из routes.cover_key }
+        content_version: { type: integer }
+
+    RouteDetail:
+      allOf:
+        - $ref: '#/components/schemas/RouteSummary'
+        - type: object
+          required: [points, geometry]
+          properties:
+            description: { type: string }
+            geometry:
+              type: object
+              required: [url, version, sha256]
+              properties:
+                url: { type: string, format: uri, description: GeoJSON в CDN, кэшируется на устройстве }
+                version: { type: integer }
+                sha256: { type: string }
+            points:
+              type: array
+              items: { $ref: '#/components/schemas/RoutePoint' }
+
+    RoutePoint:
+      type: object
+      required: [code, seq, kind, card_type, name, lat, lon, distance_m]
+      properties:
+        code: { type: string }
+        seq: { type: integer }
+        kind: { type: string, enum: [start, checkpoint, finish] }
+        card_type: { type: string, enum: [city, surroundings, region] }
+        name: { type: string }
+        lat: { type: number }
+        lon: { type: number }
+        distance_m: { type: integer }
+
+    FactCard:
+      type: object
+      required: [point_code, card_type, title, body]
+      properties:
+        point_code: { type: string }
+        card_type: { type: string, enum: [city, surroundings, region] }
+        title: { type: string }
+        body: { type: string }
+        image_url: { type: [string, 'null'], format: uri }
+        source_url: { type: [string, 'null'], format: uri }
+
+    Journey:
+      type: object
+      required: [id, route_id, status, steps_done, total_steps, started_at]
+      properties:
+        id: { type: string, format: uuid }
+        route_id: { type: integer }
+        status: { type: string, enum: [active, finished, abandoned] }
+        steps_done: { type: integer }
+        total_steps: { type: integer }
+        started_at: { type: string, format: date-time }
+        finished_at: { type: [string, 'null'], format: date-time }
+
+    JourneyCurrent:
+      allOf:
+        - $ref: '#/components/schemas/Journey'
+        - type: object
+          required: [progress, companions]
+          properties:
+            progress: { $ref: '#/components/schemas/JourneyProgress' }
+            companions:
+              type: array
+              items: { $ref: '#/components/schemas/Companion' }
+
+    Companion:
+      type: object
+      required: [npc_code, name, position_m, state]
+      properties:
+        npc_code: { type: string }
+        name: { type: string }
+        position_m: { type: integer }
+        state: { type: string, enum: [walking, camp, wrong_turn, rest, detour, sprint] }
+        state_days_left: { type: integer }
+        message_key: { type: string, description: Ключ локализации сюжетной реплики }
+
+    Friend:
+      type: object
+      required: [user_id, nickname]
+      properties:
+        user_id: { type: string, format: uuid }
+        nickname: { type: string }
+        meeple_code: { type: [string, 'null'] }
+        route_title: { type: [string, 'null'] }
+        route_percent:
+          type: [number, 'null']
+          description: Снимок на конец прошлого дня (не в реальном времени); null, если друг выключил share_activity
+        same_group: { type: boolean, description: Идём совместным маршрутом }
+
+    FriendRequest:
+      type: object
+      required: [id, nickname, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        nickname: { type: string }
+        created_at: { type: string, format: date-time }
+
+    OutgoingFriendRequest:
+      type: object
+      description: Без ника, пока заявку не приняли — иначе по ответу можно проверять, чей это код.
+      required: [id, code, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/FriendCode' }
+        created_at: { type: string, format: date-time }
+
+    FeedItem:
+      type: object
+      required: [id, nickname, type, local_day]
+      properties:
+        id: { type: string }
+        nickname: { type: string }
+        type: { type: string, enum: [route_started, point_reached, milestone, route_finished, medal] }
+        route_title: { type: string }
+        point_name: { type: string }
+        milestone_pct: { type: integer, enum: [25, 50, 75] }
+        medal_code: { type: string }
+        local_day: { type: string, format: date, description: Только дата, без времени }
+
+    Medal:
+      type: object
+      required: [code, kind, title, icon_url, earned]
+      properties:
+        code: { type: string }
+        kind: { type: string, enum: [route_finish, milestone, streak, distance] }
+        title: { type: string }
+        description: { type: string }
+        icon_url: { type: string, format: uri }
+        earned: { type: boolean }
+        earned_count: { type: integer }
+        last_earned_at: { type: [string, 'null'], format: date-time }
+        premium_reward: { type: boolean }
+
+    AdRewardResult:
+      type: object
+      required: [granted, steps, bonuses_left_today]
+      properties:
+        granted: { type: boolean }
+        steps: { type: integer }
+        bonuses_left_today: { type: integer }
+        day: { $ref: '#/components/schemas/DayStat' }
+
+    Product:
+      type: object
+      required: [product_id, plan, provider]
+      properties:
+        product_id: { type: string }
+        plan: { type: string, enum: [monthly, yearly] }
+        provider: { type: string, enum: [rustore, yookassa] }
+        display_price_rub: { type: integer, description: 149 / 999 — справочно, истина в SDK }
+
+    AppConfig:
+      type: object
+      required: [min_supported_build, free_daily_step_limit, ad_bonus_steps, ad_bonuses_per_day]
+      properties:
+        min_supported_build: { type: integer }
+        free_daily_step_limit: { type: integer, example: 2000 }
+        ad_bonus_steps: { type: integer, example: 1000 }
+        ad_bonuses_per_day: { type: integer, example: 3 }
+        step_length_cm: { type: integer, example: 75 }
+        features:
+          type: object
+          additionalProperties: { type: boolean }
