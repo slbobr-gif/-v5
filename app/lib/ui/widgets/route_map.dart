@@ -439,7 +439,12 @@ class _RouteMapState extends State<RouteMap> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
-      final vp = Size(c.maxWidth, c.maxHeight);
+      // В неограниченной оси Stack из одних Positioned получил бы бесконечный размер (исключение в debug,
+      // пустой блок в release) — берём ширину экрана / запасную высоту и задаём размер явно ниже.
+      final vp = Size(
+        c.hasBoundedWidth ? c.maxWidth : MediaQuery.sizeOf(context).width,
+        c.hasBoundedHeight ? c.maxHeight : 240,
+      );
       final sizeChanged = _viewport != vp || _lastNear != widget.near || _lastTick != widget.recenterTick;
       // Пока игрок сам двигал карту, она не прыгает за героем; кнопка «К герою» возвращает вид.
       final moved = _lastPos == null || (widget.near && !_userMoved && (widget.heroPos - _lastPos!).abs() > 300);
@@ -453,39 +458,42 @@ class _RouteMapState extends State<RouteMap> {
           if (mounted) _focus(vp);
         });
       }
-      return ClipRect(
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: InteractiveViewer(
-                transformationController: _ctrl,
-                constrained: false,
-                minScale: 0.05,
-                maxScale: 12,
-                boundaryMargin: const EdgeInsets.all(400),
-                onInteractionStart: (_) {
-                  _userMoved = true;
-                },
-                child: SizedBox(
-                  width: _proj.width,
-                  height: _proj.height,
-                  child: RepaintBoundary(
-                    child: CustomPaint(
-                      painter: _MapPainter(widget.content, _geo, widget.heroPos, widget.night, _ctrl),
+      return SizedBox.fromSize(
+        size: vp,
+        child: ClipRect(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: InteractiveViewer(
+                  transformationController: _ctrl,
+                  constrained: false,
+                  minScale: 0.05,
+                  maxScale: 12,
+                  boundaryMargin: const EdgeInsets.all(400),
+                  onInteractionStart: (_) {
+                    _userMoved = true;
+                  },
+                  child: SizedBox(
+                    width: _proj.width,
+                    height: _proj.height,
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        painter: _MapPainter(widget.content, _geo, widget.heroPos, widget.night, _ctrl),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Positioned.fill(
-              child: IgnorePointer(
-                child: ValueListenableBuilder<Matrix4>(
-                  valueListenable: _ctrl,
-                  builder: (context, m, _) => _heroOverlay(m),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ValueListenableBuilder<Matrix4>(
+                    valueListenable: _ctrl,
+                    builder: (context, m, _) => _heroOverlay(m),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     });

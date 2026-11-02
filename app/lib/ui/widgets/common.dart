@@ -201,7 +201,8 @@ class SwatchChip extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 6),
-          Text(label, style: const TextStyle(color: Palette.parchment, fontSize: 12.5)),
+          // Flexible: в узкой колонке длинное название зоны переносится, а не переполняет чип.
+          Flexible(child: Text(label, style: const TextStyle(color: Palette.parchment, fontSize: 12.5))),
         ],
       ),
     );
@@ -228,8 +229,11 @@ class AccentChipButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 48),
+          // heightFactor: 1 — в строке/панели с ограниченной высотой Center не растягивается на неё целиком
+          // (тот же класс ошибки, что у дока 0.5.4); minHeight 48 всё равно даёт зону нажатия.
           child: Center(
             widthFactor: 1,
+            heightFactor: 1,
             child: Container(
               height: 34,
               padding: const EdgeInsets.fromLTRB(10, 0, 13, 0),
@@ -245,8 +249,15 @@ class AccentChipButton extends StatelessWidget {
                     Icon(ic, size: 16, color: Palette.accent),
                     const SizedBox(width: 6),
                   ],
-                  Text(label,
-                      style: const TextStyle(color: Palette.accent, fontSize: 13, fontWeight: FontWeight.w700)),
+                  // Кнопка стоит и в Row без ограничения ширины (лента «Пути»), поэтому не Flexible,
+                  // а предел ширины: длинное имя линии в журнале обрезается многоточием, а не переполняет.
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 240),
+                    child: Text(label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Palette.accent, fontSize: 13, fontWeight: FontWeight.w700)),
+                  ),
                 ],
               ),
             ),

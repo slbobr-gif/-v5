@@ -196,38 +196,45 @@ class _StageBar extends StatelessWidget implements PreferredSizeWidget {
       excludeSemantics: true,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(Gap.m, 0, Gap.m, Gap.s),
-        child: Row(
-          children: [
-            for (var i = 0; i < names.length; i++) ...[
-              if (i > 0) const SizedBox(width: 6),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: i == stage
-                            ? Palette.accent
-                            : (i < stage ? Palette.accentDeep : const Color(0xFF2A3B4F)),
-                        borderRadius: BorderRadius.circular(2),
+        // AppBar.bottom: высота фиксирована preferredSize (34) — подписи не растут выше 1,2,
+        // иначе полоса этапов не помещается и обрезается.
+        child: MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.2,
+          child: Row(
+            children: [
+              for (var i = 0; i < names.length; i++) ...[
+                if (i > 0) const SizedBox(width: 6),
+                Expanded(
+                  child: Column(
+                    // min: в AppBar.bottom высота не ограничена — колонка по содержимому, а не «на всё».
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: i == stage
+                              ? Palette.accent
+                              : (i < stage ? Palette.accentDeep : const Color(0xFF2A3B4F)),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      names[i],
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: i == stage ? Palette.accent : Palette.parchmentDim,
+                      const SizedBox(height: 3),
+                      Text(
+                        names[i],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: i == stage ? Palette.accent : Palette.parchmentDim,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

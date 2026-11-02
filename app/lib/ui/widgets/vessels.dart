@@ -49,7 +49,10 @@ class VesselsPanel extends StatelessWidget {
     return Semantics(
       label: semanticsLabel,
       child: ExcludeSemantics(
+        // heightFactor: 1 — в ограниченной по высоте ячейке Center не растягивается на всю высоту;
+        // размер полотна задают ConstrainedBox + AspectRatio (иначе CustomPaint получил бы 0×0).
         child: Center(
+          heightFactor: 1,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 248),
             child: AspectRatio(

@@ -138,16 +138,26 @@ class _CoachHostState extends ConsumerState<CoachHost> {
     final host = context.findRenderObject();
     if (ro is! RenderBox || host is! RenderBox) return null;
     if (!ro.attached || !ro.hasSize || !host.hasSize) return null;
+    // Якорь нулевого размера (тело Scaffold сжато в 0, как при баге дока 0.5.4) — подсвечивать нечего:
+    // иначе вырез получался полоской 12 px над пустым фоном.
+    if (ro.size.width < 1 || ro.size.height < 1) return null;
     final topLeft = ro.localToGlobal(Offset.zero, ancestor: host);
     var r = topLeft & ro.size;
+    final bounds = Offset.zero & host.size;
+    // Якорь размером почти с весь экран (растянутый док) — вырез ничего не выделит, шаг пропускаем.
+    if (r.width * r.height > bounds.width * bounds.height * 0.8) return null;
     final tab = TourRegistry.tabIndex[anchor];
     if (tab != null) {
       final w = r.width / TourRegistry.tabCount;
-      r = Rect.fromCenter(center: Offset(r.left + w * (tab + 0.5), r.top + r.height / 2), width: 96, height: 64);
+      // Вырез вкладки — по реальной ширине кнопки дока (на узком экране она уже 96 dp) и высоте дока.
+      r = Rect.fromCenter(
+        center: Offset(r.left + w * (tab + 0.5), r.top + r.height / 2),
+        width: math.min(96.0, w),
+        height: math.min(64.0, r.height),
+      );
     } else {
       r = r.inflate(6);
     }
-    final bounds = Offset.zero & host.size;
     if (!bounds.overlaps(r)) return null;
     return r;
   }
@@ -225,6 +235,23 @@ class _CoachHostState extends ConsumerState<CoachHost> {
     Analytics.instance.event('tour_step', {'n': i + 1, 'id': s.id, 'mode': _isTour ? 'auto' : 'context'});
   }
 
+  /// Перемерить вырез текущего шага; заметный сдвиг — перерисовать, якорь пропал — закрыть подсказку.
+  void _remeasure() {
+    final steps = _steps;
+    final old = _hole;
+    if (!mounted || _busy || steps == null || old == null || _i >= steps.length) return;
+    final r = _rectOf(steps[_i].anchor);
+    if (r == null) {
+      _close();
+      return;
+    }
+    final moved = (r.left - old.left).abs() > 0.5 ||
+        (r.top - old.top).abs() > 0.5 ||
+        (r.width - old.width).abs() > 0.5 ||
+        (r.height - old.height).abs() > 0.5;
+    if (moved) setState(() => _hole = r);
+  }
+
   void _close() {
     if (!mounted) return;
     setState(() {
@@ -290,6 +317,11 @@ class _CoachHostState extends ConsumerState<CoachHost> {
       });
     }
     final showing = steps != null && hole != null;
+    if (showing) {
+      // Вырез держится за реальное положение якоря: после перестройки (подгрузилась картинка, поворот,
+      // смена размеров тела Scaffold) пересчитываем его, а не оставляем замер 32 мс после показа.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _remeasure());
+    }
     return PopScope(
       canPop: steps == null,
       onPopInvokedWithResult: (bool didPop, Object? result) {

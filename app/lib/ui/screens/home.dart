@@ -660,7 +660,8 @@ class _LegendItem extends StatelessWidget {
       children: [
         swatch,
         const SizedBox(width: 5),
-        Text(label, style: const TextStyle(fontSize: 11.5, color: Palette.parchmentDim)),
+        // В Wrap ширина ограничена — Flexible переносит длинную подпись вместо переполнения строки.
+        Flexible(child: Text(label, style: const TextStyle(fontSize: 11.5, color: Palette.parchmentDim))),
       ],
     );
   }
@@ -869,7 +870,10 @@ class _ThoughtCard extends ConsumerWidget {
           Row(children: [
             Icon(Icons.wb_twilight, color: seen ? Palette.parchmentDim : Palette.accent),
             const SizedBox(width: Gap.s),
-            Text(l.thoughtCardTitle, style: TextStyle(color: seen ? Palette.parchmentDim : Palette.accent)),
+            // Flexible: при крупном шрифте заголовок переносится, а не переполняет строку.
+            Flexible(
+              child: Text(l.thoughtCardTitle, style: TextStyle(color: seen ? Palette.parchmentDim : Palette.accent)),
+            ),
           ]),
           const SizedBox(height: Gap.s),
           Text('«${t.quote}»', style: const TextStyle(fontStyle: FontStyle.italic, height: 1.4)),

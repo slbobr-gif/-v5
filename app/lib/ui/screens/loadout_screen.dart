@@ -533,7 +533,8 @@ class _SlotsPanel extends StatelessWidget {
           Row(children: [
             const EmptySlot(size: 12),
             const SizedBox(width: Gap.xs),
-            Text(l.loadoutSlotFree, style: const TextStyle(color: Palette.parchmentDim, fontSize: 11)),
+            // Expanded: подпись переносится при крупном шрифте, а не переполняет строку.
+            Expanded(child: Text(l.loadoutSlotFree, style: const TextStyle(color: Palette.parchmentDim, fontSize: 11))),
           ]),
         ],
       ),

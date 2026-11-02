@@ -102,16 +102,21 @@ class GiftRow extends ConsumerWidget {
           ]),
         ),
         const SizedBox(width: Gap.s),
-        FilledButton.tonal(
-          style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
-          onPressed: status == 'ready'
-              ? () {
-                  final r = ref.read(appProvider.notifier).useGift(item);
-                  final text = r == 'ok' ? l.giftUsed : (giftStatusText(l, r, 0) ?? l.overflowError);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
-                }
-              : null,
-          child: Text(label),
+        // Кнопка — негибкий ребёнок Row: подпись-запаска (имя предмета) могла бы вытеснить колонку
+        // Expanded и переполнить строку. Предел ширины — текст переносится внутри кнопки.
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 150),
+          child: FilledButton.tonal(
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+            onPressed: status == 'ready'
+                ? () {
+                    final r = ref.read(appProvider.notifier).useGift(item);
+                    final text = r == 'ok' ? l.giftUsed : (giftStatusText(l, r, 0) ?? l.overflowError);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+                  }
+                : null,
+            child: Text(label, textAlign: TextAlign.center),
+          ),
         ),
       ]),
     );

@@ -755,7 +755,12 @@ class _ChapterMapViewState extends State<ChapterMapView> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
-      final vp = Size(c.maxWidth, c.maxHeight);
+      // В неограниченной оси (ListView, Column без Expanded) вид получил бы бесконечный размер
+      // и масштаб NaN — карта пустая. Берём ширину экрана / запасную высоту и задаём размер явно.
+      final vp = Size(
+        c.hasBoundedWidth ? c.maxWidth : MediaQuery.sizeOf(context).width,
+        c.hasBoundedHeight ? c.maxHeight : 320,
+      );
       final v = _viewFor(vp);
       final origin = v.rect.topLeft;
       final changed = _vp != vp || _lastFit != widget.fitTick || _lastHero != widget.heroTick;
@@ -785,63 +790,66 @@ class _ChapterMapViewState extends State<ChapterMapView> {
             width: _markerSize, height: _markerSize, fit: BoxFit.contain),
       );
       final marks = <MapMark>[...widget.marks, if (frame.heroHere) heroMark];
-      return ClipRect(
-        child: Opacity(
-          opacity: _ready ? 1 : 0,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: InteractiveViewer(
-                  transformationController: _ctrl,
-                  constrained: false,
-                  minScale: v.scale,
-                  maxScale: v.scale * 7,
-                  boundaryMargin: EdgeInsets.zero,
-                  onInteractionStart: (_) {
-                    if (widget.selectedId != null) widget.onSelect(null);
-                  },
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTapUp: (d) => _onTap(d, origin),
-                    child: SizedBox(
-                      width: v.rect.width,
-                      height: v.rect.height,
-                      child: RepaintBoundary(
-                        child: CustomPaint(
-                          painter: _ChapterPainter(
-                            line: _line,
-                            geo: _geo,
-                            frame: frame,
-                            jewels: _jewelsFor(),
-                            leaders: leaders,
-                            origin: origin,
-                            ctrl: _ctrl,
-                            night: widget.night,
-                            // кольцо — только у значков прямо на точке (место, ночёвка)
-                            selected: (sel == null || sel.shift != Offset.zero) ? null : sel.at,
+      return SizedBox.fromSize(
+        size: vp,
+        child: ClipRect(
+          child: Opacity(
+            opacity: _ready ? 1 : 0,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: InteractiveViewer(
+                    transformationController: _ctrl,
+                    constrained: false,
+                    minScale: v.scale,
+                    maxScale: v.scale * 7,
+                    boundaryMargin: EdgeInsets.zero,
+                    onInteractionStart: (_) {
+                      if (widget.selectedId != null) widget.onSelect(null);
+                    },
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapUp: (d) => _onTap(d, origin),
+                      child: SizedBox(
+                        width: v.rect.width,
+                        height: v.rect.height,
+                        child: RepaintBoundary(
+                          child: CustomPaint(
+                            painter: _ChapterPainter(
+                              line: _line,
+                              geo: _geo,
+                              frame: frame,
+                              jewels: _jewelsFor(),
+                              leaders: leaders,
+                              origin: origin,
+                              ctrl: _ctrl,
+                              night: widget.night,
+                              // кольцо — только у значков прямо на точке (место, ночёвка)
+                              selected: (sel == null || sel.shift != Offset.zero) ? null : sel.at,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: Flow(
-                    delegate: _MarksFlow(_ctrl, marks, origin),
-                    children: [for (final mk in marks) mk.child],
-                  ),
-                ),
-              ),
-              if (sel != null)
                 Positioned.fill(
-                  child: ValueListenableBuilder<Matrix4>(
-                    valueListenable: _ctrl,
-                    builder: (context, m, _) => _popup(context, sel, origin, vp),
+                  child: IgnorePointer(
+                    child: Flow(
+                      delegate: _MarksFlow(_ctrl, marks, origin),
+                      children: [for (final mk in marks) mk.child],
+                    ),
                   ),
                 ),
-            ],
+                if (sel != null)
+                  Positioned.fill(
+                    child: ValueListenableBuilder<Matrix4>(
+                      valueListenable: _ctrl,
+                      builder: (context, m, _) => _popup(context, sel, origin, vp),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       );

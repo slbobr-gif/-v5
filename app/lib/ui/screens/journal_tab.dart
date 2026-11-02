@@ -1129,8 +1129,10 @@ class _Pill extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 44),
+          // heightFactor: 1 — в ограниченной по высоте строке Center не растягивается на всю высоту.
           child: Center(
             widthFactor: 1,
+            heightFactor: 1,
             child: Container(
               height: 30,
               padding: const EdgeInsets.symmetric(horizontal: 11),
@@ -1154,12 +1156,19 @@ class _Pill extends StatelessWidget {
                     _Mark(color: mk, size: 13),
                     const SizedBox(width: 5),
                   ],
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: fg,
-                      fontSize: 12.5,
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                  // Чип живёт и в горизонтальной прокрутке (ширина не ограничена — Flexible нельзя),
+                  // и в Wrap: длинное имя линии обрезается по пределу ширины, а не переполняет чип.
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 220),
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: fg,
+                        fontSize: 12.5,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                      ),
                     ),
                   ),
                   if (close) ...[

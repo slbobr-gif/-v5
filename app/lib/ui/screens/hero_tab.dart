@@ -1175,7 +1175,11 @@ class _StovePlate extends StatelessWidget {
         Expanded(child: Text(text, style: const TextStyle(color: _note, fontSize: 11.5, height: 1.25))),
         if (reason != null) ...[
           const SizedBox(width: 6),
-          Text(reason, style: const TextStyle(color: Palette.parchmentDim, fontSize: 11)),
+          // Предел ширины: причина переносится, а не вытесняет основной текст и не переполняет строку.
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: Text(reason, style: const TextStyle(color: Palette.parchmentDim, fontSize: 11)),
+          ),
         ],
         if (ready) ...[
           const SizedBox(width: 4),
@@ -1332,7 +1336,9 @@ class _ActionPanel extends StatelessWidget {
             ),
             if (r != null) ...[
               const SizedBox(width: Gap.s),
-              r,
+              // Негибкий ребёнок Row получает неограниченную ширину: длинная строка эффектов
+              // («+30 сытость, +10 вода, …») сжимала название в 0 и переполняла строку.
+              ConstrainedBox(constraints: const BoxConstraints(maxWidth: 130), child: r),
             ],
           ]),
           const SizedBox(height: 2),
@@ -1392,9 +1398,16 @@ class _Pill extends StatelessWidget {
         children: [
           if (ic != null) Icon(ic, size: 15, color: accent ? Palette.accent : Palette.parchmentDim),
           if (ic != null && !iconOnly) const SizedBox(width: 5),
+          // Пилюля стоит и в Row без ограничения ширины (горелка, строка дара) — Flexible нельзя;
+          // предел ширины обрезает длинную подпись (имя предмета-запаска) вместо переполнения строки.
           if (!iconOnly)
-            Text(label,
-                style: TextStyle(color: fg, fontSize: small ? 11.5 : 12.5, fontWeight: FontWeight.w700)),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160),
+              child: Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: fg, fontSize: small ? 11.5 : 12.5, fontWeight: FontWeight.w700)),
+            ),
         ],
       ),
     );

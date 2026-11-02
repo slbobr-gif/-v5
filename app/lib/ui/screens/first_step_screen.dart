@@ -121,17 +121,29 @@ class _FirstStepScreenState extends ConsumerState<FirstStepScreen> {
                       child: RouteMap(content: content, heroPos: hero.pos, near: true),
                     ),
                   ),
+                  // Positioned только с left/bottom даёт плашке неограниченную ширину: длинное имя места
+                  // уходило за правый край. right ограничивает ширину, Align прижимает плашку влево по размеру текста.
                   Positioned(
                     left: Gap.m,
+                    right: Gap.m,
                     bottom: Gap.s,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: Gap.s + 4, vertical: Gap.xs + 2),
-                      decoration: BoxDecoration(
-                        color: Palette.ink.withAlpha(210),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Palette.accentDeep),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      heightFactor: 1,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: Gap.s + 4, vertical: Gap.xs + 2),
+                        decoration: BoxDecoration(
+                          color: Palette.ink.withAlpha(210),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Palette.accentDeep),
+                        ),
+                        child: Text(
+                          '$start · ${l.homeNextKm(kmNow)}',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       ),
-                      child: Text('$start · ${l.homeNextKm(kmNow)}', style: const TextStyle(fontSize: 13)),
                     ),
                   ),
                 ],
