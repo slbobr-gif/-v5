@@ -213,7 +213,13 @@ def build(online: bool) -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--online", action="store_true")
+    ap.add_argument("--force", action="store_true", help="перезаписать уже существующий map.json")
     args = ap.parse_args()
+    # v5.3: километраж мест в map.json — основа зон, якорей событий и фикстуры движка.
+    # Существующую карту не трогаем без --force (иначе CI подменяет её онлайн-версией и ломает проверки).
+    if OUT.exists() and not args.force:
+        print("карта: map.json уже есть — оставляю как есть (пересборка: --force)")
+        return 0
     try:
         data = build(args.online)
     except Exception as e:  # noqa: BLE001
