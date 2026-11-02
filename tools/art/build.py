@@ -1,8 +1,14 @@
 """Сборка всей графики MVP «Путника».
 
-python3 tools/art/build.py [--sheet OUT.png] [--icons]
+python3 tools/art/build.py [--glass [--glass-only имя,имя]] [--sheet OUT.png] [--icons] [--flat-hero]
 Пишет SVG в app/assets/art/, проверяет запреты flutter_svg и размер,
 рендерит контактный лист и PNG-иконки через Chromium (playwright).
+
+--glass — витражный конвертер (tools/art/glassify.py) над сценами, существами,
+финалом и онбордингом: «сырьё» (плоские рисунки scenes.py/creatures.py/extras.py)
+пишется в tools/art/raw/, результат — в app/assets/art/. Без --glass эти
+картинки не трогаются (берутся готовые с диска). Герой/иконка/маркер/предметы/заставки
+ведут свои скрипты (hero_glass.py, items_glass.py); build.py их не перезаписывает.
 """
 import base64
 import os
@@ -19,20 +25,42 @@ FORBIDDEN = re.compile(r'<(filter|mask|clipPath|pattern|text|image|foreignObject
 MAX = 25 * 1024
 
 
-def collect():
-    import scenes, creatures, hero, extras
+def collect(flat_hero=False):
+    """Герой/иконка/маркер ведёт hero_glass.py (витражи, свой запуск) — здесь по умолчанию НЕ трогаем.
+    Старые плоские hero.py/extras.icon() включаются флагом --flat-hero (только для отладки)."""
     out = {}
-    for k, fn in scenes.SCENES.items():
-        out[f'scenes/{k}.svg'] = fn()
-    for k, fn in creatures.CREATURES.items():
-        out[f'creatures/{k}.svg'] = fn()
-    out['hero/sergey.svg'] = hero.sergey()
-    out['hero/sergey_marker.svg'] = hero.marker()
-    for k, fn in extras.ONBOARDING.items():
-        out[f'onboarding/{k}.svg'] = fn()
-    out['finale/teriberka.svg'] = extras.teriberka()
-    out['icon/icon.svg'] = extras.icon()
+    if flat_hero:
+        import hero, extras
+        out['hero/sergey.svg'] = hero.sergey()
+        out['hero/sergey_marker.svg'] = hero.marker()
+        out['icon/icon.svg'] = extras.icon()
     return out
+
+
+def disk_files():
+    """Все SVG из app/assets/art (в порядке показа на контактном листе)."""
+    order = ['scenes', 'creatures', 'finale', 'onboarding', 'intro', 'hero', 'icon', 'items']
+    out = {}
+    for grp in order:
+        d = os.path.join(ART, grp)
+        if not os.path.isdir(d):
+            continue
+        for fn in sorted(os.listdir(d)):
+            if fn.endswith('.svg'):
+                with open(os.path.join(d, fn), encoding='utf-8') as fh:
+                    out[f'{grp}/{fn}'] = fh.read()
+    return out
+
+
+def check(files):
+    """Запрещённые элементы flutter_svg, размер ≤ 25 КБ, viewBox — для всех SVG на диске."""
+    bad = []
+    for rel, svg in files.items():
+        size = len(svg.encode())
+        m = FORBIDDEN.search(svg)
+        if m or size > MAX or 'viewBox' not in svg[:200]:
+            bad.append((rel, size, m.group(0) if m else ''))
+    return bad
 
 
 def write(files):
@@ -98,15 +126,28 @@ def icons(svg):
 
 
 if __name__ == '__main__':
-    files = collect()
+    args = sys.argv[1:]
+    files = collect('--flat-hero' in args)
+    if '--glass' in args:
+        import glass_build
+        only = None
+        if '--glass-only' in args:
+            only = args[args.index('--glass-only') + 1].split(',')
+        files.update(glass_build.build(only))
     bad = write(files)
+    disk = disk_files()
+    for rel, size, why in check(disk):
+        if (rel, size, why) not in bad:
+            bad.append((rel, size, why))
     for rel, size, why in bad:
         print('BAD', rel, size, why)
-    print(f'{len(files)} files, max {max(len(v.encode()) for v in files.values())} bytes')
-    args = sys.argv[1:]
+    sizes = [len(v.encode()) for v in disk.values()]
+    glass = [len(v.encode()) for k, v in disk.items() if k.split('/')[0] in ('scenes', 'creatures', 'finale', 'onboarding')]
+    print(f'{len(disk)} files on disk, max {max(sizes)} bytes; glass {len(glass)} files, '
+          f'max {max(glass) if glass else 0}, avg {sum(glass) // max(1, len(glass))} bytes')
     if '--sheet' in args:
         out = args[args.index('--sheet') + 1]
         pref = args[args.index('--only') + 1] if '--only' in args else ''
-        subset_sheet(files, pref, out)
+        subset_sheet(disk, pref, out)
     if '--icons' in args:
-        icons(files['icon/icon.svg'])
+        import app_icon; app_icon.main()

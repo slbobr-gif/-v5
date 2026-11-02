@@ -12,8 +12,12 @@ def new(p):
     return d
 
 
+RING = True   # build.py --glass отключает золотое кольцо: в витраже кольцо — свинцовое
+
+
 def finish(d):
-    frame_ring(d)
+    if RING:
+        frame_ring(d)
     return d.render()
 
 
