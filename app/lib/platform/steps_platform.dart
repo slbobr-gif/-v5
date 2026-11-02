@@ -19,6 +19,10 @@ class StepsStatus {
 
   bool get anySource => (sensorAvailable && activityPermission) || hcPermission;
 
+  /// Есть ли хотя бы один источник, который и подключён, и включён в настройках.
+  bool anyEnabled({required bool sensor, required bool hc}) =>
+      (sensor && sensorAvailable && activityPermission) || (hc && hcPermission);
+
   static StepsStatus fromMap(Map<Object?, Object?> m) => StepsStatus(
         sensorAvailable: m['sensorAvailable'] == true,
         activityPermission: m['activityPermission'] == true,
@@ -37,6 +41,23 @@ class DailySteps {
 
   static Map<String, int> _ints(Object? m) =>
       ((m as Map?) ?? const {}).map((k, v) => MapEntry(k as String, (v as num).toInt()));
+
+  /// Итог по дням из ВКЛЮЧЁННЫХ источников: для каждого дня — максимум из них.
+  /// Если выключены оба — пусто (шаги не засчитываются).
+  Map<String, int> merged({required bool useSensor, required bool useHc}) {
+    final out = <String, int>{};
+    if (useSensor) {
+      sensor.forEach((day, v) {
+        if (v > (out[day] ?? 0)) out[day] = v;
+      });
+    }
+    if (useHc) {
+      hc.forEach((day, v) {
+        if (v > (out[day] ?? 0)) out[day] = v;
+      });
+    }
+    return out;
+  }
 }
 
 class StepsPlatform {

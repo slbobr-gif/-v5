@@ -22,7 +22,8 @@
     <application
         android:label="@string/app_name"
         android:name=".PutnikApplication"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round">
         <!-- WorkManager запускается по требованию (см. PutnikApplication), а не при старте процесса -->
         <provider
             android:name="androidx.startup.InitializationProvider"

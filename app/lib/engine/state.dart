@@ -4,6 +4,26 @@ import 'world.dart';
 
 const statKeys = ['satiety', 'water', 'warmth'];
 
+/// Версия формата сохранения. v1 — до v5.3 (снаряжение лежало в inv), v2 — снаряжение в gear.
+const int stateVersion = 2;
+
+/// Вещь, ждущая решения игрока (вместилище полно).
+class OverflowItem {
+  OverflowItem({required this.kind, required this.item, required this.n, required this.source});
+  String kind; // 'backpack' | 'gear'
+  String item; // id предмета
+  int n; // сколько единиц ждут решения (у gear всегда 1)
+  String source; // id события-источника (или 'market', 'fixture_dayN')
+
+  Json toJson() => {'kind': kind, 'item': item, 'n': n, 'source': source};
+  static OverflowItem fromJson(Json j) => OverflowItem(
+        kind: j['kind'] as String,
+        item: j['item'] as String,
+        n: toI(j['n']),
+        source: (j['source'] as String?) ?? '',
+      );
+}
+
 class Detour {
   Detour({required this.remaining, required this.total, this.end});
   double remaining;
@@ -81,7 +101,27 @@ class HeroState {
     this.deaths = 0,
     List<JournalEntry>? journal,
     this.finished = false,
-  })  : flags = flags ?? [],
+    List<String>? gear,
+    Map<String, int>? gearUses,
+    this.heated = false,
+    this.heatedDay = 0,
+    List<OverflowItem>? overflow,
+    this.aidLock = false,
+    this.loadoutDone = false,
+    Map<String, int>? portionsLeft,
+    Map<String, int>? abilityReady,
+    this.undo,
+    Map<String, bool>? fed,
+    Map<String, int>? expires,
+    this.dayMark = 0,
+  })  : fed = fed ?? {},
+        expires = expires ?? {},
+        gear = gear ?? [],
+        gearUses = gearUses ?? {},
+        overflow = overflow ?? [],
+        portionsLeft = portionsLeft ?? {},
+        abilityReady = abilityReady ?? {},
+        flags = flags ?? [],
         seen = seen ?? [],
         recentRandom = recentRandom ?? [],
         quests = quests ?? {},
@@ -115,27 +155,104 @@ class HeroState {
   List<JournalEntry> journal;
   bool finished;
 
+  /// Снаряжение по порядку получения (каждый id не больше одного раза, длина ≤ gearSlots).
+  List<String> gear;
+
+  /// Остаток зарядов у предметов с `uses` (горелка, аптечка).
+  Map<String, int> gearUses;
+
+  /// Горелка «включена»: следующий нагреваемый употреблённый предмет получает `heat`.
+  bool heated;
+
+  /// Игровая дата включения горелки (0 — выключена).
+  int heatedDay;
+
+  /// Очередь решений «не помещается».
+  List<OverflowItem> overflow;
+
+  /// Аптечка уже срабатывала после последней остановки.
+  bool aidLock;
+
+  /// Старт-набор выбран.
+  bool loadoutDone;
+
+  /// Порций в начатой единице многопорционного предмета (нет ключа — начатой нет).
+  Map<String, int> portionsLeft;
+
+  /// id предмета → игровая дата, с которой способность снова готова.
+  /// Ключи: `<id>` (ability), `<id>:hint` (подсказка духа), `<id>:camp` (привал с перезарядкой).
+  Map<String, int> abilityReady;
+
+  /// Вред последнего исхода — для «Сучка»/«Бусины» (§13.2); null — отменять нечего.
+  Json? undo;
+
+  /// Лапоть накормлен в текущий игровой день.
+  Map<String, bool> fed;
+
+  /// id → игровая дата, с которой предмет пропадает (венок).
+  Map<String, int> expires;
+
+  /// Последняя обработанная игровая дата (смена дня: лапоть, венок).
+  int dayMark;
+
   static HeroState create(World w, int seed, int nowMs, String today, {int todaySteps = 0}) {
     final b = w.balance;
     final start = ((b['stats'] as Map)['start'] as Map).cast<String, dynamic>();
     final eco = (b['economy'] as Map).cast<String, dynamic>();
-    return HeroState(
+    final s = HeroState(
       seed: seed & 0xFFFFFFFF,
       rng: seed & 0xFFFFFFFF,
       startedAt: nowMs,
       startDay: today,
       stats: {for (final k in statKeys) k: toD(start[k])},
       coins: toI(eco['startCoins']),
-      inv: (eco['startItems'] as Map).map((k, v) => MapEntry(k as String, toI(v))),
+      inv: {},
       nextRandomAt: toD((b['randomEvents'] as Map)['firstAfterKm']) * 1000.0,
       lastTick: nowMs,
       counted: {today: todaySteps},
       daySteps: {today: 0},
     );
+    final gd = (b['gameDay'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+    s.dayMark = (nowMs + (toD(gd['utcOffsetHours']) * 3600000).toInt()) ~/ 86400000;
+    // Набор по умолчанию (balance.loadout.default); экран «Собери рюкзак» заменяет его Engine.startLoadout().
+    final lo = (b['loadout'] as Map?)?.cast<String, dynamic>();
+    final d = (lo?['default'] as Map?)?.cast<String, dynamic>();
+    if (d != null) {
+      s.applyLoadout(
+        w,
+        ((d['gear'] as List?) ?? const []).map((e) => e as String).toList(),
+        ((d['pack'] as Map?) ?? const {}).map((k, v) => MapEntry(k as String, toI(v))),
+      );
+    } else {
+      // Баланс без loadout (старый): прежний фиксированный набор.
+      s.inv = ((eco['startItems'] as Map?) ?? const {}).map((k, v) => MapEntry(k as String, toI(v)));
+    }
+    return s;
+  }
+
+  /// Записать старт-набор (= Python `_loadout_into`): снаряжение, заряды, рюкзак; прежний рюкзак и инструменты заменяются.
+  void applyLoadout(World w, List<String> gearIds, Map<String, int> pack) {
+    gear = List<String>.of(gearIds);
+    gearUses = {
+      for (final g in gearIds)
+        if (w.itemSpec(g).containsKey('uses')) g: toI(w.itemSpec(g)['uses']),
+    };
+    inv = {
+      for (final e in pack.entries)
+        if (e.value > 0) e.key: e.value,
+    };
+    heated = false;
+    heatedDay = 0;
+    overflow = [];
+    aidLock = false;
+    portionsLeft = {};
+    undo = null;
+    fed = {};
+    expires = {};
   }
 
   Json toJson() => {
-        'v': 1,
+        'v': stateVersion,
         'seed': seed,
         'rng': rng,
         'startedAt': startedAt,
@@ -162,12 +279,27 @@ class HeroState {
         'deaths': deaths,
         'journal': journal.map((e) => e.toJson()).toList(),
         'finished': finished,
+        'gear': gear,
+        'gearUses': gearUses,
+        'heated': heated,
+        'heatedDay': heatedDay,
+        'overflow': overflow.map((o) => o.toJson()).toList(),
+        'aidLock': aidLock,
+        'loadoutDone': loadoutDone,
+        'portionsLeft': portionsLeft,
+        'abilityReady': abilityReady,
+        'undo': undo,
+        'fed': fed,
+        'expires': expires,
+        'dayMark': dayMark,
       };
 
-  static HeroState fromJson(Json j) {
+  /// Загрузка сохранения. С [w] сохранение v1 (до v5.3) переводится в v2 (см. [migrate]);
+  /// без [w] старое сохранение читается как есть (снаряжение останется в inv).
+  static HeroState fromJson(Json j, [World? w]) {
     Map<String, int> ints(Object? m) => ((m as Map?) ?? {}).map((k, v) => MapEntry(k as String, toI(v)));
     List<String> strs(Object? l) => ((l as List?) ?? []).map((e) => e as String).toList();
-    return HeroState(
+    final s = HeroState(
       seed: toI(j['seed']),
       rng: toI(j['rng']),
       startedAt: toI(j['startedAt']),
@@ -198,6 +330,59 @@ class HeroState {
           .map((e) => JournalEntry.fromJson((e as Map).cast<String, dynamic>()))
           .toList(),
       finished: j['finished'] == true,
+      gear: strs(j['gear']),
+      gearUses: ints(j['gearUses']),
+      heated: j['heated'] == true,
+      heatedDay: toI(j['heatedDay']),
+      overflow: ((j['overflow'] as List?) ?? [])
+          .map((e) => OverflowItem.fromJson((e as Map).cast<String, dynamic>()))
+          .toList(),
+      aidLock: j['aidLock'] == true,
+      loadoutDone: j['loadoutDone'] == true,
+      portionsLeft: ints(j['portionsLeft']),
+      abilityReady: ints(j['abilityReady']),
+      // Поля §13: у старых сохранений их нет — умолчания (dayMark 0 → смена дня при первом applyTime).
+      undo: (j['undo'] as Map?)?.cast<String, dynamic>(),
+      fed: ((j['fed'] as Map?) ?? {}).map((k, v) => MapEntry(k as String, v == true)),
+      expires: ints(j['expires']),
+      dayMark: toI(j['dayMark']),
     );
+    // Старые сохранения могли не знать какой-то показатель — не падаем на s.stats[k]!.
+    for (final k in statKeys) {
+      s.stats.putIfAbsent(k, () => 50.0);
+    }
+    final v = j['v'] is num ? (j['v'] as num).toInt() : 1;
+    if (w != null && (v < stateVersion || j['gear'] == null)) s.migrate(w);
+    return s;
+  }
+
+  /// Сохранение v1 → v2 (= Python `migrate_state`). Снаряжение переезжает из inv в gear (не больше gearSlots,
+  /// по порядку ключей inv); лишние экземпляры и то, что не влезло, — монетами как дубликаты.
+  /// Еда и инструменты остаются в inv.
+  void migrate(World w) {
+    final eco = (w.balance['economy'] as Map).cast<String, dynamic>();
+    final slots = toI(eco['gearSlots']);
+    final share = toD(eco['duplicateGearShare']);
+    final g = <String>[];
+    final uses = <String, int>{};
+    for (final k in inv.keys.toList()) {
+      if (w.itemType(k) != 'gear') continue;
+      var n = inv.remove(k)!;
+      if (g.length < slots) {
+        g.add(k);
+        if (w.itemSpec(k).containsKey('uses')) uses[k] = toI(w.itemSpec(k)['uses']);
+        n -= 1;
+      }
+      if (n > 0) coins += n * (w.itemValue(k, 'price') * share).floor();
+    }
+    gear = g;
+    gearUses = uses;
+    heated = false;
+    heatedDay = 0;
+    overflow = [];
+    aidLock = false;
+    loadoutDone = true;
+    portionsLeft = {};
+    abilityReady = {};
   }
 }

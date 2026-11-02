@@ -9,26 +9,9 @@
       }
     }
   },
-  "onbSkip": "Пропустить",
-  "onbNext": "Далее",
-  "onbStart": "Начать",
-  "onb1Title": "Выйти из рутины",
-  "onb1Body": "Офис, созвоны, отчёты, которые никто не читает. Год сливается в один длинный четверг. Сергей решил, что хватит, — и вышел из дома пешком. До Баренцева моря.",
-  "onb2Title": "Считаем сами — фоном",
-  "onb2Body": "Телефон сам считает твои шаги — без GPS и лишнего расхода батареи. Каждый твой шаг — пять шагов Сергея по настоящей дороге от Кремля до Териберки.",
-  "onb3Title": "Живой мир",
-  "onb3Body": "По пути — люди, деревни, реки и существа из русских преданий. Леший, водяной, Баба-яга. Выбирай, как поступить: от этого зависит, дойдёт ли Сергей.",
-  "onb4Title": "Знакомься: Сергей",
-  "onb4Body": "34 года, аналитик из Москвы. Всю жизнь мечтал увидеть море, китов и северное сияние. Всё это сходится в одном месте — в Териберке. Туда он и идёт. Вместе с тобой.",
-  "profileTitle": "Знакомство",
-  "profileIntro": "Это тестовая версия для друзей. Всё хранится только на твоём телефоне.",
-  "profileName": "Как тебя зовут",
-  "profileEmail": "Почта (по желанию)",
   "profileEmailHelp": "Только чтобы мы могли спросить твоё мнение о тесте. Никаких рассылок.",
   "profileEmailBad": "Похоже, в адресе опечатка",
   "profileConsent": "Согласен, что приложение обрабатывает мои шаги и имя на телефоне, а обезличенная статистика игры и почта (если указана) передаются в Яндекс AppMetrica, чтобы авторы улучшили игру.",
-  "permTitle": "Шаги и уведомления",
-  "permIntro": "Чтобы Сергей шёл вместе с тобой, приложению нужны твои шаги. Подключи хотя бы один источник.",
   "permSensorTitle": "Шагомер телефона",
   "permSensorBody": "Встроенный датчик считает шаги, даже когда приложение закрыто. Нужно разрешение «Физическая активность».",
   "permSensorMissing": "В этом телефоне нет встроенного шагомера. Подключи Health Connect ниже.",
@@ -38,12 +21,9 @@
   "permHcInstall": "Health Connect не установлен. Он нужен, если шаги считают часы или другое приложение.",
   "permHcUnavailable": "Health Connect недоступен на этом телефоне — хватит шагомера телефона.",
   "permHcInstallAction": "Установить",
-  "permNotifyTitle": "Уведомления",
-  "permNotifyBody": "Утренняя мысль Сергея и 1–3 напоминания в день, когда на пути что-то происходит. Ночью — тишина.",
   "permNotifyAllow": "Разрешить уведомления",
   "permAllow": "Разрешить",
   "permOptional": "по желанию",
-  "permNoSource": "Шаги пока не подключены — Сергей не сдвинется с места. Можно подключить позже в настройках.",
   "permContinueAnyway": "Продолжить без шагов",
   "prologueTitle": "ПРОЛОГ",
   "prologueGo": "Выйти на нулевой километр",
@@ -59,8 +39,6 @@
     }
   },
   "settingsTitle": "Настройки",
-  "mapWhole": "Весь путь",
-  "mapNear": "Рядом",
   "delayBanner": "Сергей пережидает. Ещё {hours, plural, one{{hours} час} few{{hours} часа} many{{hours} часов} other{{hours} часа}} — шаги не пропадут.",
   "@delayBanner": {
     "placeholders": {
@@ -78,40 +56,6 @@
     }
   },
   "finishedShort": "Сергей у моря",
-  "daysLeftUnknown": "Сделай первые шаги — и посчитаем, когда Сергей дойдёт",
-  "daysLeft": "При твоём темпе до Териберки {days, plural, one{остался {days} день} few{осталось {days} дня} many{осталось {days} дней} other{осталось {days} дня}}",
-  "@daysLeft": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "kmLeft": "Осталось {left} км · пройдено {done} км",
-  "@kmLeft": {
-    "placeholders": {
-      "left": {
-        "type": "String"
-      },
-      "done": {
-        "type": "String"
-      }
-    }
-  },
-  "weatherLine": "{part}, {weather}, {month}",
-  "@weatherLine": {
-    "placeholders": {
-      "part": {
-        "type": "String"
-      },
-      "weather": {
-        "type": "String"
-      },
-      "month": {
-        "type": "String"
-      }
-    }
-  },
   "dayMorning": "Утро",
   "dayDay": "День",
   "dayEvening": "Вечер",
@@ -140,7 +84,6 @@
   "statSatiety": "Сытость",
   "statWater": "Вода",
   "statWarmth": "Тепло",
-  "bonusOn": "Сыт и напоен — шаг лёгкий, встреч больше, но и еды уходит больше.",
   "bonusNoticed": "Сергей слишком долго благополучен — его стали замечать. Будь осторожнее.",
   "todaySteps": "Сегодня {steps} шагов",
   "@todaySteps": {
@@ -289,9 +232,6 @@
   "buyNoCoins": "Не хватает монет",
   "buyFull": "Рюкзак полон",
   "buyHave": "Уже есть",
-  "gearSocks": "меньше мёрзнет",
-  "gearRaincoat": "непогода не так страшна",
-  "gearAmulet": "оберег на удачу",
   "chapterDone": "ГЛАВА {n} ПРОЙДЕНА",
   "@chapterDone": {
     "placeholders": {
@@ -332,48 +272,11 @@
     }
   },
   "heroTitle": "Герой",
-  "heroName": "Сергей, 34 года",
-  "heroAbout": "Аналитик из Москвы. Идёт к Баренцеву морю — увидеть китов и северное сияние.",
-  "heroWalked": "Пройдено {km} км · твоих шагов {steps}",
-  "@heroWalked": {
-    "placeholders": {
-      "km": {
-        "type": "String"
-      },
-      "steps": {
-        "type": "String"
-      }
-    }
-  },
-  "heroDeaths": "Падал {n, plural, one{{n} раз} few{{n} раза} many{{n} раз} other{{n} раза}} — и вставал",
-  "@heroDeaths": {
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "statsHint": "Сергей сам ест и пьёт из рюкзака, когда показатель падает ниже 40. Ноль любого показателя — смерть и откат на день пути назад.",
   "backpack": "Рюкзак",
   "backpackEmpty": "Рюкзак пуст. Загляни в лавку на ближайшем привале.",
-  "useItem": "Использовать",
   "gear": "Снаряжение",
-  "gearEmpty": "Пока ничего.",
   "journalTitle": "Журнал",
-  "journalRoad": "Дорога",
-  "journalThoughts": "Мысли на дороге",
   "journalEmpty": "Здесь будет записана дорога Сергея.",
-  "logEvent": "{title} — «{choice}»",
-  "@logEvent": {
-    "placeholders": {
-      "title": {
-        "type": "String"
-      },
-      "choice": {
-        "type": "String"
-      }
-    }
-  },
   "logPlace": "Привал: {place}",
   "@logPlace": {
     "placeholders": {
@@ -439,9 +342,8 @@
       }
     }
   },
-  "yourAnswer": "Твой ответ:",
-  "answerLabel": "Твой ответ Сергею",
-  "answerPrivate": "Видишь только ты. Хранится только на телефоне.",
+  "answerLabel": "Твои мысли",
+  "answerPrivate": "Видишь только ты. Хранится на телефоне.",
   "answerSave": "Сохранить",
   "answerSaved": "Сохранено",
   "thoughtLicense": "Цитаты — собственное переложение античных текстов, находящихся в общественном достоянии. Это размышления, а не психологическая помощь.",
@@ -495,5 +397,1506 @@
   "notifEveningTitle": "Путь зовёт",
   "notifEvening1": "Вечер — лучшее время пройтись. Каждый твой шаг — пять шагов Сергея.",
   "notifEvening2": "Сергей смотрит на дорогу и ждёт тебя.",
-  "notifEvening3": "Десять минут прогулки — и, может быть, новая встреча на пути."
+  "notifEvening3": "Десять минут прогулки — и, может быть, новая встреча на пути.",
+  "homeHeroLine": "Сергей · день {day} · глава {chapter}",
+  "@homeHeroLine": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "chapter": {
+        "type": "int"
+      }
+    }
+  },
+  "homeRefreshSteps": "Обновить шаги",
+  "homeNextKm": "{km} км",
+  "@homeNextKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "mapRecenter": "К герою",
+  "stepsOffBanner": "Шаги не считаются — включи источник в настройках",
+  "stepsSourcesTitle": "Откуда брать шаги",
+  "stepsSensorSub": "встроенный датчик, работает в фоне",
+  "stepsHcSub": "шаги из фитнес-приложений",
+  "stepsHcInstallHint": "Health Connect не установлен — нажми «Установить» выше, потом включи.",
+  "stepsHcUpdateHint": "Health Connect нужно обновить — кнопка выше, потом включи.",
+  "stepsSourcesNote": "Датчик в фоне считает шаги и при выключенном переключателе — просто они не засчитываются в путь. В день берётся больший из включённых источников.",
+  "introSlide1Title": "Жизнь на автопилоте",
+  "introSlide1Body": "Сергею 34, он менеджер из Москвы. Дом, работа, метро, всё «потом». Однажды он понял: жизнь проходит мимо.",
+  "introSlide1Fact": "И решил дойти пешком до моря",
+  "introSlide1Alt": "Витраж: вечерняя Москва, башни и светлые окна офисов",
+  "introSlide2Title": "Идёшь ты — идёт Сергей",
+  "introSlide2Body": "Телефон сам считает твои шаги: фоном, без GPS. Дорога на работу, прогулка с собакой — всё в зачёт.",
+  "introSlide2Fact": "1 твой шаг = 5 шагов Сергея",
+  "introSlide2Alt": "Витраж: дорога, один большой след и пять маленьких",
+  "introSlide3Title": "{km} км до Териберки",
+  "@introSlide3Title": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "introSlide3Body": "От Кремля через Тверь, Новгород, Карелию и Кольский — к Баренцеву морю. При 7 000 шагов в день — около трёх месяцев.",
+  "introSlide3Fact": "Настоящая дорога на настоящей карте",
+  "introSlide3Alt": "Витраж: извилистая дорога от Москвы на север, к морю",
+  "introSlide4Title": "На обочине — не только люди",
+  "introSlide4Body": "Дальнобойщики, рыбаки, бабушки с пирогами — и леший, водяной, Баба-яга. У каждого свои правила. Как поступить, решаешь ты.",
+  "introSlide4Fact": "Выборы меняют дорогу",
+  "introSlide4Alt": "Витраж: ночной лес, из-за елей смотрят два светлых глаза",
+  "introSlide5Title": "Сытость, вода, тепло",
+  "introSlide5Body": "Сергей хочет есть, пить и мёрзнет по-настоящему. Собери рюкзак, заходи на привалы и не давай показателям упасть до нуля.",
+  "introSlide5Fact": "Упал — очнётся чуть позади. Путь не кончится",
+  "introSlide5Alt": "Витраж: хлеб, капля воды и огонь",
+  "introSlide6Title": "Киты и северное сияние",
+  "introSlide6Body": "В конце пути — море, о котором Сергей мечтал с детства. А каждое утро — мысль стоика и пара строк от самого Сергея.",
+  "introSlide6Fact": "Всё хранится на телефоне. Без сервера",
+  "introSlide6Alt": "Витраж: северное море, хвост кита, зелёное небо",
+  "introSkip": "Пропустить",
+  "introStart": "Собраться в путь",
+  "introPageLabel": "Слайд {n} из {total}",
+  "@introPageLabel": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onbStageMeet": "Знакомство",
+  "onbStageSteps": "Шаги",
+  "onbStagePack": "Рюкзак",
+  "onbStageStory": "Пролог",
+  "onbStageLabel": "Этап {n} из {total}: {name}",
+  "@onbStageLabel": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "onbNameTitle": "Как тебя зовут?",
+  "onbNameBody": "Так Сергей будет к тебе обращаться. Имя остаётся только на этом телефоне.",
+  "onbNameLabel": "Имя",
+  "onbNameHint": "Например, Аня",
+  "onbNameShort": "Хотя бы две буквы",
+  "onbEmailLabel": "Почта — по желанию",
+  "onbConsentMore": "Что именно?",
+  "onbConsentMoreBody": "На телефоне — шаги, имя, ход игры и твои мысли. В AppMetrica — обезличенная статистика и почта, если указана. Мысли — никогда.",
+  "onbConsentNeeded": "Без согласия дальше нельзя: игре нужно обрабатывать твои шаги.",
+  "onbActTitle": "Разреши считать шаги",
+  "onbActBody": "Android спросит про «Физическую активность». Это встроенный шагомер: без GPS и геолокации, батарею почти не тратит.",
+  "onbActLater": "Не сейчас",
+  "onbActGranted": "Шагомер подключён",
+  "onbActDenied": "Без этого разрешения шагомер молчит, и Сергей стоит. Можно спросить ещё раз или подключить Health Connect.",
+  "onbRetry": "Спросить ещё раз",
+  "onbBatteryLine": "На Xiaomi, Huawei и Honor разреши «Путнику» работу в фоне — иначе шаги будут приходить с опозданием.",
+  "onbNotifyTitle": "Утро начинается с мысли",
+  "onbNotifyBody": "Каждое утро — мысль стоика и пара строк от Сергея. Днём — 1–3 вести с дороги. Ночью тишина.",
+  "onbNotifyTime": "Утренняя мысль в {time}",
+  "@onbNotifyTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "onbChange": "Изменить",
+  "onbNotifySkip": "Без уведомлений",
+  "onbNotifyDenied": "Хорошо. Мысли и вести будут ждать в приложении — просто заглядывай.",
+  "onbHcTitle": "Шаги с часов и браслета",
+  "onbHcBody": "Если шаги считают часы, Mi Fitness или Samsung Health, подключи Health Connect — шаги без телефона тоже пойдут в зачёт.",
+  "onbHcConnect": "Подключить",
+  "onbHcSkip": "Пропустить",
+  "onbHcRequired": "В телефоне нет шагомера — без Health Connect шаги считать не из чего.",
+  "onbHcDenied": "Не подключено. Ничего страшного — хватит шагомера телефона.",
+  "onbSrcTitle": "Откуда брать шаги",
+  "onbSrcBody": "За день берём больше из включённых источников, так что шаги не задвоятся. Поменять можно в настройках.",
+  "onbSrcOn": "Подключён",
+  "onbSrcNoPerm": "Нет разрешения",
+  "onbSrcMissing": "Нет в этом телефоне",
+  "onbSrcNotInstalled": "Не установлен",
+  "onbSrcConnect": "Подключить",
+  "onbSrcToday": "Сегодня телефон уже насчитал шагов: {steps}. В игру пойдут шаги с момента выхода.",
+  "@onbSrcToday": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "onbSrcNone": "Ни один источник не включён — Сергей не сдвинется с места.",
+  "onbSrcNext": "Дальше: собрать рюкзак",
+  "onbNoStepsTitle": "Идти без шагов?",
+  "onbNoStepsBody": "Без шагов Сергей стоит на месте. Подключить можно позже: Настройки → Шаги.",
+  "onbNoStepsGo": "Всё равно дальше",
+  "onbNoStepsFix": "Подключить",
+  "loadoutTitle": "Собери рюкзак",
+  "loadoutLead": "Пятница, вечер. Рюкзак раскрыт на полу, Саша читает список вслух, Честер пытается улечься внутрь.",
+  "loadoutTabGear": "Снаряжение {n}/{max}",
+  "@loadoutTabGear": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "loadoutTabPack": "Еда и питьё {n}/{max}",
+  "@loadoutTabPack": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "loadoutGearInfo": "Вещи не тратятся: их перки работают всю дорогу. У горелки и аптечки есть заряды.",
+  "loadoutPackInfo": "Еда и питьё расходуются. Сергей ест сам, когда показатель ниже 30.",
+  "loadoutSlotFree": "для находок",
+  "loadoutTake": "Взять",
+  "loadoutTaken": "Взято",
+  "loadoutUses": "{n, plural, one{{n} заряд} few{{n} заряда} many{{n} зарядов} other{{n} заряда}}",
+  "@loadoutUses": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "loadoutAdvisor": "Как посоветовал бы бывалый",
+  "loadoutAdvisorToast": "Бывалый кивнул: ноги в тепле, сверху сухо, чай будет горячим.",
+  "loadoutUndo": "Вернуть мой выбор",
+  "loadoutNextPack": "Дальше: еда и питьё",
+  "loadoutDone": "Собрать рюкзак",
+  "loadoutHintGearFull": "Больше трёх вещей не унести. Сними одну, чтобы взять эту.",
+  "loadoutHintKindMax": "Больше трёх одинаковых не берём — место пригодится для другого.",
+  "loadoutHintPackFull": "Пять ячеек заняты. Ещё две останутся пустыми — для находок в пути.",
+  "loadoutHintNoWater": "Без воды тяжело: первая лавка — {place}, через {km} км.",
+  "@loadoutHintNoWater": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "loadoutHintNoWarm": "Майские ночи холодные. Носки, дождевик или спальник сберегут тепло.",
+  "loadoutHintStoveIdle": "Горелке нечего греть: возьми воду, чай или тушёнку.",
+  "loadoutSummaryTitle": "Сергей берёт с собой",
+  "loadoutSummaryCoins": "И {coins} монет в кармане — на лавки в пути.",
+  "@loadoutSummaryCoins": {
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "loadoutSummaryFree": "Свободно: снаряжение — {gear}, рюкзак — {pack}.",
+  "@loadoutSummaryFree": {
+    "placeholders": {
+      "gear": {
+        "type": "int"
+      },
+      "pack": {
+        "type": "int"
+      }
+    }
+  },
+  "loadoutConfirm": "Готово, рюкзак собран",
+  "loadoutEdit": "Поправить",
+  "loadoutLightTitle": "Идти налегке?",
+  "loadoutLightBody": "В рюкзаке ещё есть место. Бывалый бы добрал, но решать тебе.",
+  "loadoutLightGo": "Налегке",
+  "loadoutLightFill": "Добрать",
+  "onbPrologueSkip": "Пропустить",
+  "onbPrologueLater": "Пролог можно перечитать в настройках.",
+  "onbPrologueReread": "Перечитать пролог",
+  "firstStepTitle": "Нулевой километр",
+  "firstStepBody": "Сергей стоит у Кремля и поправляет лямки. — Ну что, {name}, пойдём?",
+  "@firstStepBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "firstStepBodyNoName": "Сергей стоит у Кремля и поправляет лямки. — Ну что, пойдём?",
+  "firstStepHint": "Встань и пройдись немного — увидишь, как он двинется с места.",
+  "firstStepCounter": "Твоих шагов: {steps} · Сергей прошёл {m} м",
+  "@firstStepCounter": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      },
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "firstStepGoal": "До первой встречи — около {steps} шагов",
+  "@firstStepGoal": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "firstStepOk": "Есть! Шагомер на связи — Сергей пошёл.",
+  "firstStepSlow": "Некоторые телефоны присылают шаги с задержкой. Ничего не пропадёт — посчитаем позже.",
+  "firstStepNoSource": "Шаги не подключены — Сергей ждёт. Подключить можно в настройках.",
+  "firstStepLook": "Осмотреться",
+  "tourSkip": "Пропустить тур",
+  "tourFinish": "Понятно, идём",
+  "tourGotIt": "Понятно",
+  "tourNoMore": "Больше не подсказывать",
+  "tourCounter": "{n} из {total}",
+  "@tourCounter": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tourA11y": "Подсказка {n} из {total}",
+  "@tourA11y": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tourStep1Title": "Путь Сергея",
+  "tourStep2Title": "До следующего места",
+  "tourStep2Body": "Ближайшее место и сколько до него идти. Под показателями — темп: сколько дней до моря при твоих шагах.",
+  "tourStep2BodyZone": "Ближайшее место и сколько до него идти. Рядом подпись — где Сергей: Город, Пригород или Окрестности.",
+  "tourStep3Title": "Сытость, вода, тепло",
+  "tourStep3Body": "Сергей ест и пьёт сам, когда показатель ниже 30. Ниже 25 — красная зона: пора на привал.",
+  "tourStep4Title": "Сыт и напоен",
+  "tourStep4Body": "Сытость и вода от {min}: встреч на {ev} % больше, но и запасы тают на {dr} % быстрее.",
+  "@tourStep4Body": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "ev": {
+        "type": "int"
+      },
+      "dr": {
+        "type": "int"
+      }
+    }
+  },
+  "tourStep5Title": "Рюкзак и снаряжение",
+  "tourStep5Body": "Во вкладке «Герой» — вещи, перки и еда. Есть горелка? Жми «Нагреть»: вода и чай дадут ещё и тепло.",
+  "tourStep6Title": "Выбор с риском",
+  "tourStep6Body": "Значок риска предупреждает честно: «Смертельно опасно» — всерьёз. Пока думаешь, шаги копятся.",
+  "tourStep7Title": "Журнал",
+  "tourStep7Body": "Вся дорога и утренние мысли. В поле «Твои мысли» можно ответить Сергею — это видишь только ты.",
+  "tourStep8Title": "Если показатель на нуле",
+  "tourStep8Body": "Сергей упадёт и очнётся на {min}–{max} км позади, без части припасов. Это не конец — путь продолжится.",
+  "@tourStep8Body": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "tourZoneSuburbTitle": "Пригород",
+  "tourZoneSuburbBody": "Дачи, заборы, собаки, автобусные остановки. И встречи здесь уже другие.",
+  "tourZoneWildTitle": "Окрестности",
+  "tourZoneWildBody": "Лес, поле, болото — жилья нет. Проверь воду и тепло до следующего привала.",
+  "tourReplaySettings": "Показать подсказки снова",
+  "tourReplayDone": "Подсказки покажутся снова на главном экране.",
+  "introReplaySettings": "Как играть",
+  "tourHelpTitle": "Подсказки и помощь",
+  "zoneCity": "Город",
+  "zoneSuburb": "Пригород",
+  "zoneWild": "Окрестности",
+  "gearPerkSatiety": "+{value} сытости",
+  "@gearPerkSatiety": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkWater": "+{value} воды",
+  "@gearPerkWater": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkWarmth": "+{value} тепла",
+  "@gearPerkWarmth": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkHeat": "горячим +{value} тепла",
+  "@gearPerkHeat": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkWarmthDrain": "тепло уходит на {value} % медленнее",
+  "@gearPerkWarmthDrain": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkWeatherCold": "в непогоду холод на {value} % слабее",
+  "@gearPerkWeatherCold": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkSatietyDrain": "голод в пути −{value} %",
+  "@gearPerkSatietyDrain": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkWaterDrain": "жажда в пути −{value} %",
+  "@gearPerkWaterDrain": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkIdleWarmth": "на остановках тепло уходит на {value} % медленнее",
+  "@gearPerkIdleWarmth": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkDelay": "задержки на {value} % короче",
+  "@gearPerkDelay": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkDetour": "крюки на {value} % короче",
+  "@gearPerkDetour": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkRisk": "опасные исходы на {value} % реже",
+  "@gearPerkRisk": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkRescue": "спасёт от нуля: поднимет до {value}",
+  "@gearPerkRescue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkStove": "кнопка «Нагреть»",
+  "gearPerkRefill": "+{value} зарядов горелке",
+  "@gearPerkRefill": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkRefillMax": "до {value}",
+  "@gearPerkRefillMax": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkUses": "зарядов: {value}",
+  "@gearPerkUses": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkPortions": "{value} порции в одной ячейке",
+  "@gearPerkPortions": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkAbility_clew": "раз в {value} дн. подскажет, чем кончится выбор",
+  "@gearPerkAbility_clew": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearUsesLeft": "{n}/{max}",
+  "@gearUsesLeft": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "gearEmptyCharges": "пусто",
+  "gearHeat": "Нагреть",
+  "gearHeatOn": "Горячо!",
+  "gearHeatNoStove": "Нужна горелка",
+  "gearHeatNoGas": "Газ кончился",
+  "gearHeatNothing": "Нечего греть",
+  "gearHot": "горячее",
+  "gearPortions": "{name} ×{n}",
+  "@gearPortions": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "buyGearFull": "Снаряжение полно",
+  "buyNoStove": "Сначала горелка",
+  "buyGasFull": "Баллон полон",
+  "overflowGearTitle": "Что взять с собой",
+  "overflowGearHint": "Отметь {n}. Остальное останется у дороги.",
+  "@overflowGearHint": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "overflowGearKeepAsIs": "Оставить как есть",
+  "overflowGearConfirm": "Взять",
+  "overflowBackpackTitle": "В рюкзак не лезет",
+  "overflowUseNow": "Использовать сразу",
+  "overflowDrop": "Выбросить",
+  "overflowStash": "Положить в рюкзак",
+  "overflowSwapTitle": "Что освободить?",
+  "overflowSwapUse": "Использовать",
+  "overflowSwapDrop": "Выбросить",
+  "overflowSwapNotFree": "Одна порция ячейку не освободит",
+  "overflowPending": "Сначала реши, что делать с вещами",
+  "overflowError": "Не получилось. Попробуй ещё раз.",
+  "gearClewAsk": "Спросить клубок",
+  "gearClewCooldown": "Клубок отдыхает: {n} дн.",
+  "@gearClewCooldown": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gearTone_reward": "награда",
+  "gearTone_penalty": "наказание",
+  "gearTone_mixed": "и так и так",
+  "gearTone_risk": "как повезёт",
+  "gearTone_death": "смертельно",
+  "gearTone_neutral": "ничего особенного",
+  "loadoutErr_gear_too_many": "Столько вещей не унести.",
+  "loadoutErr_gear_duplicate": "Одна и та же вещь дважды.",
+  "loadoutErr_gear_not_starter": "Эту вещь на старте не взять.",
+  "loadoutErr_pack_not_starter": "Это в дорогу на старте не взять.",
+  "loadoutErr_pack_bad_count": "Проверь, сколько чего берёшь.",
+  "loadoutErr_pack_kind_limit": "Слишком много одного вида.",
+  "loadoutErr_pack_too_many": "В рюкзак столько не влезет.",
+  "loadoutErr_unknown": "Что-то не так с рюкзаком — проверь выбор.",
+  "gearPerkAbility_guide": "раз в {value} дн. выведет из крюка и задержки",
+  "@gearPerkAbility_guide": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkAbility_mirage": "раз в {value} дн. отведёт беду",
+  "@gearPerkAbility_mirage": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkAbility_action": "раз в {value} дн.",
+  "@gearPerkAbility_action": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkActionWarmth": "+{value} тепла по кнопке",
+  "@gearPerkActionWarmth": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkActionWarmthMax": "тепло до максимума",
+  "gearPerkActionGive_fish": "+{value} рыба",
+  "@gearPerkActionGive_fish": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkHint_twig_leshy": "в лесу, на болоте и в поле раз в {value} дн. подскажет, чем кончится выбор",
+  "@gearPerkHint_twig_leshy": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkHint_shell_vodyanoy": "у реки и озера раз в {value} дн. подскажет, чем кончится выбор",
+  "@gearPerkHint_shell_vodyanoy": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkHint_ember_domovoy": "в деревне, в избе и в городе раз в {value} дн. подскажет, чем кончится выбор",
+  "@gearPerkHint_ember_domovoy": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkHint_venik_bannik": "в бане, у костра, в дождь и ночью раз в {value} дн. подскажет, чем кончится выбор",
+  "@gearPerkHint_venik_bannik": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkCampWarmth": "на привале +{value} тепла",
+  "@gearPerkCampWarmth": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkCampWaterAtWater": "раз в день у воды +{value} воды",
+  "@gearPerkCampWaterAtWater": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkWaterDrainAtMiddayHeat": "в полдень и в зной жажда −{value} %",
+  "@gearPerkWaterDrainAtMiddayHeat": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkRiskAtWater": "у воды опасные исходы на {value} % реже",
+  "@gearPerkRiskAtWater": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkNoCoinLossAtWater": "у воды переправа даром",
+  "gearPerkBoostFishSatiety": "рыба сытнее на {value} %",
+  "@gearPerkBoostFishSatiety": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkUpkeep": "каждый день съедает 1 еду",
+  "gearPerkExpires": "завянет через {value} дн.",
+  "@gearPerkExpires": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkSell": "продашь за {value} монет",
+  "@gearPerkSell": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "gearPerkRescueWarmth": "спасёт от холода: поднимет до {value}",
+  "@gearPerkRescueWarmth": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "giftAction_venik_bannik": "Попариться",
+  "giftAction_stone_bannik": "Согреться",
+  "giftAction_hand_warmers": "Грелка",
+  "giftAction_key_ovinnik": "Ночлег в овине",
+  "giftAction_sheaf_ovinnik": "Сноп на ночь",
+  "giftAction_hook_vodyanoy": "Закинуть",
+  "giftAction_twig_leshy": "Сучок",
+  "giftAction_spruce_leshy": "Еловая лапка",
+  "giftAction_bead_kikimora": "Дунуть на бусину",
+  "giftAction_kudel_kikimora": "Кудель",
+  "giftStatus_no_charges": "Заряды кончились",
+  "giftStatus_cooldown": "Отдыхает: {n} дн.",
+  "@giftStatus_cooldown": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "giftStatus_nothing": "Сейчас нечего отменять или нечем помочь",
+  "giftStatus_not_here": "Здесь не сработает",
+  "giftUsed": "Дар сработал",
+  "gearClewAsk_ball_yaga": "Спросить клубок",
+  "gearClewAsk_thread_yaga": "Спросить нитку",
+  "gearClewAsk_twig_leshy": "Спросить сучок",
+  "gearClewAsk_shell_vodyanoy": "Спросить ракушку",
+  "gearClewAsk_ember_domovoy": "Спросить уголёк",
+  "gearClewAsk_venik_bannik": "Спросить веник",
+  "gearClewNotHere": "Здесь дух не подскажет",
+  "gearUpkeepHungry": "не накормлен — сегодня не греет",
+  "gearSellTitle": "Продать",
+  "gearSellAction": "Продать · {price}",
+  "@gearSellAction": {
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "logLoadout": "Сергей собрал рюкзак",
+  "logHeat": "Сергей разжёг горелку",
+  "logFirstAid": "Сергея выручило: {item}",
+  "@logFirstAid": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "logAbility": "Подсказка в пути: {item}",
+  "@logAbility": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "logGift": "Дар духа помог Сергею: {item}",
+  "@logGift": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "logCamp": "Добрый привал: {items}",
+  "@logCamp": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "logUpkeep": "Домовой в лапте поужинал: {food}",
+  "@logUpkeep": {
+    "placeholders": {
+      "food": {
+        "type": "String"
+      }
+    }
+  },
+  "logUpkeepHungry": "Домовому нечего есть — сегодня не греет",
+  "logWilt": "Дар завял: {item}",
+  "@logWilt": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "logSell": "Продано: {item} за {price}",
+  "@logSell": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "tabMap": "Карта",
+  "homeRouteEyebrow": "Глава {n} · {from} → {to}",
+  "@homeRouteEyebrow": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRouteTo": "{city, select, tver{до Твери} novgorod{до Великого Новгорода} petrozavodsk{до Петрозаводска} kem{до Кеми} murmansk{до Мурманска} teriberka{до Териберки} other{до конца главы}}",
+  "@homeRouteTo": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRouteNextIn": "{place} — через {km} км",
+  "@homeRouteNextIn": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRouteBright": "яркое — пройдено",
+  "homeRouteWhole": "Весь путь · {done} из {total} км",
+  "@homeRouteWhole": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRouteRest": "ещё {km} км",
+  "@homeRouteRest": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRouteA11y": "Глава {n}: пройдено {done} км из {total}, впереди {next}",
+  "@homeRouteA11y": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "next": {
+        "type": "String"
+      }
+    }
+  },
+  "homePaceLabel": "При твоём темпе",
+  "homePaceDays": "{days, plural, one{остался {days} день} few{осталось {days} дня} many{осталось {days} дней} other{осталось {days} дня}}",
+  "@homePaceDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "homePaceUnknownShort": "посчитаем после первых шагов",
+  "homeWeatherShort": "{part}, {weather}",
+  "@homeWeatherShort": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      },
+      "weather": {
+        "type": "String"
+      }
+    }
+  },
+  "vesselHungry": "голоден",
+  "vesselThirsty": "жажда",
+  "vesselCold": "мёрзнет",
+  "vesselLabelDanger": "{stat} · {state}",
+  "@vesselLabelDanger": {
+    "placeholders": {
+      "stat": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "vesselLegendDanger": "ниже {n} — опасно",
+  "@vesselLegendDanger": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "vesselLegendBonus": "от {n} — бонус",
+  "@vesselLegendBonus": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "vesselBonusOn": "✦ Бонус включён",
+  "vesselBonusMult": "· событий ×{ev}, расход ×{dr}",
+  "@vesselBonusMult": {
+    "placeholders": {
+      "ev": {
+        "type": "String"
+      },
+      "dr": {
+        "type": "String"
+      }
+    }
+  },
+  "vesselA11y": "{stat}: {value} из {max}",
+  "@vesselA11y": {
+    "placeholders": {
+      "stat": {
+        "type": "String"
+      },
+      "value": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "tabNewEntries": "{tab}, есть новые записи",
+  "@tabNewEntries": {
+    "placeholders": {
+      "tab": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTourRibbonBody": "Лента главы: пройденное горит цветным стеклом, впереди — тёмное. Цвет — зона пути: Город, Пригород, Окрестности. Кнопка «Карта» открывает большую карту.",
+  "mapChapterOf": "Глава {n} из {total} · день {day}",
+  "@mapChapterOf": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "mapChapterOfDone": "Глава {n} из {total} · пройдена",
+  "@mapChapterOfDone": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "mapChapterOfAhead": "Глава {n} из {total} · дойдёшь ≈ к дню {day}",
+  "@mapChapterOfAhead": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "mapChapterRoute": "{from} → {to}",
+  "@mapChapterRoute": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "mapKmOf": "/ {total} км",
+  "@mapKmOf": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "mapChapterA11y": "Глава {n}: {route}. Пройдено {done} из {total} км",
+  "@mapChapterA11y": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "route": {
+        "type": "String"
+      },
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "mapPrevChapter": "Предыдущая глава",
+  "mapNextChapter": "Следующая глава",
+  "mapChapterLockedHint": "Эта глава откроется в следующих версиях игры",
+  "mapMiniKm": "{done} / {total} км",
+  "@mapMiniKm": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "mapMiniA11y": "Весь путь: {done} из {total} км. Нажми на участок, чтобы открыть его главу",
+  "@mapMiniA11y": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWholeChapter": "Вся глава",
+  "mapLayerMarkets": "Рынки",
+  "mapLayerSpirits": "Духи",
+  "mapLayerNights": "Ночёвки",
+  "mapLayerEvents": "События",
+  "mapStatusPassed": "пройдено",
+  "mapStatusNext": "следующее",
+  "mapStatusHere": "ты здесь",
+  "mapInKm": "через {km} км",
+  "@mapInKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "mapArriveDay": "день {day}",
+  "@mapArriveDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "mapPriceMult": "цены ×{mult}",
+  "@mapPriceMult": {
+    "placeholders": {
+      "mult": {
+        "type": "String"
+      }
+    }
+  },
+  "mapRegionalGoods": "местное: {items}",
+  "@mapRegionalGoods": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "mapSpiritUnknown": "Неведомый дух",
+  "mapSpiritUnknownBody": "Кто-то ждёт у дороги. Кто — узнаешь, когда дойдёшь.",
+  "mapSpiritMet": "встречен в пути",
+  "mapSpiritHabitat": "Обитает: {habitat}",
+  "@mapSpiritHabitat": {
+    "placeholders": {
+      "habitat": {
+        "type": "String"
+      }
+    }
+  },
+  "mapNightTitle": "Ночёвка · день {day}",
+  "@mapNightTitle": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "mapNightPast": "Здесь Сергей ночевал — примерно, по шагам того дня.",
+  "mapNightFuture": "Прогноз по твоему темпу: {km} км в день.",
+  "@mapNightFuture": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "mapNightFallback": "Шагов пока мало — считаем {km} км в день.",
+  "@mapNightFallback": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "mapEventTitle": "Что-то впереди",
+  "mapEventBody": "Здесь что-то случится. Что — не скажем.",
+  "mapQuestHint": "Продолжение начатой истории",
+  "mapKindStart": "начало пути",
+  "mapKindCity": "город",
+  "mapKindTown": "городок",
+  "mapKindVillage": "село",
+  "mapKindFinish": "конец пути",
+  "mapKindRoadside": "у дороги",
+  "mapMarketCity": "городской рынок",
+  "mapMarketTown": "рынок городка",
+  "mapMarketVillage": "сельский рынок",
+  "mapMarketRoadside": "лавка у дороги",
+  "heroKicker": "Глава {n} · день {day}",
+  "@heroKicker": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "heroCoinsA11y": "Монет: {n}",
+  "@heroCoinsA11y": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "heroStoveOn": "Горелка горит · {n, plural, one{{n} вещь горячая} few{{n} вещи горячие} many{{n} вещей горячие} other{{n} вещи горячие}} · газ {left}/{max}",
+  "@heroStoveOn": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "left": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "heroStoveReady": "Горелка · газ {left}/{max} · согреет {n, plural, one{{n} вещь} few{{n} вещи} many{{n} вещей} other{{n} вещи}}",
+  "@heroStoveReady": {
+    "placeholders": {
+      "left": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "heroStoveIdle": "Горелка · газ {left}/{max}",
+  "@heroStoveIdle": {
+    "placeholders": {
+      "left": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "heroGiftTag": "дар",
+  "heroGiftReady": "готов",
+  "heroGiftInEvent": "подскажет в событии",
+  "heroPackWithTools": "{count} · {tools}",
+  "@heroPackWithTools": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "tools": {
+        "type": "String"
+      }
+    }
+  },
+  "heroSlotFree": "свободно",
+  "heroCells": "{n, plural, one{{n} ячейка} few{{n} ячейки} many{{n} ячеек} other{{n} ячейки}}",
+  "@heroCells": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "heroPortionsLeft": "{n} из {max} порций",
+  "@heroPortionsLeft": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "heroHeatable": "греется горелкой",
+  "heroDrink": "Выпить",
+  "heroSip": "Глоток",
+  "heroEat": "Съесть",
+  "heroHeatDrink": "Нагреть и выпить",
+  "heroHeatEat": "Нагреть и съесть",
+  "heroForecast": "{stat} {from} → {to}.",
+  "@heroForecast": {
+    "placeholders": {
+      "stat": {
+        "type": "String"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "heroForecastHot": "{stat} {from} → {to} холодным, → {hot} горячим.",
+  "@heroForecastHot": {
+    "placeholders": {
+      "stat": {
+        "type": "String"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      },
+      "hot": {
+        "type": "int"
+      }
+    }
+  },
+  "heroForecastHeated": "{stat} {from} → {to} горячим.",
+  "@heroForecastHeated": {
+    "placeholders": {
+      "stat": {
+        "type": "String"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "heroForecastHotWarmth": "Горячим тепло {from} → {to}.",
+  "@heroForecastHotWarmth": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "heroForecastGas": "Газ {from} → {to}.",
+  "@heroForecastGas": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "heroDropTitle": "Выбросить «{name}»?",
+  "@heroDropTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "heroDropBody": "Вещь останется у дороги — вернуть её не получится.",
+  "journalKicker": "Глава {chapter} · день {day}",
+  "@journalKicker": {
+    "placeholders": {
+      "chapter": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "journalNewCount": "{n, plural, one{{n} новая} few{{n} новых} many{{n} новых} other{{n} новых}}",
+  "@journalNewCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "journalNewDot": "новая запись",
+  "journalFilterAll": "Всё",
+  "journalFilterChains": "Цепочки",
+  "journalFilterSpirits": "Духи",
+  "journalFilterThoughts": "Мысли",
+  "journalFilterItems": "Вещи",
+  "journalFilterMore": "Расширенный фильтр",
+  "journalFilterType": "Тип",
+  "journalFilterZone": "Зона",
+  "journalFilterOutcome": "Исход",
+  "journalFilterDone": "Готово",
+  "journalFilterEmpty": "По этому фильтру записей нет",
+  "journalReset": "Сбросить",
+  "journalCount": "{n} из {total}",
+  "@journalCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "journalKindStory": "Сюжет",
+  "journalKindRandom": "Случайное",
+  "journalKindSpirit": "Дух",
+  "journalKindQuest": "Квест",
+  "journalKindItem": "Вещь",
+  "journalKindDeath": "Смерть",
+  "journalKindThought": "Мысль",
+  "journalKindCamp": "Привал",
+  "journalToneGood": "Награда",
+  "journalToneBad": "Потеря",
+  "journalToneMixed": "Смешанно",
+  "journalDayToday": "День {day} · сегодня",
+  "@journalDayToday": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "journalDayKm": "{from} → {to} км",
+  "@journalDayKm": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "journalDaySteps": "шагов: {steps}",
+  "@journalDaySteps": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "journalTimeKm": "{time} · {km} км",
+  "@journalTimeKm": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "journalDayShort": "д{day}",
+  "@journalDayShort": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "journalBefore": "До ↑",
+  "journalAfter": "После ↓",
+  "journalStepOf": "{title} · шаг {n}",
+  "@journalStepOf": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "journalOpened": "открыло: {what}",
+  "@journalOpened": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "journalOpenedQuest": "линия «{name}»",
+  "@journalOpenedQuest": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "journalOpenedStep": "шаг {n} линии «{name}»",
+  "@journalOpenedStep": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "journalNextStep": "шаг {n} через {km} км",
+  "@journalNextStep": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "journalLineDone": "Линия завершена",
+  "journalLineButton": "Линия «{name}»",
+  "@journalLineButton": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "journalChainDeath": "Смерть",
+  "journalThoughtTitle": "Мысль дня {day}",
+  "@journalThoughtTitle": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "journalFxRollback": "Откат {km} км",
+  "@journalFxRollback": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  }
 }

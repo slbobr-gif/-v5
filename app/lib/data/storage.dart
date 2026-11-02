@@ -18,6 +18,8 @@ class Profile {
     this.morningMinute = 0,
     this.notifications = true,
     this.surveyAnswered = false,
+    this.stepsSensor = true,
+    this.stepsHc = true,
   });
 
   String name;
@@ -30,6 +32,11 @@ class Profile {
   bool notifications;
   bool surveyAnswered;
 
+  /// Какие источники шагов учитываются: датчик телефона и Health Connect (по умолчанию оба).
+  /// Датчик в фоне копит данные независимо от переключателя — меняется только то, что засчитывается.
+  bool stepsSensor;
+  bool stepsHc;
+
   Json toJson() => {
         'name': name,
         'email': email,
@@ -40,6 +47,8 @@ class Profile {
         'morningMinute': morningMinute,
         'notifications': notifications,
         'surveyAnswered': surveyAnswered,
+        'stepsSensor': stepsSensor,
+        'stepsHc': stepsHc,
       };
 
   static Profile fromJson(Json j) => Profile(
@@ -52,6 +61,9 @@ class Profile {
         morningMinute: toI(j['morningMinute'] ?? 0),
         notifications: j['notifications'] != false,
         surveyAnswered: j['surveyAnswered'] == true,
+        // Старые сохранения без этих полей: оба источника включены.
+        stepsSensor: j['stepsSensor'] != false,
+        stepsHc: j['stepsHc'] != false,
       );
 }
 
@@ -65,6 +77,8 @@ class Storage {
   static const _kThoughtSeen = 'thought_seen_v1';
   static const _kNotifSent = 'notif_sent_v1';
   static const _kNotifPlanned = 'notif_planned_v1';
+  static const _kHeroBroken = 'hero_v1_broken';
+  static const _kLoadout = 'loadout_v1';
 
   Profile loadProfile() {
     final raw = _p.getString(_kProfile);
@@ -78,12 +92,15 @@ class Storage {
 
   Future<void> saveProfile(Profile p) => _p.setString(_kProfile, jsonEncode(p.toJson()));
 
-  HeroState? loadHero() {
+  /// Состояние героя. С [world] старое сохранение (v1, до v5.3) переводится в v2: снаряжение из inv — в gear.
+  /// Если сохранение не читается, его копия остаётся под отдельным ключом (прогресс не теряется молча).
+  HeroState? loadHero([World? world]) {
     final raw = _p.getString(_kHero);
     if (raw == null) return null;
     try {
-      return HeroState.fromJson((jsonDecode(raw) as Map).cast<String, dynamic>());
+      return HeroState.fromJson((jsonDecode(raw) as Map).cast<String, dynamic>(), world);
     } catch (_) {
+      _p.setString(_kHeroBroken, raw);
       return null;
     }
   }
@@ -102,6 +119,23 @@ class Storage {
   }
 
   Future<void> saveAnswers(Map<String, Json> a) => _p.setString(_kAnswers, jsonEncode(a));
+
+  /// Выбранный на экране «Собери рюкзак» набор (до создания героя): {gear: [...], pack: {...}, default: bool}.
+  Json? loadLoadout() {
+    final raw = _p.getString(_kLoadout);
+    if (raw == null) return null;
+    try {
+      return (jsonDecode(raw) as Map).cast<String, dynamic>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveLoadout(Json j) => _p.setString(_kLoadout, jsonEncode(j));
+
+  Future<void> clearLoadout() async {
+    await _p.remove(_kLoadout);
+  }
 
   String? lastThoughtSeenDay() => _p.getString(_kThoughtSeen);
   Future<void> setThoughtSeenDay(String day) => _p.setString(_kThoughtSeen, day);
@@ -139,6 +173,7 @@ class Storage {
     await _p.remove(_kHero);
     await _p.remove(_kAnswers);
     await _p.remove(_kThoughtSeen);
+    await _p.remove(_kLoadout);
   }
 
   Future<void> resetAll() => _p.clear();

@@ -21,7 +21,7 @@ class StoryText extends StatelessWidget {
       final italic = i.isOdd;
       spans.add(TextSpan(
         text: parts[i],
-        style: italic ? const TextStyle(fontStyle: FontStyle.italic, color: Palette.gold) : null,
+        style: italic ? const TextStyle(fontStyle: FontStyle.italic, color: Palette.accent) : null,
       ));
     }
     return Text.rich(TextSpan(style: base, children: spans), textAlign: textAlign);
@@ -73,7 +73,7 @@ class StatBar extends StatelessWidget {
       label: '$label ${value.round()}',
       child: Row(
         children: [
-          Icon(icon, size: 18, color: danger ? Palette.danger : color),
+          Icon(icon, size: 18, color: danger ? Palette.coralLine : color),
           const SizedBox(width: Gap.s),
           SizedBox(width: 64, child: Text(label, style: const TextStyle(fontSize: 13))),
           Expanded(
@@ -82,7 +82,7 @@ class StatBar extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: v,
                 minHeight: 9,
-                color: danger ? Palette.danger : color,
+                color: danger ? Palette.coralLine : color,
                 backgroundColor: Palette.inkHigh,
               ),
             ),
@@ -90,11 +90,13 @@ class StatBar extends StatelessWidget {
           const SizedBox(width: Gap.s),
           SizedBox(
             width: 30,
-            child: Text('${value.round()}', textAlign: TextAlign.end, style: const TextStyle(fontSize: 13)),
+            child: Text('${value.round()}',
+                textAlign: TextAlign.end,
+                style: TextStyle(fontSize: 13, color: danger ? Palette.coralLine : null, fontWeight: FontWeight.w600)),
           ),
           SizedBox(
             width: 22,
-            child: danger ? const Icon(Icons.warning_amber_rounded, size: 18, color: Palette.danger) : null,
+            child: danger ? const Icon(Icons.warning_amber_rounded, size: 18, color: Palette.coralLine) : null,
           ),
         ],
       ),
@@ -119,5 +121,189 @@ class SectionCard extends StatelessWidget {
     );
     if (onTap == null) return box;
     return InkWell(borderRadius: BorderRadius.circular(Gap.radius), onTap: onTap, child: box);
+  }
+}
+
+// ---------------------------------------------------------------- v5.3: единый стиль разделов
+
+/// Заголовок экрана в духе главной: маленькая строка сверху («Глава 1») и крупное название («Выход»).
+class ScreenTitle extends StatelessWidget {
+  const ScreenTitle({super.key, required this.title, this.kicker});
+
+  final String title;
+  final String? kicker;
+
+  @override
+  Widget build(BuildContext context) {
+    final k = kicker;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (k != null && k.isNotEmpty)
+          Text(k, style: const TextStyle(fontSize: 12, color: Palette.parchmentDim, height: 1.1)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 20, color: Palette.parchment, height: 1.2),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+}
+
+/// Подзаголовок группы внутри экрана (настройки, журнал, герой).
+class SectionHeader extends StatelessWidget {
+  const SectionHeader(this.text, {super.key, this.padding = const EdgeInsets.fromLTRB(Gap.xs, Gap.m, Gap.xs, Gap.s)});
+
+  final String text;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: padding,
+      child: Text(
+        text,
+        style: const TextStyle(color: Palette.parchmentDim, fontSize: 12.5, fontWeight: FontWeight.w700, letterSpacing: 0.4),
+      ),
+    );
+  }
+}
+
+/// Чип как «Город» на главной: цветной квадратик и подпись.
+class SwatchChip extends StatelessWidget {
+  const SwatchChip({super.key, required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(7, 2, 9, 2),
+      decoration: BoxDecoration(
+        color: Palette.chipBg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Palette.chipLine),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
+              border: Border.all(color: Palette.lead),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(label, style: const TextStyle(color: Palette.parchment, fontSize: 12.5)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Бирюзовая кнопка-чип как «Карта»: значок и подпись, зона нажатия не меньше 48 dp.
+class AccentChipButton extends StatelessWidget {
+  const AccentChipButton({super.key, required this.label, required this.onTap, this.icon, this.selected = false});
+
+  final String label;
+  final VoidCallback? onTap;
+  final IconData? icon;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final ic = icon;
+    return Semantics(
+      button: true,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Center(
+            widthFactor: 1,
+            child: Container(
+              height: 34,
+              padding: const EdgeInsets.fromLTRB(10, 0, 13, 0),
+              decoration: BoxDecoration(
+                color: Palette.accent.withAlpha(selected ? 40 : 20),
+                borderRadius: BorderRadius.circular(17),
+                border: Border.all(color: selected ? Palette.tabLine : Palette.chipLine),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (ic != null) ...[
+                    Icon(ic, size: 16, color: Palette.accent),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(label,
+                      style: const TextStyle(color: Palette.accent, fontSize: 13, fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Плашка-предупреждение (коралл): шаги не считаются, рюкзак полон и т. п.
+class WarnBox extends StatelessWidget {
+  const WarnBox({super.key, required this.text, this.onTap, this.icon = Icons.error_outline});
+
+  final String text;
+  final VoidCallback? onTap;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final box = Container(
+      padding: const EdgeInsets.symmetric(horizontal: Gap.m, vertical: Gap.s + 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF231A24),
+        borderRadius: BorderRadius.circular(Gap.radiusS),
+        border: Border.all(color: Palette.coralLine),
+      ),
+      child: Row(children: [
+        Icon(icon, color: Palette.coralLine),
+        const SizedBox(width: Gap.s + 4),
+        Expanded(child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600, height: 1.3))),
+        if (onTap != null) const Icon(Icons.chevron_right, color: Palette.coralLine),
+      ]),
+    );
+    if (onTap == null) return box;
+    return InkWell(borderRadius: BorderRadius.circular(Gap.radiusS), onTap: onTap, child: box);
+  }
+}
+
+/// Полоса прогресса в стиле главной (бирюза на тёмном, скруглённая).
+class AccentProgress extends StatelessWidget {
+  const AccentProgress({super.key, required this.value, this.height = 8, this.color = Palette.accent});
+
+  final double value;
+  final double height;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(height / 2),
+      child: LinearProgressIndicator(
+        value: value.clamp(0.0, 1.0),
+        minHeight: height,
+        color: color,
+        backgroundColor: Palette.inkHigh,
+      ),
+    );
   }
 }

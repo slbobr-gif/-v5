@@ -8,7 +8,12 @@ import '../../engine/engine.dart';
 import '../../engine/world.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
+import '../widgets/coach_tour.dart';
 import '../widgets/common.dart';
+import '../widgets/gift_button.dart';
+import '../widgets/item_icon.dart';
+import '../widgets/spirit_card.dart';
+import 'overflow_screens.dart';
 
 /// Показывает экран текущей остановки. Сам переключается, если остановка сменилась.
 class StopScreen extends ConsumerStatefulWidget {
@@ -36,10 +41,13 @@ class _StopScreenState extends ConsumerState<StopScreen> {
           final o = _outcome;
           if (o == null) return; // двойное нажатие «Дальше»
           setState(() => _outcome = null);
+          // Вещи в очереди переполнения: advance героя не двигает, но снимает undo («Сучок»/«Бусина»
+          // уже не нужны) — иначе после решения контроллер не повёл бы героя дальше (_afterOverflow ждёт undo == null).
           if (!o.died) await ref.read(appProvider.notifier).afterEvent();
         },
       );
     }
+    if (hero != null && hero.overflow.isNotEmpty) return const OverflowScreen();
     final st = hero?.stop;
     if (hero == null || st == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -69,25 +77,55 @@ class _StopScreenState extends ConsumerState<StopScreen> {
   }
 }
 
-String _itemsLine(AppController c, Map<String, int> items) =>
-    items.entries.map((e) => e.value > 1 ? '${c.content.itemName(e.key)} ×${e.value}' : c.content.itemName(e.key)).join(', ');
+/// Нижний отступ содержимого остановок: системная навигация Android + запас (баг п. 30).
+EdgeInsets _listPadding(BuildContext context) =>
+    EdgeInsets.fromLTRB(Gap.l, Gap.l, Gap.l, safeBottom(context) + Gap.m);
+
+String _toneLabel(AppLocalizations l, String tone) => switch (tone) {
+      'reward' => l.gearTone_reward,
+      'penalty' => l.gearTone_penalty,
+      'mixed' => l.gearTone_mixed,
+      'risk' => l.gearTone_risk,
+      'death' => l.gearTone_death,
+      _ => l.gearTone_neutral,
+    };
+
+/// Цвет и значок тона: награда — бирюза, наказание — коралл, смешанно/риск/ничего — нейтральный, смерть — красный.
+(Color, IconData) _toneStyle(String tone) => switch (tone) {
+      'reward' => (Palette.accent, Icons.card_giftcard_outlined),
+      'penalty' => (Palette.ember, Icons.trending_down),
+      'mixed' => (Palette.parchmentDim, Icons.swap_vert),
+      'risk' => (Palette.parchmentDim, Icons.casino_outlined),
+      'death' => (Palette.danger, Icons.dangerous_outlined),
+      _ => (Palette.parchmentDim, Icons.remove),
+    };
 
 // ---------------------------------------------------------------- событие
 
-class _EventScreen extends ConsumerWidget {
+class _EventScreen extends ConsumerStatefulWidget {
   const _EventScreen({required this.onOutcome});
   final void Function(OutcomeView, String, String) onOutcome;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_EventScreen> createState() => _EventScreenState();
+}
+
+class _EventScreenState extends ConsumerState<_EventScreen> {
+  /// Ответ клубка для события с этим id (в состоянии героя не хранится).
+  String? _tonesFor;
+  Map<String, String>? _tones;
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final m = ref.watch(appProvider);
     final c = ref.read(appProvider.notifier);
     final eng = Engine(m.content!.world, m.hero!);
     final ev = eng.currentEvent();
     if (ev == null) return const Scaffold(body: SizedBox.shrink());
+    final evId = '${ev['id']}';
+    final tones = _tonesFor == evId ? _tones : null;
     final art = (ev['art'] as String?) ?? 'road';
-    final creature = ev['creature'] as String?;
     final choices = (ev['choices'] as List).cast<Map>().map((x) => x.cast<String, dynamic>()).toList();
     final kindLabel = switch (ev['kind']) {
       'creature' => l.kindCreature,
@@ -96,58 +134,73 @@ class _EventScreen extends ConsumerWidget {
       'regional' => l.kindRegional,
       _ => l.kindRandom,
     };
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 220,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Art('assets/art/scenes/$art.svg'),
-                  if (creature != null)
-                    Positioned(
-                      right: Gap.m,
-                      bottom: Gap.m,
-                      child: Container(
-                        decoration: const BoxDecoration(shape: BoxShape.circle, color: Palette.ink),
-                        padding: const EdgeInsets.all(4),
-                        child: Art('assets/art/creatures/$creature.svg', width: 72, height: 72, fit: BoxFit.contain),
-                      ),
+    final clew = c.clewStatus();
+    // Чей голос подскажет: клубок, нитка или дар духа «своих» мест (§13.5).
+    final clewItem = eng.clewItem(DateTime.now().millisecondsSinceEpoch);
+    final firstRisky = choices.indexWhere((ch) => ((ch['risk'] as String?) ?? 'none') != 'none');
+    final tips = <CoachStep>[
+      if (firstRisky >= 0) CoachStep(id: 'risk', anchor: 'risk', title: l.tourStep6Title, body: l.tourStep6Body),
+    ];
+    return CoachHost(
+      tips: tips,
+      child: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 220,
+              pinned: true,
+              flexibleSpace: FlexibleSpaceBar(background: SpiritArt(event: ev)),
+            ),
+            SliverPadding(
+              padding: _listPadding(context),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  Text(kindLabel.toUpperCase(),
+                      style: const TextStyle(color: Palette.accent, fontSize: 12, letterSpacing: 1.5)),
+                  const SizedBox(height: Gap.xs),
+                  Text('${ev['title']}', style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: Gap.m),
+                  StoryText('${ev['text']}'),
+                  const SizedBox(height: Gap.l),
+                  if (clew == 'ready' || clew == 'cooldown' || clew == 'not_here') ...[
+                    _ClewRow(
+                      item: clewItem ?? 'ball_yaga',
+                      label: clewAskLabel(l, clewItem),
+                      notHere: clew == 'not_here',
+                      ready: clew == 'ready' && tones == null,
+                      cooldownDays: clew == 'cooldown' ? c.clewCooldownDays() : 0,
+                      onAsk: () {
+                        final r = c.askClew();
+                        if (r != null) {
+                          setState(() {
+                            _tonesFor = evId;
+                            _tones = r;
+                          });
+                        }
+                      },
                     ),
-                ],
+                    const SizedBox(height: Gap.m),
+                  ],
+                  for (var i = 0; i < choices.length; i++) ...[
+                    _ChoiceButton(
+                      choice: choices[i],
+                      available: eng.choiceAvailable(choices[i]),
+                      risk: eng.choiceRisk(choices[i]),
+                      riskAnchor: i == firstRisky,
+                      tone: tones?['${choices[i]['id']}'],
+                      requirement: _requirementText(l, c, eng, choices[i]),
+                      onTap: () {
+                        final o = c.choose('${choices[i]['id']}');
+                        if (o != null) widget.onOutcome(o, '${ev['title']}', art);
+                      },
+                    ),
+                    const SizedBox(height: Gap.s),
+                  ],
+                ]),
               ),
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(Gap.l),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                Text(kindLabel.toUpperCase(), style: const TextStyle(color: Palette.gold, fontSize: 12, letterSpacing: 1.5)),
-                const SizedBox(height: Gap.xs),
-                Text('${ev['title']}', style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: Gap.m),
-                StoryText('${ev['text']}'),
-                const SizedBox(height: Gap.l),
-                for (final ch in choices) ...[
-                  _ChoiceButton(
-                    choice: ch,
-                    available: eng.choiceAvailable(ch),
-                    risk: eng.choiceRisk(ch),
-                    requirement: _requirementText(l, c, eng, ch),
-                    onTap: () {
-                      final o = c.choose('${ch['id']}');
-                      if (o != null) onOutcome(o, '${ev['title']}', art);
-                    },
-                  ),
-                  const SizedBox(height: Gap.s),
-                ],
-              ]),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -165,11 +218,56 @@ class _EventScreen extends ConsumerWidget {
   }
 }
 
+/// «Спросить клубок» и «Клубок отдыхает N дн.».
+class _ClewRow extends StatelessWidget {
+  const _ClewRow({
+    required this.item,
+    required this.label,
+    required this.notHere,
+    required this.ready,
+    required this.cooldownDays,
+    required this.onAsk,
+  });
+
+  final String item;
+  final String label;
+  final bool notHere;
+  final bool ready;
+  final int cooldownDays;
+  final VoidCallback onAsk;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Row(children: [
+      ItemIcon(item, size: 36),
+      const SizedBox(width: Gap.s + 4),
+      Expanded(
+        child: ready
+            ? Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44), foregroundColor: Palette.accent),
+                  onPressed: onAsk,
+                  child: Text(label),
+                ),
+              )
+            : Text(
+                notHere ? l.gearClewNotHere : (cooldownDays > 0 ? l.gearClewCooldown(cooldownDays) : label),
+                style: const TextStyle(color: Palette.parchmentDim, fontSize: 13),
+              ),
+      ),
+    ]);
+  }
+}
+
 class _ChoiceButton extends StatelessWidget {
   const _ChoiceButton({
     required this.choice,
     required this.available,
     required this.risk,
+    required this.riskAnchor,
+    required this.tone,
     required this.requirement,
     required this.onTap,
   });
@@ -177,6 +275,8 @@ class _ChoiceButton extends StatelessWidget {
   final Json choice;
   final bool available;
   final String risk;
+  final bool riskAnchor;
+  final String? tone;
   final String? requirement;
   final VoidCallback onTap;
 
@@ -189,6 +289,33 @@ class _ChoiceButton extends StatelessWidget {
       'low' => (Icons.info_outline, Palette.parchmentDim, l.riskLow),
       _ => (null, Palette.parchmentDim, ''),
     };
+    Widget? riskRow;
+    if (riskIcon != null) {
+      riskRow = Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(riskIcon, size: 16, color: riskColor),
+        const SizedBox(width: 4),
+        Flexible(child: Text(riskLabel, style: TextStyle(color: riskColor, fontSize: 12))),
+      ]);
+      if (riskAnchor) riskRow = TourAnchor(id: 'risk', child: riskRow);
+    }
+    final t = tone;
+    Widget? toneRow;
+    if (t != null) {
+      final (col, ic) = _toneStyle(t);
+      toneRow = Container(
+        margin: const EdgeInsets.only(top: 4),
+        padding: const EdgeInsets.symmetric(horizontal: Gap.s, vertical: 2),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: col),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(ic, size: 14, color: col),
+          const SizedBox(width: 4),
+          Text(_toneLabel(l, t), style: TextStyle(color: col, fontSize: 12, fontWeight: FontWeight.w600)),
+        ]),
+      );
+    }
     return Opacity(
       opacity: available ? 1 : 0.45,
       child: SectionCard(
@@ -206,22 +333,46 @@ class _ChoiceButton extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(requirement!, style: const TextStyle(color: Palette.parchmentDim, fontSize: 12)),
                     ),
-                  if (riskIcon != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(children: [
-                        Icon(riskIcon, size: 16, color: riskColor),
-                        const SizedBox(width: 4),
-                        Text(riskLabel, style: TextStyle(color: riskColor, fontSize: 12)),
-                      ]),
-                    ),
+                  if (riskRow != null) Padding(padding: const EdgeInsets.only(top: 4), child: riskRow),
+                  if (toneRow != null) toneRow,
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: available ? Palette.gold : Palette.parchmentDim),
+            Icon(Icons.chevron_right, color: available ? Palette.accent : Palette.parchmentDim),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Предметы исхода: значок, имя, «×N».
+class _ItemChips extends ConsumerWidget {
+  const _ItemChips({required this.items, required this.color, required this.prefix});
+
+  final Map<String, int> items;
+  final Color color;
+  final String prefix;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final m = ref.read(appProvider);
+    final content = m.content!;
+    return Wrap(
+      spacing: Gap.s,
+      runSpacing: Gap.s,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(prefix, style: TextStyle(color: color, fontSize: 13)),
+        for (final e in items.entries)
+          Chip(
+            avatar: ItemIcon(e.key, size: 24, type: content.world.itemType(e.key)),
+            label: Text(e.value > 1 ? l.gearPortions(content.itemName(e.key), e.value) : content.itemName(e.key)),
+            backgroundColor: Palette.chipBg,
+            side: BorderSide(color: color.withAlpha(120)),
+          ),
+      ],
     );
   }
 }
@@ -237,33 +388,31 @@ class _OutcomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final c = ref.read(appProvider.notifier);
     final o = outcome;
     final chips = <Widget>[];
     Widget chip(IconData i, String t, Color col) => Chip(
           avatar: Icon(i, size: 16, color: col),
           label: Text(t),
-          backgroundColor: Palette.inkRaised,
-          side: const BorderSide(color: Palette.inkHigh),
+          backgroundColor: Palette.chipBg,
+          side: const BorderSide(color: Palette.chipLine),
         );
     String signed(int v) => v > 0 ? '+$v' : '$v';
-    if (o.coins != 0) chips.add(chip(Icons.toll, l.fxCoins(signed(o.coins)), Palette.gold));
+    if (o.coins != 0) chips.add(chip(Icons.toll, l.fxCoins(signed(o.coins)), Palette.accent));
     final statNames = {'satiety': l.statSatiety, 'water': l.statWater, 'warmth': l.statWarmth};
     o.stats.forEach((k, v) {
       if (v != 0) {
         chips.add(chip(v > 0 ? Icons.arrow_upward : Icons.arrow_downward, '${statNames[k]} ${signed(v)}',
-            v > 0 ? Palette.teal : Palette.danger));
+            v > 0 ? Palette.accent : Palette.danger));
       }
     });
-    if (o.itemsGained.isNotEmpty) chips.add(chip(Icons.add_box_outlined, l.fxGained(_itemsLine(c, o.itemsGained)), Palette.teal));
-    if (o.itemsLost.isNotEmpty) chips.add(chip(Icons.indeterminate_check_box_outlined, l.fxLost(_itemsLine(c, o.itemsLost)), Palette.danger));
     if (o.delayHours > 0) chips.add(chip(Icons.hourglass_bottom, l.fxDelay(o.delayHours.ceil()), Palette.ember));
     if (o.detourKm > 0) chips.add(chip(Icons.alt_route, l.fxDetour(o.detourKm.toStringAsFixed(0)), Palette.ember));
-    if (o.shortcutKm > 0) chips.add(chip(Icons.fast_forward, l.fxShortcut(o.shortcutKm.toStringAsFixed(1)), Palette.teal));
+    if (o.shortcutKm > 0) chips.add(chip(Icons.fast_forward, l.fxShortcut(o.shortcutKm.toStringAsFixed(1)), Palette.accent));
     return Scaffold(
       body: SafeArea(
+        bottom: false,
         child: ListView(
-          padding: const EdgeInsets.all(Gap.l),
+          padding: _listPadding(context),
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(Gap.radius),
@@ -275,9 +424,25 @@ class _OutcomeScreen extends ConsumerWidget {
             StoryText(o.text),
             const SizedBox(height: Gap.m),
             if (chips.isNotEmpty) Wrap(spacing: Gap.s, runSpacing: Gap.s, children: chips),
+            if (o.itemsGained.isNotEmpty) ...[
+              const SizedBox(height: Gap.s),
+              _ItemChips(items: o.itemsGained, color: Palette.accent, prefix: l.fxGained('').trim()),
+            ],
+            if (o.itemsLost.isNotEmpty) ...[
+              const SizedBox(height: Gap.s),
+              _ItemChips(items: o.itemsLost, color: Palette.danger, prefix: l.fxLost('').trim()),
+            ],
+            if (o.itemsPending.isNotEmpty) ...[
+              const SizedBox(height: Gap.s),
+              _ItemChips(items: o.itemsPending, color: Palette.ember, prefix: l.overflowPending),
+            ],
             if (o.died) ...[
               const SizedBox(height: Gap.m),
               Text(l.fxDied, style: const TextStyle(color: Palette.danger)),
+            ] else ...[
+              // «Сучок»/«Бусина» отменяют вред этого исхода — только здесь, до «Дальше» (§13.4).
+              const SizedBox(height: Gap.m),
+              const GiftList(kinds: {'guide', 'mirage'}, hideNothing: true),
             ],
             const SizedBox(height: Gap.l),
             FilledButton(onPressed: onNext, child: Text(l.next)),
@@ -302,6 +467,7 @@ class _PlaceScreen extends ConsumerWidget {
     final st = m.hero!.stop!;
     final place = m.content!.world.placeById['${st['place']}'] ?? const <String, dynamic>{};
     final offers = eng.market();
+    final sells = eng.sellOffers();
     final art = switch (place['kind']) {
       'city' => 'town',
       'town' => 'town',
@@ -318,45 +484,76 @@ class _PlaceScreen extends ConsumerWidget {
             flexibleSpace: FlexibleSpaceBar(background: Art('assets/art/scenes/$art.svg')),
           ),
           SliverPadding(
-            padding: const EdgeInsets.all(Gap.l),
+            padding: _listPadding(context),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                Text(l.stopPlace.toUpperCase(), style: const TextStyle(color: Palette.gold, fontSize: 12, letterSpacing: 1.5)),
+                Text(l.stopPlace.toUpperCase(), style: const TextStyle(color: Palette.accent, fontSize: 12, letterSpacing: 1.5)),
                 Text('${place['name']}', style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: Gap.s),
                 StoryText(desc),
                 const SizedBox(height: Gap.s),
-                Text(l.placeRest, style: const TextStyle(color: Palette.teal)),
+                Text(l.placeRest, style: const TextStyle(color: Palette.accent)),
                 const SizedBox(height: Gap.l),
                 Row(children: [
                   Expanded(child: Text(l.market, style: Theme.of(context).textTheme.titleMedium)),
-                  const Icon(Icons.toll, color: Palette.gold, size: 18),
+                  const Icon(Icons.toll, color: Palette.accent, size: 18),
                   const SizedBox(width: 4),
                   Text('${m.hero!.coins}'),
                   const SizedBox(width: Gap.m),
                   const Icon(Icons.backpack_outlined, color: Palette.parchmentDim, size: 18),
                   const SizedBox(width: 4),
                   Text('${eng.consumablesCount()}/${eng.backpackSlots()}'),
+                  const SizedBox(width: Gap.m),
+                  const Icon(Icons.handyman_outlined, color: Palette.parchmentDim, size: 18),
+                  const SizedBox(width: 4),
+                  Text('${eng.gearUsed()}/${eng.gearSlots()}'),
                 ]),
                 const SizedBox(height: Gap.s),
                 if (offers.isEmpty) Text(l.marketEmpty, style: const TextStyle(color: Palette.parchmentDim)),
                 for (final o in offers) ...[
                   _OfferRow(
+                    id: o.item,
+                    type: eng.w.itemType(o.item),
                     name: c.content.itemName(o.item),
                     desc: '${c.content.items[o.item]?['desc'] ?? ''}',
-                    effect: itemEffectLine(l, eng, o.item),
+                    effect: perksLine(l, eng.w, o.item),
                     price: o.price,
-                    have: m.hero!.inv[o.item] ?? 0,
+                    have: m.hero!.gear.contains(o.item) ? 1 : (m.hero!.inv[o.item] ?? 0),
                     blocker: eng.buyBlocker(o.item),
                     onBuy: () => c.buy(o.item),
                   ),
                   const SizedBox(height: Gap.s),
                 ],
+                if (sells.isNotEmpty) ...[
+                  const SizedBox(height: Gap.l),
+                  Text(l.gearSellTitle, style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: Gap.s),
+                  for (final so in sells) ...[
+                    _SellRow(
+                      id: so.$1,
+                      type: eng.w.itemType(so.$1),
+                      name: c.content.itemName(so.$1),
+                      price: so.$2,
+                      enabled: eng.sellBlocker(so.$1) == null,
+                      onSell: () => c.sell(so.$1),
+                    ),
+                    const SizedBox(height: Gap.s),
+                  ],
+                ],
+                // Дары «на привале»: веник, ключ, сноп, крючок.
+                const SizedBox(height: Gap.m),
+                const GiftList(kinds: {'action'}),
                 const SizedBox(height: Gap.l),
+                if (m.hero!.overflow.isNotEmpty) ...[
+                  Text(l.overflowPending, style: const TextStyle(color: Palette.ember)),
+                  const SizedBox(height: Gap.s),
+                ],
                 FilledButton(
-                  onPressed: () async {
-                    await c.continueJourney(st);
-                  },
+                  onPressed: m.hero!.overflow.isNotEmpty
+                      ? null
+                      : () async {
+                          await c.continueJourney(st);
+                        },
                   child: Text(l.goOn),
                 ),
               ]),
@@ -368,23 +565,47 @@ class _PlaceScreen extends ConsumerWidget {
   }
 }
 
-/// «+30 сытости, +10 тепла» и т. п. для предмета.
-String itemEffectLine(AppLocalizations l, Engine eng, String item) {
-  final w = eng.w;
-  final parts = <String>[];
-  final names = {'satiety': l.statSatiety, 'water': l.statWater, 'warmth': l.statWarmth};
-  for (final k in ['satiety', 'water', 'warmth']) {
-    final v = w.itemValue(item, k);
-    if (v > 0) parts.add('+${v.round()} ${names[k]!.toLowerCase()}');
+/// Продажа (жемчужина и др. с `sellPrice`): цена без наценки рынка.
+class _SellRow extends StatelessWidget {
+  const _SellRow({
+    required this.id,
+    required this.type,
+    required this.name,
+    required this.price,
+    required this.enabled,
+    required this.onSell,
+  });
+
+  final String id;
+  final String type;
+  final String name;
+  final int price;
+  final bool enabled;
+  final VoidCallback onSell;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return SectionCard(
+      padding: const EdgeInsets.symmetric(horizontal: Gap.m, vertical: Gap.s),
+      child: Row(children: [
+        ItemIcon(id, size: 40, type: type),
+        const SizedBox(width: Gap.s + 4),
+        Expanded(child: Text(name, style: Theme.of(context).textTheme.titleSmall)),
+        FilledButton.tonal(
+          style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+          onPressed: enabled ? onSell : null,
+          child: Text(l.gearSellAction(price)),
+        ),
+      ]),
+    );
   }
-  if (w.itemValue(item, 'warmthDrainMult') > 0) parts.add(l.gearSocks);
-  if (w.itemValue(item, 'weatherWarmthMult') > 0) parts.add(l.gearRaincoat);
-  if (w.itemValue(item, 'riskReduce') > 0) parts.add(l.gearAmulet);
-  return parts.join(', ');
 }
 
 class _OfferRow extends StatelessWidget {
   const _OfferRow({
+    required this.id,
+    required this.type,
     required this.name,
     required this.desc,
     required this.effect,
@@ -394,6 +615,8 @@ class _OfferRow extends StatelessWidget {
     required this.onBuy,
   });
 
+  final String id;
+  final String type;
   final String name;
   final String desc;
   final String effect;
@@ -409,19 +632,24 @@ class _OfferRow extends StatelessWidget {
       'no_coins' => l.buyNoCoins,
       'backpack_full' => l.buyFull,
       'have_gear' => l.buyHave,
+      'gear_full' => l.buyGearFull,
+      'no_stove' => l.buyNoStove,
+      'gas_full' => l.buyGasFull,
       _ => null,
     };
     return SectionCard(
       padding: const EdgeInsets.symmetric(horizontal: Gap.m, vertical: Gap.s),
       child: Row(
         children: [
+          ItemIcon(id, size: 40, type: type),
+          const SizedBox(width: Gap.s + 4),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(have > 0 ? '$name  ·  ${l.inBackpack(have)}' : name,
                     style: Theme.of(context).textTheme.titleSmall),
-                if (effect.isNotEmpty) Text(effect, style: const TextStyle(color: Palette.teal, fontSize: 12)),
+                if (effect.isNotEmpty) Text(effect, style: const TextStyle(color: Palette.accent, fontSize: 12)),
                 Text(desc, style: const TextStyle(color: Palette.parchmentDim, fontSize: 12)),
                 if (reason != null) Text(reason, style: const TextStyle(color: Palette.ember, fontSize: 12)),
               ],
@@ -456,10 +684,11 @@ class _ChapterEndScreen extends ConsumerWidget {
     final next = w.chapters.where((x) => toI(x['id']) == chId + 1).firstOrNull;
     return Scaffold(
       body: SafeArea(
+        bottom: false,
         child: ListView(
-          padding: const EdgeInsets.all(Gap.l),
+          padding: _listPadding(context),
           children: [
-            Text(l.chapterDone(chId), style: const TextStyle(color: Palette.gold, letterSpacing: 1.5)),
+            Text(l.chapterDone(chId), style: const TextStyle(color: Palette.accent, letterSpacing: 1.5)),
             Text('${ch['title']}', style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: Gap.l),
             StoryText('${ch['outro'] ?? ''}'),
@@ -471,7 +700,7 @@ class _ChapterEndScreen extends ConsumerWidget {
               ],
             if (next != null) ...[
               const SizedBox(height: Gap.xl),
-              Text(l.chapterLabel(toI(next['id'])), style: const TextStyle(color: Palette.gold, letterSpacing: 1.5)),
+              Text(l.chapterLabel(toI(next['id'])), style: const TextStyle(color: Palette.accent, letterSpacing: 1.5)),
               Text('${next['title']}', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: Gap.s),
               StoryText('${next['intro'] ?? ''}'),
@@ -502,10 +731,21 @@ class _DeathScreen extends ConsumerWidget {
     final st = m.hero!.stop!;
     final place = c.content.placeName('${st['place']}');
     final cause = st['cause'] == 'event' ? l.deathCauseEvent : l.deathCauseStats;
-    return Scaffold(
+    final death = (m.content!.world.balance['death'] as Map).cast<String, dynamic>();
+    return CoachHost(
+      tips: [
+        CoachStep(
+          id: 'death',
+          anchor: 'death_details',
+          title: l.tourStep8Title,
+          body: l.tourStep8Body(toI(death['rollbackMinKm']), toI(death['rollbackMaxKm'])),
+        ),
+      ],
+      child: Scaffold(
       body: SafeArea(
+        bottom: false,
         child: ListView(
-          padding: const EdgeInsets.all(Gap.l),
+          padding: _listPadding(context),
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(Gap.radius),
@@ -516,15 +756,19 @@ class _DeathScreen extends ConsumerWidget {
             const SizedBox(height: Gap.m),
             StoryText(cause),
             const SizedBox(height: Gap.m),
-            Text(
-              l.deathDetails(place, '${st['back']}', toI(st['coinsLost'])),
-              style: const TextStyle(color: Palette.parchmentDim, height: 1.4),
+            TourAnchor(
+              id: 'death_details',
+              child: Text(
+                l.deathDetails(place, '${st['back']}', toI(st['coinsLost'])),
+                style: const TextStyle(color: Palette.parchmentDim, height: 1.4),
+              ),
             ),
             const SizedBox(height: Gap.l),
             FilledButton(onPressed: () => c.dismissDeath(), child: Text(l.deathWake)),
           ],
         ),
       ),
+    ),
     );
   }
 }
@@ -540,8 +784,9 @@ class _FinishScreen extends ConsumerWidget {
     final m = ref.watch(appProvider);
     return Scaffold(
       body: SafeArea(
+        bottom: false,
         child: ListView(
-          padding: const EdgeInsets.all(Gap.l),
+          padding: _listPadding(context),
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(Gap.radius),

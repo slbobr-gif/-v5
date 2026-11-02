@@ -76,7 +76,7 @@ class _ThoughtScreenState extends ConsumerState<ThoughtScreen> {
             StoryText(_fill(t.text), style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.55)),
             if (t.isOpen) ...[
               const SizedBox(height: Gap.l),
-              Text(t.question, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Palette.gold)),
+              Text(t.question, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Palette.accent)),
             ],
             const SizedBox(height: Gap.m),
             TextField(
@@ -86,6 +86,9 @@ class _ThoughtScreenState extends ConsumerState<ThoughtScreen> {
               decoration: InputDecoration(
                 labelText: l.answerLabel,
                 helperText: l.answerPrivate,
+                // Короткая фраза мельче и до двух строк: на узком экране не обрезается многоточием
+                helperMaxLines: 2,
+                helperStyle: const TextStyle(fontSize: 12, color: Palette.parchmentDim),
                 border: const OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() => _saved = false),

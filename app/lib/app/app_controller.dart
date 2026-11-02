@@ -13,6 +13,7 @@ import '../engine/state.dart';
 import '../engine/world.dart';
 import '../platform/notify_platform.dart';
 import '../platform/steps_platform.dart';
+import 'journal_view.dart';
 import 'notification_planner.dart';
 
 String dayKey(DateTime d) =>
@@ -30,6 +31,7 @@ class OutcomeView {
     required this.delayHours,
     required this.detourKm,
     required this.shortcutKm,
+    this.itemsPending = const {},
   });
 
   final String text;
@@ -41,6 +43,9 @@ class OutcomeView {
   final double delayHours;
   final double detourKm;
   final double shortcutKm;
+
+  /// Вещи, которые не поместились и ждут решения (hero.overflow): {id: штук}.
+  final Map<String, int> itemsPending;
 }
 
 class AppModel {
@@ -73,6 +78,31 @@ class AppModel {
 
   /// Номер ревизии: состояние героя изменяется на месте, ревизия заставляет перерисоваться.
   final int rev;
+
+  // ------------------------------------------------ удобные геттеры v5.3 для экранов (без логики)
+  Engine? get engine => (hero == null || content == null) ? null : Engine(content!.world, hero!);
+
+  /// Первая вещь, ждущая решения (экраны переполнения поверх всего, пока не null).
+  OverflowItem? get pendingOverflow => (hero == null || hero!.overflow.isEmpty) ? null : hero!.overflow.first;
+
+  /// Зона под героем: city | suburb | wild.
+  String get zone => engine?.zoneHere() ?? 'city';
+
+  bool get heated => engine?.isHeated(DateTime.now().millisecondsSinceEpoch) ?? false;
+  String get heatStatus => engine?.heatStatus(DateTime.now().millisecondsSinceEpoch) ?? 'no_stove';
+  String get clewStatus => engine?.clewStatus(DateTime.now().millisecondsSinceEpoch) ?? 'no_item';
+  bool get clewReady => clewStatus == 'ready';
+
+  int get clewCooldownDays => engine?.clewCooldownDays(DateTime.now().millisecondsSinceEpoch) ?? 0;
+
+  /// Чей голос подскажет сейчас (подпись gearClewAsk_<id>); null — никто.
+  String? get clewItem => engine?.clewItem(DateTime.now().millisecondsSinceEpoch);
+
+  /// Есть что отменить «Сучком»/«Бусиной» (экран исхода).
+  bool get hasUndo => hero?.undo != null;
+
+  Map<String, int> get gearUses => hero?.gearUses ?? const {};
+  Map<String, int> get portionsLeft => hero?.portionsLeft ?? const {};
 
   AppModel copyWith({
     bool? loading,
@@ -111,6 +141,9 @@ class AppController extends Notifier<AppModel> {
   bool _syncing = false;
   NotificationTexts? texts;
 
+  /// Набор с экрана «Собери рюкзак» (до создания героя); null — не выбирали (возьмётся loadout.default).
+  ({List<String> gear, Map<String, int> pack, bool isDefault})? _chosenLoadout;
+
   @override
   AppModel build() => const AppModel();
 
@@ -130,8 +163,10 @@ class AppController extends Notifier<AppModel> {
       final storage = Storage(prefs);
       final content = await loadGameContent();
       final profile = storage.loadProfile();
-      final hero = storage.loadHero();
+      // С миром: старое сохранение (v1, до v5.3) переводится в v2 — снаряжение из inv переезжает в gear.
+      final hero = storage.loadHero(content.world);
       if (hero != null) _dropBrokenStop(content, hero);
+      _chosenLoadout = _readLoadout(storage.loadLoadout());
       state = state.copyWith(loading: false, content: content, storage: storage, profile: profile, hero: hero);
       _a.event('app_open', {'has_journey': hero != null});
       await refreshPermissions();
@@ -211,6 +246,20 @@ class AppController extends Notifier<AppModel> {
 
   Future<void> openHealthConnectInstall() => _steps.openHealthConnectInstall();
 
+  bool get _useSensor => state.profile?.stepsSensor ?? true;
+  bool get _useHc => state.profile?.stepsHc ?? true;
+
+  /// Переключатели «Откуда брать шаги». Датчик в фоне копит данные при любом значении,
+  /// переключатель меняет только то, что засчитывается в путь.
+  Future<void> setStepSources({required bool sensor, required bool hc}) async {
+    await updateProfile((p) {
+      p.stepsSensor = sensor;
+      p.stepsHc = hc;
+    });
+    _a.event('steps_source_changed', {'sensor': sensor, 'hc': hc});
+    await refresh();
+  }
+
   Future<bool> requestNotifyPermission() async {
     final ok = await _notify.requestPermission();
     _a.event('perm_notifications', {'granted': ok});
@@ -221,12 +270,75 @@ class AppController extends Notifier<AppModel> {
 
   Future<void> markPrologueRead() => updateProfile((p) => p.prologueRead = true);
 
+  // ------------------------------------------------ старт-набор («Собери рюкзак»)
+  ({List<String> gear, Map<String, int> pack, bool isDefault})? _readLoadout(Json? j) {
+    if (j == null) return null;
+    try {
+      final gear = ((j['gear'] as List?) ?? const []).map((e) => '$e').toList();
+      final pack = ((j['pack'] as Map?) ?? const {}).map((k, v) => MapEntry('$k', toI(v)));
+      return (gear: gear, pack: pack, isDefault: j['default'] == true);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// balance.loadout.default — кнопка «Как посоветовал бы бывалый».
+  ({List<String> gear, Map<String, int> pack}) get defaultLoadout {
+    final lo = (content.world.balance['loadout'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+    final d = (lo['default'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+    return (
+      gear: ((d['gear'] as List?) ?? const []).map((e) => '$e').toList(),
+      pack: ((d['pack'] as Map?) ?? const {}).map((k, v) => MapEntry('$k', toI(v))),
+    );
+  }
+
+  /// Каталог старта и ограничения — для экрана «Собери рюкзак».
+  List<String> get starterGear => content.world.starterGear;
+  List<String> get starterPack => content.world.starterPack;
+
+  /// Проверить и запомнить выбор (в памяти и на телефоне). null — принято; иначе код ошибки (§5.3).
+  String? chooseLoadout(List<String> gear, Map<String, int> pack, {bool isDefault = false}) {
+    final err = content.world.loadoutError(gear, pack);
+    if (err != null) return err;
+    _chosenLoadout = (gear: List<String>.of(gear), pack: Map<String, int>.of(pack), isDefault: isDefault);
+    _storage.saveLoadout({'gear': gear, 'pack': pack, 'default': isDefault});
+    return null;
+  }
+
   /// Старт путешествия: шаги, сделанные сегодня до старта, не засчитываются.
-  Future<void> startJourney() async {
+  /// [gear]/[pack] — набор с экрана «Собери рюкзак»; без них — выбранный через [chooseLoadout], иначе loadout.default.
+  Future<void> startJourney({List<String>? gear, Map<String, int>? pack, bool? isDefault}) async {
     final ds = await _steps.dailySteps(days: 2);
-    final baseline = ds.days[today] ?? 0;
+    final baseline = ds.merged(useSensor: _useSensor, useHc: _useHc)[today] ?? 0;
     final seed = math.Random().nextInt(0x7FFFFFFF);
-    final hero = HeroState.create(content.world, seed, _now, today, todaySteps: baseline);
+    final now = _now;
+    final hero = HeroState.create(content.world, seed, now, today, todaySteps: baseline);
+    final def = defaultLoadout;
+    final chosen = _chosenLoadout;
+    var useGear = gear ?? chosen?.gear ?? def.gear;
+    var usePack = pack ?? chosen?.pack ?? def.pack;
+    var wasDefault = isDefault ?? (gear == null && pack == null ? (chosen?.isDefault ?? chosen == null) : false);
+    final eng = Engine(content.world, hero);
+    if (eng.startLoadout(useGear, usePack, now) != null) {
+      // Набор не прошёл проверку (например, каталог изменился) — берём набор бывалого.
+      useGear = def.gear;
+      usePack = def.pack;
+      wasDefault = true;
+      eng.startLoadout(useGear, usePack, now);
+    }
+    var packSlots = 0;
+    for (final n in usePack.values) {
+      packSlots += n;
+    }
+    _a.event('loadout_confirmed', {
+      'gear': useGear.join(','),
+      'gear_n': useGear.length,
+      'pack': usePack.entries.map((e) => '${e.key}:${e.value}').join(','),
+      'pack_slots': packSlots,
+      'default': wasDefault,
+    });
+    _chosenLoadout = null;
+    await _storage.clearLoadout();
     await _storage.saveHero(hero);
     await updateProfile((p) => p.onboarded = true);
     await _steps.startBackgroundTracking();
@@ -250,11 +362,15 @@ class AppController extends Notifier<AppModel> {
       // Движок создаём после ожидания: за это время выбор в событии мог сдвинуть состояние ГСЧ.
       final eng = Engine(content.world, hero);
       final coinsBefore = hero.coins;
-      final added = eng.syncSteps(ds.days, _now);
+      // Для каждого дня берём максимум из включённых источников (настройки «Откуда брать шаги»).
+      final days = ds.merged(useSensor: _useSensor, useHc: _useHc);
+      final added = eng.syncSteps(days, _now);
       final goalCoins = hero.coins - coinsBefore;
       final bonusBefore = eng.inBonus();
       final noticedBefore = eng.noticed();
+      final last0 = hero.journal.isEmpty ? null : hero.journal.last;
       final evs = eng.advance(_now);
+      _trackJournal(hero, last0);
       if (!bonusBefore && eng.inBonus()) _a.event('bonus_started');
       if (!noticedBefore && eng.noticed()) _a.event('bonus_noticed', {'km': hero.bonusKm.round()});
       if (added > 0) {
@@ -274,7 +390,7 @@ class AppController extends Notifier<AppModel> {
       final saving = _storage.saveHero(hero);
       state = state.copyWith(
         hero: hero,
-        todaySteps: ds.days[today] ?? 0,
+        todaySteps: days[today] ?? 0,
         lastSyncSources: {'sensor': ds.sensor[today] ?? 0, 'hc': ds.hc[today] ?? 0},
       );
       await saving;
@@ -337,6 +453,9 @@ class AppController extends Notifier<AppModel> {
     final coins0 = hero.coins;
     final stats0 = Map<String, double>.from(hero.stats);
     final inv0 = Map<String, int>.from(hero.inv);
+    final gear0 = List<String>.from(hero.gear);
+    final overflow0 = hero.overflow.length;
+    final last0 = hero.journal.isEmpty ? null : hero.journal.last;
     final delay0 = hero.delayUntil;
     final detour0 = hero.detour?.remaining ?? 0;
     final pos0 = hero.pos;
@@ -351,6 +470,19 @@ class AppController extends Notifier<AppModel> {
       if (d > 0) gained[k] = d;
       if (d < 0 && !res.died) lost[k] = -d;
     }
+    // Снаряжение: новое — в полученные, отобранное — в потерянные.
+    for (final g in hero.gear) {
+      if (!gear0.contains(g)) gained[g] = (gained[g] ?? 0) + 1;
+    }
+    if (!res.died) {
+      for (final g in gear0) {
+        if (!hero.gear.contains(g)) lost[g] = (lost[g] ?? 0) + 1;
+      }
+    }
+    final pending = <String, int>{};
+    for (final o in hero.overflow.skip(math.min(overflow0, hero.overflow.length))) {
+      pending[o.item] = (pending[o.item] ?? 0) + o.n;
+    }
     final view = OutcomeView(
       text: (res.outcome?['text'] as String?) ?? '',
       coins: res.died ? 0 : hero.coins - coins0,
@@ -363,6 +495,7 @@ class AppController extends Notifier<AppModel> {
       delayHours: hero.delayUntil > delay0 ? (hero.delayUntil - _now) / msHour : 0,
       detourKm: (hero.detour?.remaining ?? 0) > detour0 ? hero.detour!.remaining / 1000 : 0,
       shortcutKm: (!res.died && eff['shortcut'] != null) ? (hero.pos - pos0) / 1000 : 0,
+      itemsPending: pending,
     );
     _a.event('event_choice', {
       'id': '${ev['id']}',
@@ -374,18 +507,47 @@ class AppController extends Notifier<AppModel> {
     if (res.died) {
       _a.event('death', {'cause': 'event', 'chapter': content.world.chapterAt(hero.pos)});
     }
+    _trackJournal(hero, last0);
     _commit();
     return view;
+  }
+
+  /// Новые записи журнала после [last0] (последней до вызова) — для аналитики аптечки.
+  void _trackJournal(HeroState hero, JournalEntry? last0) {
+    final fresh = <JournalEntry>[];
+    for (var i = hero.journal.length - 1; i >= 0; i--) {
+      final e = hero.journal[i];
+      if (last0 != null && identical(e, last0)) break;
+      fresh.add(e);
+    }
+    for (final e in fresh.reversed) {
+      if (e.kind == 'first_aid') {
+        final st = e.data['stats'];
+        _a.event('first_aid_used', {
+          'item': '${e.data['item'] ?? ''}',
+          'stats': st is List ? st.join(',') : '',
+          'left': toI(e.data['left']),
+        });
+      }
+    }
+  }
+
+  /// engine.advance с аналитикой остановок и аптечки.
+  void _advance(Engine eng) {
+    final hero = eng.s;
+    final last0 = hero.journal.isEmpty ? null : hero.journal.last;
+    final evs = eng.advance(_now);
+    for (final e in evs) {
+      _trackStop(e, hero);
+    }
+    _trackJournal(hero, last0);
   }
 
   /// После экрана исхода — герой идёт дальше на остаток шагов.
   Future<void> afterEvent() async {
     final eng = engine;
     if (eng == null) return;
-    final evs = eng.advance(_now);
-    for (final e in evs) {
-      _trackStop(e, state.hero!);
-    }
+    _advance(eng);
     _commit();
   }
 
@@ -395,13 +557,9 @@ class AppController extends Notifier<AppModel> {
     final eng = engine;
     if (eng == null) return;
     if (from != null && !identical(state.hero!.stop, from)) return;
-    eng.continueJourney(_now);
-    if (state.hero!.stop == null) {
-      final evs = eng.advance(_now);
-      for (final e in evs) {
-        _trackStop(e, state.hero!);
-      }
-    }
+    // false — отказ (вещи ждут решения, событие, финиш): остановку не сдвигаем.
+    if (!eng.continueJourney(_now)) return;
+    if (state.hero!.stop == null) _advance(eng);
     _commit();
   }
 
@@ -411,10 +569,7 @@ class AppController extends Notifier<AppModel> {
     if (hero == null || hero.stop?['type'] != 'death') return;
     hero.stop = null;
     _a.event('respawn', {'deaths': hero.deaths});
-    final evs = engine!.advance(_now);
-    for (final e in evs) {
-      _trackStop(e, hero);
-    }
+    _advance(engine!);
     _commit();
   }
 
@@ -430,12 +585,196 @@ class AppController extends Notifier<AppModel> {
     return ok;
   }
 
+  /// Кнопка «Использовать» на вкладке «Герой»: одна порция.
   bool useItem(String item) {
     final eng = engine;
     if (eng == null) return false;
+    final wasHeated = eng.s.heated;
     final ok = eng.useItem(item, _now);
     if (ok) {
-      _a.event('item_used', {'item': item});
+      _trackUse(eng, item, 'manual', wasHeated);
+      _commit();
+    }
+    return ok;
+  }
+
+  /// «Выбросить» на вкладке «Герой»: 1 шт. из рюкзака или вещь из снаряжения (Engine.dropItem).
+  /// false — нечего выбросить или это дар духа (дары не выбрасываются, V5-43); причина — [dropBlocker].
+  bool dropItem(String item) {
+    final eng = engine;
+    if (eng == null) return false;
+    final type = content.world.itemType(item);
+    final r = eng.dropItem(item);
+    if (r != null) return false;
+    _a.event('item_dropped', {'item': item, 'kind': type});
+    _commit();
+    return true;
+  }
+
+  /// null — можно выбросить; 'gift' — дар духа; 'no_item' — нечего.
+  String? dropBlocker(String item) {
+    final eng = engine;
+    if (eng == null) return 'no_item';
+    if (content.world.isGift(item) && eng.hasItem(item)) return 'gift';
+    return eng.hasItem(item) ? null : 'no_item';
+  }
+
+  void _trackUse(Engine eng, String item, String source, bool wasHeated) {
+    _a.event('item_used', {
+      'item': item,
+      'source': source,
+      'hot': wasHeated && !eng.s.heated && content.world.heatable(item),
+      'portions_left': eng.portionsTotal(item),
+    });
+  }
+
+  // ------------------------------------------------ горелка «Нагреть»
+  String heatStatus() => engine?.heatStatus(_now) ?? 'no_stove';
+
+  bool isHeated() => engine?.isHeated(_now) ?? false;
+
+  /// heated — потрачен заряд; on — уже горячо; no_stove | no_gas | nothing — отказ.
+  String heat() {
+    final eng = engine;
+    if (eng == null) return 'no_stove';
+    final r = eng.heat(_now);
+    if (r == 'heated') {
+      final stove = eng.s.gear.firstWhere((g) => content.world.itemSpec(g)['stove'] == true, orElse: () => '');
+      _a.event('gear_heated', {'stove_left': eng.usesLeft(stove), 'heatable_n': eng.heatableCount()});
+      _commit();
+    }
+    return r;
+  }
+
+  // ------------------------------------------------ переполнение
+  OverflowItem? get pendingOverflow => state.pendingOverflow;
+
+  /// «Что взять с собой»: keep — ровно min(gearSlots, текущие + новая) id.
+  String? resolveGearOverflow(List<String> keep) {
+    final eng = engine;
+    if (eng == null) return 'no_gear_overflow';
+    final hero = eng.s;
+    final o = hero.overflow.isEmpty ? null : hero.overflow.first;
+    // дары духов в выборе не участвуют (V5-43) — в «выброшенные» их не записываем
+    final cands = [...hero.gear.where((g) => !content.world.isGift(g)), if (o != null) o.item];
+    final err = eng.resolveGearOverflow(keep);
+    if (err != null) return err;
+    final dropped = cands.where((c) => !keep.contains(c)).toList();
+    _a.event('overflow_resolved', {
+      'kind': 'gear',
+      'item': o?.item ?? '',
+      'action': (o != null && keep.contains(o.item)) ? 'keep_new' : 'keep_old',
+      'swap_action': '',
+      'swap_item': '',
+      'dropped': dropped.join(','),
+      'source': o?.source ?? '',
+    });
+    _afterOverflow(eng);
+    return null;
+  }
+
+  /// Вещь не лезет в рюкзак: action use | drop | stash; при полном рюкзаке stash требует swapAction (use|drop) и swapItem.
+  String? resolveBackpackOverflow(String action, {String? swapAction, String? swapItem}) {
+    final eng = engine;
+    if (eng == null) return 'no_backpack_overflow';
+    final hero = eng.s;
+    final o = hero.overflow.isEmpty ? null : hero.overflow.first;
+    final item = o?.item ?? '';
+    final source = o?.source ?? '';
+    final wasHeated = hero.heated;
+    final full = eng.consumablesCount() >= eng.backpackSlots();
+    final err = eng.resolveBackpackOverflow(action, _now, swapAction: swapAction, swapItem: swapItem);
+    if (err != null) return err;
+    final swapped = action == 'stash' && full;
+    if (action == 'use') _trackUse(eng, item, 'overflow', wasHeated);
+    if (swapped && swapAction == 'use' && swapItem != null) _trackUse(eng, swapItem, 'swap', wasHeated);
+    _a.event('overflow_resolved', {
+      'kind': 'backpack',
+      'item': item,
+      'action': action,
+      'swap_action': swapped ? (swapAction ?? '') : '',
+      'swap_item': swapped ? (swapItem ?? '') : '',
+      'dropped': action == 'drop' ? item : (swapped && swapAction == 'drop' ? (swapItem ?? '') : ''),
+      'source': source,
+    });
+    _afterOverflow(eng);
+    return null;
+  }
+
+  /// После последнего решения герой идёт дальше (как afterEvent), если ничто не держит.
+  void _afterOverflow(Engine eng) {
+    // undo != null — ещё открыт экран исхода (кнопки «Сучок»/«Бусина»): дальше поведёт afterEvent().
+    if (eng.s.overflow.isEmpty && eng.s.stop == null && eng.s.undo == null) _advance(eng);
+    _commit();
+  }
+
+  // ------------------------------------------------ клубок и зона
+  /// ready | cooldown | no_item | no_event — кнопка «Спросить клубок».
+  String clewStatus() => engine?.clewStatus(_now) ?? 'no_item';
+
+  int clewCooldownDays() => engine?.clewCooldownDays(_now) ?? 0;
+
+  /// {choiceId: tone}; UI держит ответ до выбора (в состоянии не хранится). null — нельзя.
+  Map<String, String>? askClew() {
+    final eng = engine;
+    if (eng == null) return null;
+    final ev = eng.currentEvent();
+    final who = eng.clewItem(_now) ?? '';
+    final r = eng.askClew(_now);
+    if (r != null) {
+      _a.event('clew_asked', {'event': '${ev?['id'] ?? ''}', 'tones': r.values.join(','), 'item': who});
+      _commit();
+    }
+    return r;
+  }
+
+  /// city | suburb | wild → zoneCity / zoneSuburb / zoneWild.
+  String zoneHere() => engine?.zoneHere() ?? 'city';
+
+  /// Какой предмет подскажет сейчас (клубок, нитка, сучок…) — для подписи gearClewAsk_<id>.
+  String? clewItem() => engine?.clewItem(_now);
+
+  // ------------------------------------------------ дары духов (§13.4)
+  /// ready | no_item | bad_kind | no_charges | cooldown | nothing | not_here — кнопка дара.
+  String giftStatus(String item) => engine?.giftStatus(item, _now) ?? 'no_item';
+
+  /// Дары с кнопкой (guide | mirage | action), которые есть у героя, в порядке heldItems.
+  List<String> giftItems() {
+    final eng = engine;
+    if (eng == null) return const [];
+    return [
+      for (final it in eng.heldItems())
+        if (const ['guide', 'mirage', 'action'].contains((content.world.itemSpec(it)['ability'] as Map?)?['kind'])) it,
+    ];
+  }
+
+  /// Нажать кнопку дара: 'ok' или код [giftStatus]. Сучок/бусина — только на экране исхода (до afterEvent).
+  String useGift(String item) {
+    final eng = engine;
+    if (eng == null) return 'no_item';
+    final kind = '${(content.world.itemSpec(item)['ability'] as Map?)?['kind'] ?? ''}';
+    final ev = '${eng.s.undo?['event'] ?? ''}';
+    final r = eng.useGift(item, _now);
+    if (r == 'ok') {
+      _a.event('gift_used', {'item': item, 'kind': kind, 'event': ev, 'left': eng.usesLeft(item)});
+      _commit();
+    }
+    return r;
+  }
+
+  // ------------------------------------------------ продажа (§13.8)
+  List<(String, int)> sellOffers() => engine?.sellOffers() ?? const [];
+
+  /// null — можно; no_market | no_item | not_sellable.
+  String? sellBlocker(String item) => engine?.sellBlocker(item) ?? 'no_market';
+
+  bool sell(String item) {
+    final eng = engine;
+    if (eng == null) return false;
+    final price = toI(content.world.itemSpec(item)['sellPrice']);
+    final ok = eng.sell(item, _now);
+    if (ok) {
+      _a.event('item_sold', {'item': item, 'price': price});
       _commit();
     }
     return ok;
@@ -449,6 +788,15 @@ class AppController extends Notifier<AppModel> {
     final now = DateTime.now();
     final d = DateTime(now.year, now.month, now.day).difference(DateTime(start.year, start.month, start.day)).inDays;
     return d + 1;
+  }
+
+  // ------------------------------------------------ журнал
+  /// Лента журнала (вариант B): строки по дням, цепочки, эффекты и варианты из контента.
+  JournalView? journalView() {
+    final hero = state.hero;
+    final content = state.content;
+    if (hero == null || content == null) return null;
+    return buildJournalView(content, hero, journeyDay());
   }
 
   bool thoughtSeenToday() => state.storage?.lastThoughtSeenDay() == today;
@@ -491,6 +839,7 @@ class AppController extends Notifier<AppModel> {
       p.onboarded = false;
       p.prologueRead = false;
     });
+    _chosenLoadout = null;
     state = state.copyWith(clearHero: true);
     await _notify.replaceAll(const []);
   }

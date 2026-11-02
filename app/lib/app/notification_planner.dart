@@ -113,6 +113,10 @@ class NotificationPlanner {
           body = l.notifStopGeneric;
       }
       addEvent(PlannedNotification(id: 200, at: at, title: l.notifStopTitle, body: body));
+    } else if (hero.overflow.isNotEmpty) {
+      // Вещи ждут решения («не помещается») — герой стоит, пока игрок не решит.
+      final at = _outOfQuiet(now.add(Duration(hours: toI(_n['pendingReminderHours']))));
+      addEvent(PlannedNotification(id: 200, at: at, title: l.notifStopTitle, body: l.notifStopGeneric));
     }
 
     // 3. Конец задержки
@@ -123,7 +127,7 @@ class NotificationPlanner {
 
     // 4. Показатели проседают — днём в 13:00
     final low = statKeys.where((k) => (hero.stats[k] ?? 100) < 40).toList();
-    if (low.isNotEmpty && stop == null) {
+    if (low.isNotEmpty && stop == null && hero.overflow.isEmpty) {
       var at = DateTime(now.year, now.month, now.day, 13, 0);
       if (!at.isAfter(now)) at = at.add(const Duration(days: 1));
       final body = switch (low.first) {
