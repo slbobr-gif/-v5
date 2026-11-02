@@ -164,6 +164,8 @@ class _DockBar extends StatelessWidget {
                   child: MediaQuery.withClampedTextScaling(
                     maxScaleFactor: 1.3,
                     child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         for (var i = 0; i < labels.length; i++)
                           Expanded(
@@ -220,7 +222,10 @@ class _DockTab extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
+        // heightFactor: 1 — иначе Center растягивается на всю доступную высоту
+        // и док в bottomNavigationBar занимает весь экран (баг 0.5.4).
         child: Center(
+          heightFactor: 1,
           child: Container(
             padding: const EdgeInsets.fromLTRB(10, 6, 10, 5),
             decoration: BoxDecoration(
