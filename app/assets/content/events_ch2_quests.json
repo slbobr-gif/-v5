@@ -7,6 +7,7 @@
       "after": "edrovo",
       "km": 2
     },
+    "zone": "suburb",
     "once": true,
     "art": "village",
     "creature": null,

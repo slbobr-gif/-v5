@@ -154,11 +154,13 @@
   },
   "randomEvents": {
     "spacingKm": [
-      11,
-      21
+      5.5,
+      10.5
     ],
-    "firstAfterKm": 4,
-    "minGapToAnchoredKm": 3
+    "firstAfterKm": 3,
+    "minGapToAnchoredKm": 3,
+    "recentKeep": 36,
+    "_comment": "Недавние случайные не повторяются: в зоне — последние min(12, пул_зоны//2) этой зоны; в запасном выборе — последние min(12, всех//2); хранится последних recentKeep."
   },
   "dailyGoals": {
     "tiers": [
@@ -187,12 +189,15 @@
   },
   "economy": {
     "startCoins": 40,
+    "_startItems": "Устарело с v5.3: стартовый набор — loadout.default. Ключ startItems оставлен только до порта Dart (HeroState.create), не читать в новом коде.",
     "startItems": {
       "bread": 2,
       "water": 2,
       "tea": 1
     },
     "backpackSlots": 7,
+    "gearSlots": 4,
+    "duplicateGearShare": 0.5,
     "markets": {
       "city": {
         "priceMult": 1.0,
@@ -201,10 +206,21 @@
           "stew",
           "water",
           "tea",
+          "thermos",
           "chocolate",
           "matches",
+          "gas",
           "socks",
-          "raincoat"
+          "raincoat",
+          "trekking_poles",
+          "gas_stove",
+          "sleeping_bag",
+          "first_aid",
+          "flask",
+          "compass",
+          "oatmeal",
+          "space_blanket",
+          "hand_warmers"
         ]
       },
       "town": {
@@ -214,9 +230,17 @@
           "stew",
           "water",
           "tea",
+          "thermos",
           "chocolate",
           "matches",
-          "socks"
+          "gas",
+          "socks",
+          "raincoat",
+          "first_aid",
+          "flask",
+          "oatmeal",
+          "space_blanket",
+          "hand_warmers"
         ]
       },
       "village": {
@@ -227,59 +251,278 @@
           "tea",
           "matches"
         ]
+      },
+      "regional": {
+        "tver": [
+          "tver_pryanik"
+        ],
+        "mednoe": [
+          "pozharsky"
+        ],
+        "torzhok": [
+          "pozharsky",
+          "tver_pryanik"
+        ],
+        "vvolochek": [
+          "tver_pryanik"
+        ],
+        "edrovo": [
+          "valdai_baranki"
+        ],
+        "valday": [
+          "valdai_baranki",
+          "valdai_bell"
+        ],
+        "yazhelbitsy": [
+          "valdai_baranki"
+        ],
+        "kresttsy": [
+          "birch_sap"
+        ],
+        "bronnitsa": [
+          "birch_sap",
+          "dried_fish"
+        ],
+        "novgorod": [
+          "tver_pryanik",
+          "birch_sap",
+          "dried_fish"
+        ],
+        "chudovo": [
+          "birch_sap"
+        ],
+        "novaya_ladoga": [
+          "ryapushka",
+          "dried_fish"
+        ],
+        "lodeynoe": [
+          "ryapushka"
+        ],
+        "olonets": [
+          "kalitka_potato",
+          "kalitka_millet",
+          "lingon_mors",
+          "ryapushka"
+        ],
+        "petrozavodsk": [
+          "kalitka_potato",
+          "kalitka_millet",
+          "kalitka_berry",
+          "rybnik",
+          "lingon_mors",
+          "ryapushka"
+        ],
+        "kondopoga": [
+          "kalitka_potato",
+          "kalitka_berry",
+          "rybnik"
+        ],
+        "medvezhyegorsk": [
+          "kalitka_potato",
+          "kalitka_millet",
+          "lingon_mors"
+        ],
+        "segezha": [
+          "kalitka_millet",
+          "kalitka_berry",
+          "lingon_mors"
+        ],
+        "belomorsk": [
+          "rybnik",
+          "kalitka_berry"
+        ],
+        "kem": [
+          "rybnik",
+          "cloudberry",
+          "lingon_mors"
+        ],
+        "loukhi": [
+          "cloudberry",
+          "ivan_chai"
+        ],
+        "kandalaksha": [
+          "cloudberry",
+          "ivan_chai"
+        ],
+        "polyarnye_zori": [
+          "ivan_chai"
+        ],
+        "monchegorsk": [
+          "reindeer_tongue"
+        ],
+        "olenegorsk": [
+          "reindeer_tongue"
+        ],
+        "kola": [
+          "cod",
+          "ivan_chai"
+        ],
+        "murmansk": [
+          "cod",
+          "reindeer_tongue",
+          "ivan_chai"
+        ],
+        "teriberka": [
+          "cod"
+        ]
+      },
+      "_regional": "regional: {place_id: [item_id…]} — товары, которые продаются только в этом месте (добавляются к рынку места по его наценке). Наполняет каталог предметов."
+    }
+  },
+  "loadout": {
+    "_comment": "Экран «Собери рюкзак» перед прологом: до maxGear снаряжения из starter-каталога, до maxPackSlots ячеек еды (не больше maxPerKind одного вида). default — кнопка «Как посоветовал бы бывалый» и набор нового пути до выбора.",
+    "maxGear": 3,
+    "maxPackSlots": 5,
+    "maxPerKind": 3,
+    "default": {
+      "gear": [
+        "trekking_poles",
+        "first_aid",
+        "gas_stove"
+      ],
+      "pack": {
+        "bread": 2,
+        "water": 2,
+        "tea": 1
       }
     }
   },
+  "gameDay": {
+    "_comment": "Игровая дата для «Нагреть»: сутки по времени маршрута (весь путь — МСК). gameDay = floor((nowMs + utcOffsetHours·3600000) / 86400000).",
+    "utcOffsetHours": 3
+  },
+  "riskReduce": {
+    "_comment": "Оберег: у вариантов с risk ≠ none исходы с death или «-badLevel» в satiety/water/warmth/coins получают вес round(w·weightScale·Π(1−riskReduce)) (≥1), остальные w·weightScale.",
+    "weightScale": 100,
+    "badLevel": "large"
+  },
+  "_items": "Типы: food/drink — рюкзак (backpackSlots); gear — снаряжение (gearSlots), перки действуют, пока предмет в gear; tool — инструмент без ячейки; refill — баллон: +amount зарядов предмету refill (до его maxUses), ячейку не занимает. Перки: warmthDrainMult (любой расход тепла), weatherWarmthMult (добавка холода от непогоды), drainKmMult{satiety,water} и waterDrainMult (расход на км), idleWarmthMult (тепло в покое), delayMult/detourMult (задержки и крюки, pyRound до целых, ≥1), riskReduce (вес плохих исходов), rescueTo (аптечка: показатель 0 → rescueTo, тратит заряд), stove (горелка: «Нагреть»), uses/maxUses (заряды). heat — бонус тепла нагретого предмета. starter — можно взять на старте. Формулы — docs/v5/08-engine-api-v5.3.md. portions — порций в одной ячейке (числа предмета — на порцию; остаток начатой единицы — state.portionsLeft). ability {kind, cooldownDays} — дар духа: способность с перезарядкой в игровых днях (state.abilityReady); kind clew — «Спросить клубок». region — край, откуда предмет (справочно); продаётся по economy.markets.regional {place_id: [item…]}. v5.3-§13: tags (рыба для речной ленты); camp {stat, waterPlace, cooldownDays} — прибавка на каждом привале в месте (спальник +15 тепла); cond {any: [midday|heat|water], <перк>} — условный перк; foodBoost {tag, stat: mult}; upkeep [еда…] — лапоть ест 1 еду в игровой день, иначе без перков; expiresDays — дар исчезает через N игровых дней; sellPrice — продаётся на любом рынке; rescueStats — аптечка только для этих показателей; ability.kind guide|mirage|action (+at, zones, water, effect), у tool с uses на 0 зарядов предмет исчезает; hint {cooldownDays, art|zone} — подсказка духа как клубок, но только в своих событиях. Формулы — docs/v5/08-engine-api-v5.3.md §13.",
   "items": {
     "bread": {
       "type": "food",
       "satiety": 30,
-      "price": 8
+      "price": 8,
+      "starter": true
     },
     "stew": {
       "type": "food",
       "satiety": 55,
-      "price": 16
+      "heat": 20,
+      "price": 16,
+      "starter": true
     },
     "water": {
       "type": "drink",
       "water": 40,
-      "price": 5
+      "heat": 25,
+      "price": 5,
+      "starter": true
     },
     "tea": {
       "type": "drink",
       "warmth": 25,
       "water": 10,
-      "price": 9
+      "heat": 15,
+      "price": 9,
+      "starter": true
+    },
+    "thermos": {
+      "type": "drink",
+      "water": 20,
+      "heat": 10,
+      "portions": 4,
+      "price": 18,
+      "starter": true
     },
     "chocolate": {
       "type": "food",
       "satiety": 15,
       "warmth": 10,
-      "price": 7
+      "price": 7,
+      "starter": true
     },
     "matches": {
       "type": "tool",
       "price": 4
     },
+    "gas": {
+      "type": "refill",
+      "refill": "gas_stove",
+      "amount": 10,
+      "price": 12
+    },
     "socks": {
       "type": "gear",
       "warmthDrainMult": 0.85,
-      "price": 35
+      "price": 35,
+      "starter": true
     },
     "raincoat": {
       "type": "gear",
-      "weatherWarmthMult": 0.8,
-      "price": 45
+      "weatherWarmthMult": 0.5,
+      "price": 45,
+      "starter": true
+    },
+    "trekking_poles": {
+      "type": "gear",
+      "drainKmMult": {
+        "satiety": 0.92,
+        "water": 0.92
+      },
+      "price": 40,
+      "starter": true
+    },
+    "gas_stove": {
+      "type": "gear",
+      "stove": true,
+      "uses": 10,
+      "maxUses": 30,
+      "price": 55,
+      "starter": true
+    },
+    "sleeping_bag": {
+      "type": "gear",
+      "idleWarmthMult": 0.5,
+      "price": 60,
+      "starter": true,
+      "camp": {
+        "warmth": 15
+      }
+    },
+    "first_aid": {
+      "type": "gear",
+      "uses": 2,
+      "rescueTo": 25,
+      "price": 30,
+      "starter": true
+    },
+    "flask": {
+      "type": "gear",
+      "waterDrainMult": 0.9,
+      "price": 25,
+      "starter": true
+    },
+    "compass": {
+      "type": "gear",
+      "delayMult": 0.75,
+      "detourMult": 0.75,
+      "price": 30,
+      "starter": true
     },
     "amulet_leshy": {
+      "gift": true,
       "type": "gear",
       "riskReduce": 0.2,
       "price": 0
     },
     "ball_yaga": {
+      "gift": true,
       "type": "tool",
-      "price": 0
+      "price": 0,
+      "ability": {
+        "kind": "clew",
+        "cooldownDays": 3
+      }
     },
     "berries": {
       "type": "food",
@@ -290,12 +533,16 @@
     "fish": {
       "type": "food",
       "satiety": 35,
-      "price": 0
+      "price": 0,
+      "tags": [
+        "fish"
+      ]
     },
     "pie": {
       "type": "food",
       "satiety": 40,
       "warmth": 5,
+      "heat": 10,
       "price": 0
     },
     "kvass": {
@@ -303,6 +550,416 @@
       "water": 30,
       "satiety": 5,
       "price": 0
+    },
+    "oatmeal": {
+      "type": "food",
+      "satiety": 15,
+      "heat": 15,
+      "portions": 3,
+      "price": 14
+    },
+    "space_blanket": {
+      "type": "gear",
+      "uses": 1,
+      "rescueTo": 30,
+      "rescueStats": [
+        "warmth"
+      ],
+      "price": 18
+    },
+    "hand_warmers": {
+      "type": "tool",
+      "uses": 3,
+      "price": 10,
+      "ability": {
+        "kind": "action",
+        "cooldownDays": 0,
+        "at": "any",
+        "effect": {
+          "warmth": 12
+        }
+      }
+    },
+    "pozharsky": {
+      "type": "food",
+      "satiety": 50,
+      "heat": 15,
+      "price": 18,
+      "region": "tver"
+    },
+    "tver_pryanik": {
+      "type": "food",
+      "satiety": 20,
+      "warmth": 5,
+      "portions": 2,
+      "price": 10,
+      "region": "tver"
+    },
+    "valdai_baranki": {
+      "type": "food",
+      "satiety": 12,
+      "portions": 4,
+      "price": 12,
+      "region": "valday"
+    },
+    "valdai_bell": {
+      "type": "gear",
+      "riskReduce": 0.1,
+      "price": 40,
+      "region": "valday"
+    },
+    "birch_sap": {
+      "type": "drink",
+      "water": 35,
+      "satiety": 5,
+      "price": 6,
+      "region": "novgorod"
+    },
+    "dried_fish": {
+      "type": "food",
+      "satiety": 30,
+      "portions": 2,
+      "tags": [
+        "fish"
+      ],
+      "price": 14,
+      "region": "novgorod"
+    },
+    "ryapushka": {
+      "type": "food",
+      "satiety": 35,
+      "tags": [
+        "fish"
+      ],
+      "price": 12,
+      "region": "karelia"
+    },
+    "kalitka_potato": {
+      "type": "food",
+      "satiety": 15,
+      "heat": 5,
+      "portions": 3,
+      "price": 12,
+      "region": "karelia"
+    },
+    "kalitka_millet": {
+      "type": "food",
+      "satiety": 16,
+      "heat": 5,
+      "portions": 3,
+      "price": 12,
+      "region": "karelia"
+    },
+    "kalitka_berry": {
+      "type": "food",
+      "satiety": 12,
+      "water": 4,
+      "portions": 3,
+      "price": 12,
+      "region": "karelia"
+    },
+    "rybnik": {
+      "type": "food",
+      "satiety": 55,
+      "warmth": 5,
+      "heat": 15,
+      "tags": [
+        "fish"
+      ],
+      "price": 20,
+      "region": "karelia"
+    },
+    "lingon_mors": {
+      "type": "drink",
+      "water": 30,
+      "satiety": 5,
+      "price": 7,
+      "region": "karelia"
+    },
+    "cloudberry": {
+      "type": "food",
+      "satiety": 10,
+      "water": 10,
+      "portions": 2,
+      "price": 14,
+      "region": "north"
+    },
+    "ivan_chai": {
+      "type": "drink",
+      "water": 15,
+      "warmth": 20,
+      "heat": 15,
+      "portions": 2,
+      "price": 14,
+      "region": "north"
+    },
+    "cod": {
+      "type": "food",
+      "satiety": 45,
+      "tags": [
+        "fish"
+      ],
+      "price": 16,
+      "region": "kola"
+    },
+    "reindeer_tongue": {
+      "type": "food",
+      "satiety": 40,
+      "warmth": 10,
+      "heat": 15,
+      "price": 24,
+      "region": "kola"
+    },
+    "compass_ded": {
+      "gift": true,
+      "type": "gear",
+      "delayMult": 0.85,
+      "detourMult": 0.6,
+      "price": 0
+    },
+    "twig_leshy": {
+      "gift": true,
+      "type": "gear",
+      "price": 0,
+      "ability": {
+        "kind": "guide",
+        "cooldownDays": 1
+      },
+      "hint": {
+        "cooldownDays": 2,
+        "art": [
+          "forest",
+          "swamp",
+          "field"
+        ]
+      }
+    },
+    "spruce_leshy": {
+      "gift": true,
+      "type": "tool",
+      "uses": 3,
+      "price": 0,
+      "ability": {
+        "kind": "guide",
+        "cooldownDays": 0
+      }
+    },
+    "thread_yaga": {
+      "gift": true,
+      "type": "tool",
+      "uses": 2,
+      "price": 0,
+      "ability": {
+        "kind": "clew",
+        "cooldownDays": 0
+      }
+    },
+    "shell_vodyanoy": {
+      "gift": true,
+      "type": "gear",
+      "price": 0,
+      "cond": {
+        "any": [
+          "water"
+        ],
+        "noCoinLoss": true
+      },
+      "camp": {
+        "water": 10,
+        "waterPlace": true,
+        "cooldownDays": 1
+      },
+      "hint": {
+        "cooldownDays": 2,
+        "art": [
+          "river",
+          "lake"
+        ]
+      }
+    },
+    "hook_vodyanoy": {
+      "gift": true,
+      "type": "tool",
+      "uses": 5,
+      "price": 0,
+      "ability": {
+        "kind": "action",
+        "cooldownDays": 1,
+        "at": "place",
+        "water": true,
+        "effect": {
+          "give": {
+            "fish": 1
+          }
+        }
+      }
+    },
+    "ember_domovoy": {
+      "gift": true,
+      "type": "gear",
+      "idleWarmthMult": 0.5,
+      "price": 0,
+      "camp": {
+        "warmth": 10
+      },
+      "hint": {
+        "cooldownDays": 2,
+        "art": [
+          "village",
+          "hut",
+          "town"
+        ]
+      }
+    },
+    "lapot_domovoy": {
+      "gift": true,
+      "type": "gear",
+      "idleWarmthMult": 0.7,
+      "warmthDrainMult": 0.9,
+      "price": 0,
+      "upkeep": [
+        "bread",
+        "pie",
+        "chocolate"
+      ]
+    },
+    "venik_bannik": {
+      "gift": true,
+      "type": "tool",
+      "price": 0,
+      "ability": {
+        "kind": "action",
+        "cooldownDays": 3,
+        "at": "place",
+        "zones": [
+          "suburb",
+          "city"
+        ],
+        "effect": {
+          "warmth": 30
+        }
+      },
+      "hint": {
+        "cooldownDays": 2,
+        "art": [
+          "bathhouse",
+          "campfire",
+          "rain",
+          "night"
+        ]
+      }
+    },
+    "stone_bannik": {
+      "gift": true,
+      "type": "tool",
+      "uses": 2,
+      "price": 0,
+      "ability": {
+        "kind": "action",
+        "cooldownDays": 0,
+        "at": "any",
+        "effect": {
+          "warmth": 20
+        }
+      }
+    },
+    "bead_kikimora": {
+      "gift": true,
+      "type": "tool",
+      "price": 0,
+      "ability": {
+        "kind": "mirage",
+        "cooldownDays": 3
+      }
+    },
+    "kudel_kikimora": {
+      "gift": true,
+      "type": "tool",
+      "uses": 1,
+      "price": 0,
+      "ability": {
+        "kind": "mirage",
+        "cooldownDays": 0
+      }
+    },
+    "ear_poludnitsa": {
+      "gift": true,
+      "type": "gear",
+      "drainKmMult": {
+        "satiety": 0.92
+      },
+      "price": 0,
+      "cond": {
+        "any": [
+          "midday",
+          "heat"
+        ],
+        "waterDrainMult": 0.7
+      }
+    },
+    "wreath_poludnitsa": {
+      "gift": true,
+      "type": "gear",
+      "expiresDays": 3,
+      "price": 0,
+      "cond": {
+        "any": [
+          "midday",
+          "heat"
+        ],
+        "waterDrainMult": 0.7
+      }
+    },
+    "ribbon_rusalka": {
+      "gift": true,
+      "type": "gear",
+      "price": 0,
+      "cond": {
+        "any": [
+          "water"
+        ],
+        "riskReduce": 0.25
+      },
+      "foodBoost": {
+        "tag": "fish",
+        "satiety": 1.5
+      }
+    },
+    "pearl_rusalka": {
+      "gift": true,
+      "type": "tool",
+      "sellPrice": 40,
+      "price": 0
+    },
+    "key_ovinnik": {
+      "gift": true,
+      "type": "tool",
+      "price": 0,
+      "ability": {
+        "kind": "action",
+        "cooldownDays": 5,
+        "at": "place",
+        "zones": [
+          "suburb"
+        ],
+        "effect": {
+          "warmthToMax": true
+        }
+      }
+    },
+    "sheaf_ovinnik": {
+      "gift": true,
+      "type": "tool",
+      "uses": 1,
+      "price": 0,
+      "ability": {
+        "kind": "action",
+        "cooldownDays": 0,
+        "at": "place",
+        "effect": {
+          "warmth": 35
+        }
+      }
     }
   },
   "town": {
@@ -332,5 +989,74 @@
       "Шиномонтаж с ларьком",
       "Остановка с киоском"
     ]
+  },
+  "zones": {
+    "_comment": "Зона пути: city (город) / suburb (пригород и сёла) / wild (окрестности). Радиусы в км вдоль маршрута в обе стороны от места. Зона точки = самая городская из зон ближайших мест. Единый источник правды для Dart, Python и валидатора.",
+    "byKind": {
+      "start": {
+        "urban": 14,
+        "suburb": 4
+      },
+      "city": {
+        "urban": 6,
+        "suburb": 4
+      },
+      "town": {
+        "urban": 3,
+        "suburb": 4
+      },
+      "village": {
+        "urban": 0,
+        "suburb": 3
+      },
+      "finish": {
+        "urban": 0,
+        "suburb": 3
+      },
+      "roadside": {
+        "urban": 0,
+        "suburb": 1
+      }
+    },
+    "labels": {
+      "city": "Город",
+      "suburb": "Пригород",
+      "wild": "Окрестности"
+    }
+  },
+  "gifts": {
+    "_comment": "Дары духов и условные перки (08-engine-api §13). waterArts — события «у воды»; waterPlaces — места у большой воды (крючок, ракушка); middayHours — полдень по МСК [from, to); idleWarmthMin — нижний предел произведения idleWarmthMult (уголёк × спальник).",
+    "waterArts": [
+      "river",
+      "lake"
+    ],
+    "waterPlaces": [
+      "gorodnya",
+      "tver",
+      "mednoe",
+      "vvolochek",
+      "valday",
+      "bronnitsa",
+      "novgorod",
+      "kirishi",
+      "volkhov",
+      "novaya_ladoga",
+      "lodeynoe",
+      "petrozavodsk",
+      "kondopoga",
+      "medvezhyegorsk",
+      "belomorsk",
+      "kem",
+      "kandalaksha",
+      "monchegorsk",
+      "kola",
+      "murmansk",
+      "teriberka"
+    ],
+    "middayHours": [
+      11,
+      16
+    ],
+    "idleWarmthMin": 0.35
   }
 }
