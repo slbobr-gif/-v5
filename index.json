@@ -1,0 +1,4 @@
+{
+  "_comment": "Список файлов авторских событий. Новый файл events_ch*.json обязательно добавить сюда — проверяет tools/content/validate.py.",
+  "anchored": ["events_ch1.json", "events_ch1_quests.json", "events_ch2.json", "events_ch2_quests.json"]
+}
