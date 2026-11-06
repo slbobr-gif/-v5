@@ -1,4 +1,5 @@
-# Контент
+# app — Flutter-клиент «Путника»
 
-Актуальный контент v5 — в `app/assets/content/` (тексты) и `app/assets/balance.json` (числа). Схема — `docs/v5/02-content-schema.md`.
-Московские маршруты v1 удалены вместе со старой концепцией.
+Сборка: `bash tool/bootstrap_android.sh && flutter pub get && flutter gen-l10n && flutter build apk --release [--dart-define=APPMETRICA_KEY=...]`.
+`android/` не хранится в репозитории: его создаёт `flutter create`, а скрипт накладывает `android-overlay/`.
+Архитектура — `docs/v5/01-architecture.md`.

@@ -15,6 +15,7 @@ import '../platform/notify_platform.dart';
 import '../platform/steps_platform.dart';
 import 'journal_view.dart';
 import 'notification_planner.dart';
+import 'ui_flags.dart';
 
 String dayKey(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -866,8 +867,13 @@ class AppController extends Notifier<AppModel> {
       p.prologueRead = false;
     });
     _chosenLoadout = null;
+    // Герой и флаги входа меняются в одном кадре: главная снимается сразу (она не успеет открыть
+    // «Первый шаг» по сброшенному firstStepDone), а OnboardingFlow читает уже новые флаги:
+    // пролог → «Как играть» → рюкзак → первый шаг (docs/v5/09 §7.4).
     state = state.copyWith(clearHero: true);
+    final flagsReset = ref.read(uiFlagsProvider.notifier).startOverAfterReset();
     await _notify.replaceAll(const []);
+    await flagsReset;
   }
 
   // ------------------------------------------------ уведомления

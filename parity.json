@@ -2806,6 +2806,7 @@
      "gas_stove",
      "first_aid",
      "trekking_poles",
+     "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "wreath_poludnitsa"
@@ -2954,6 +2955,7 @@
      "gas_stove",
      "first_aid",
      "trekking_poles",
+     "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "wreath_poludnitsa"
@@ -3065,6 +3067,12 @@
       "ok": true,
       "died": false
      }
+    },
+    {
+     "op": "useGift",
+     "item": "twig_leshy",
+     "now": 1778781600000,
+     "ret": "ok"
     },
     {
      "op": "advance",
@@ -3182,6 +3190,7 @@
      "gas_stove",
      "first_aid",
      "trekking_poles",
+     "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "wreath_poludnitsa"
@@ -3201,7 +3210,7 @@
      "ball_yaga": 20588,
      "bead_kikimora": 20590,
      "hook_vodyanoy": 20584,
-     "twig_leshy": 20586,
+     "twig_leshy": 20588,
      "twig_leshy:hint": 20589
     },
     "fed": {
@@ -3215,7 +3224,7 @@
     "stop": null,
     "deaths": 1,
     "seen": 53,
-    "journal": 210,
+    "journal": 211,
     "journalTail": [
      "quest",
      "event",
@@ -3449,6 +3458,7 @@
      "gas_stove",
      "first_aid",
      "trekking_poles",
+     "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "wreath_poludnitsa",
@@ -3470,7 +3480,7 @@
      "ball_yaga": 20591,
      "bead_kikimora": 20590,
      "hook_vodyanoy": 20589,
-     "twig_leshy": 20586,
+     "twig_leshy": 20588,
      "twig_leshy:hint": 20589
     },
     "fed": {
@@ -3484,7 +3494,7 @@
     "stop": null,
     "deaths": 1,
     "seen": 58,
-    "journal": 231,
+    "journal": 232,
     "journalTail": [
      "event",
      "event",
@@ -3681,6 +3691,7 @@
      "gas_stove",
      "first_aid",
      "trekking_poles",
+     "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "wreath_poludnitsa",
@@ -3717,7 +3728,7 @@
     "stop": null,
     "deaths": 1,
     "seen": 60,
-    "journal": 250,
+    "journal": 251,
     "journalTail": [
      "ability",
      "event",
@@ -3927,6 +3938,7 @@
      "gas_stove",
      "first_aid",
      "trekking_poles",
+     "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "shell_vodyanoy"
@@ -3960,7 +3972,7 @@
     "stop": null,
     "deaths": 1,
     "seen": 64,
-    "journal": 265,
+    "journal": 266,
     "journalTail": [
      "gift",
      "night",
@@ -4254,10 +4266,10 @@
      "gas_stove",
      "first_aid",
      "trekking_poles",
+     "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
-     "shell_vodyanoy",
-     "amulet_leshy"
+     "shell_vodyanoy"
     ],
     "gearUses": {
      "first_aid": 0,
@@ -4289,7 +4301,7 @@
     "stop": null,
     "deaths": 1,
     "seen": 71,
-    "journal": 293,
+    "journal": 294,
     "journalTail": [
      "camp",
      "buy",
@@ -4473,10 +4485,10 @@
      "gas_stove",
      "first_aid",
      "trekking_poles",
+     "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "shell_vodyanoy",
-     "amulet_leshy",
      "ribbon_rusalka"
     ],
     "gearUses": {
@@ -4509,7 +4521,7 @@
     "stop": null,
     "deaths": 1,
     "seen": 75,
-    "journal": 309,
+    "journal": 310,
     "journalTail": [
      "event",
      "event",
@@ -4794,10 +4806,10 @@
      "gas_stove",
      "first_aid",
      "trekking_poles",
+     "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "shell_vodyanoy",
-     "amulet_leshy",
      "ribbon_rusalka"
     ],
     "gearUses": {
@@ -4830,7 +4842,7 @@
     "stop": null,
     "deaths": 1,
     "seen": 82,
-    "journal": 333,
+    "journal": 334,
     "journalTail": [
      "buy",
      "event",

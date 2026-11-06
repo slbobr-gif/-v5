@@ -1,4 +1,5 @@
-// Вступление I1–I6 (docs/v5/09 §3): шесть витражей о сути игры. Из настроек — режим просмотра.
+// «Как играть» I1–I6 (docs/v5/09 §3): шесть витражей о сути игры. При первом входе — сразу после пролога;
+// из настроек — режим просмотра.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,18 +25,25 @@ class _Slide {
 
 /// [viewOnly] — повтор из настроек: «Пропустить» на всех слайдах, в конце «Закрыть», флаги не меняются.
 /// [onDone] получает true, если слайды пропустили.
+/// «Назад» (стрелка системы, predictive back): со 2-го слайда — предыдущий; на первом — [onBack]
+/// (при первом входе — к прологу), а без него маршрут снимает сам Navigator (canPop: true).
+/// [startAtEnd] — открыть с последнего слайда (вернулись назад с первого шага онбординга).
 class IntroSlides extends ConsumerStatefulWidget {
-  const IntroSlides({super.key, required this.onDone, this.viewOnly = false});
+  const IntroSlides({super.key, required this.onDone, this.viewOnly = false, this.onBack, this.startAtEnd = false});
 
   final void Function(bool skipped) onDone;
   final bool viewOnly;
+  final VoidCallback? onBack;
+  final bool startAtEnd;
+
+  static const int count = 6;
 
   @override
   ConsumerState<IntroSlides> createState() => _IntroSlidesState();
 }
 
 class _IntroSlidesState extends ConsumerState<IntroSlides> {
-  final PageController _ctrl = PageController();
+  late final PageController _ctrl;
   final Set<int> _viewed = <int>{};
   final Stopwatch _clock = Stopwatch()..start();
   int _page = 0;
@@ -44,7 +52,9 @@ class _IntroSlidesState extends ConsumerState<IntroSlides> {
   @override
   void initState() {
     super.initState();
-    _markViewed(0);
+    _page = widget.startAtEnd ? IntroSlides.count - 1 : 0;
+    _ctrl = PageController(initialPage: _page);
+    _markViewed(_page);
   }
 
   @override
@@ -96,9 +106,15 @@ class _IntroSlidesState extends ConsumerState<IntroSlides> {
     final bigText = MediaQuery.textScalerOf(context).scale(16) > 24;
     final artH = (screenH * (bigText ? 0.28 : 0.36)).clamp(120.0, 260.0).toDouble();
     return PopScope(
-      canPop: _page == 0,
+      canPop: _page == 0 && widget.onBack == null,
       onPopInvokedWithResult: (bool didPop, Object? result) {
-        if (!didPop && _page > 0) _go(_page - 1);
+        if (didPop || _done) return;
+        if (_page > 0) {
+          _go(_page - 1);
+          return;
+        }
+        final b = widget.onBack;
+        if (b != null) b();
       },
       child: Scaffold(
         body: SafeArea(
@@ -248,6 +264,12 @@ class IntroReplayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IntroSlides(viewOnly: true, onDone: (_) => Navigator.of(context).pop());
+    return IntroSlides(
+      viewOnly: true,
+      onDone: (_) {
+        final route = ModalRoute.of(context);
+        if (route != null && route.isCurrent) Navigator.of(context).pop();
+      },
+    );
   }
 }

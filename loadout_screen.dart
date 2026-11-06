@@ -1,4 +1,4 @@
-// «Собери рюкзак» (O6, docs/v5/09 §4.6): до maxGear снаряжения и до maxPackSlots ячеек еды перед прологом.
+// «Собери рюкзак» (O6, docs/v5/09 §4.6): до maxGear снаряжения и до maxPackSlots ячеек еды перед стартом пути.
 // Все пределы и перки — из balance.json через World; выбор уходит в AppController.chooseLoadout.
 
 import 'dart:async';
@@ -266,7 +266,7 @@ class _LoadoutScreenState extends ConsumerState<LoadoutScreen> {
     });
     _saveTimer?.cancel();
     await _saveDraft();
-    await ref.read(uiFlagsProvider.notifier).update((f) => f.onboardingStep = 'prologue');
+    // Дальше — старт пути (OnboardingFlow); шаг остаётся 'loadout', пока путь не начат.
     if (mounted) widget.onDone();
   }
 

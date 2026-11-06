@@ -28,7 +28,8 @@ class UiFlags {
   bool loaded;
   bool introDone;
 
-  /// profile | perm_activity | perm_notify | perm_hc | sources | loadout | prologue | '' (путь начат)
+  /// До introDone: prologue | rules. После: profile | perm_activity | perm_notify | perm_hc | sources | loadout;
+  /// '' — путь начат. Старое значение prologue при introDone == true (прежние сборки) — рюкзак уже собран.
   String onboardingStep;
 
   /// Черновик рюкзака (null — игрок ещё ничего не выбирал).
@@ -193,10 +194,11 @@ class UiFlagsController extends Notifier<UiFlags> {
         f.tipsEnabled = true;
       });
 
-  /// Новый путь после сброса (§7.4): сразу рюкзак, пролог, первый шаг; тур не повторяем.
+  /// Новый путь после сброса (§7.4): пролог → «Как играть» → рюкзак → первый шаг; тур не повторяем.
+  /// Чистит всё, что относится к прошлому входу в игру, чтобы не осталось «висящих» шагов и черновиков.
   Future<void> startOverAfterReset() => update((f) {
-        f.introDone = true;
-        f.onboardingStep = 'loadout';
+        f.introDone = false;
+        f.onboardingStep = 'prologue';
         f.loadoutGear = null;
         f.loadoutPack = null;
         f.loadoutAdvisor = false;

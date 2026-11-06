@@ -170,6 +170,7 @@ class SettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.auto_stories_outlined, color: Palette.accent),
             title: Text(l.introReplaySettings),
             onTap: () {
+              if (!_isTop(context)) return;
               Analytics.instance.event('intro_replay');
               Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const IntroReplayScreen()));
             },
@@ -177,8 +178,10 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.menu_book_outlined, color: Palette.accent),
             title: Text(l.onbPrologueReread),
-            onTap: () =>
-                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const PrologueReplayScreen())),
+            onTap: () {
+              if (!_isTop(context)) return;
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const PrologueReplayScreen()));
+            },
           ),
           ]),
           SectionHeader(l.settingsAbout),
@@ -219,6 +222,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               );
               if (ok == true) {
+                // resetJourney сбрасывает и флаги входа: пролог → «Как играть» → рюкзак → первый шаг.
                 await c.resetJourney();
                 if (context.mounted) Navigator.of(context).popUntil((r) => r.isFirst);
               }
@@ -232,6 +236,9 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 }
+
+/// Экран настроек сейчас сверху: второй тап во время перехода не откроет пролог/слайды поверх них же.
+bool _isTop(BuildContext context) => ModalRoute.of(context)?.isCurrent ?? true;
 
 /// Диагностика для тестеров: что дал каждый источник сегодня, что пошло в игру, когда синхронизировались
 /// и какие приложения пишут шаги в Health Connect.
