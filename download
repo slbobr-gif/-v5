@@ -1,0 +1,14 @@
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+# генерируется при сборке (flutter gen-l10n)
+lib/l10n/app_localizations*.dart
+# создаётся скриптом tool/bootstrap_android.sh
+android/
+*.jks
+*.keystore
+key.properties
+!android-overlay/putnik-test.jks

@@ -1,0 +1,10 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - lib/l10n/app_localizations*.dart
+
+linter:
+  rules:
+    prefer_const_constructors: true
+    avoid_print: true
