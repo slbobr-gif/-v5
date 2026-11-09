@@ -41,12 +41,22 @@ class Art extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
+    final svg = SvgPicture.asset(
       path,
       height: height,
       width: width,
       fit: fit,
       placeholderBuilder: (_) => Container(height: height, width: width, color: Palette.inkHigh),
+    );
+    if (!path.endsWith('.svg')) return svg;
+    // Готовая растровая картинка (WebP) рядом с SVG имеет приоритет: положили
+    // файл с тем же именем и расширением .webp — он заменит векторную заглушку.
+    return Image.asset(
+      '${path.substring(0, path.length - 4)}.webp',
+      height: height,
+      width: width,
+      fit: fit,
+      errorBuilder: (_, __, ___) => svg,
     );
   }
 }

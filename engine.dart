@@ -69,6 +69,26 @@ class Engine {
     }
   }
 
+  /// Отметка конца главы [ch] для статистики (один раз на главу): время, последний день с шагами,
+  /// всего реальных шагов, событий и падений к этому моменту.
+  void _mark(int now, int ch) {
+    if (s.marks.any((m) => toI(m['ch']) == ch)) return;
+    final days = s.daySteps.keys.toList()..sort();
+    var steps = 0;
+    for (final d in days) {
+      steps += s.daySteps[d]!;
+    }
+    s.marks.add(<String, dynamic>{
+      'ch': ch,
+      't': now,
+      'day': days.isEmpty ? s.startDay : days.last,
+      'steps': steps,
+      'events': s.eventsDone,
+      'deaths': s.deaths,
+      'quests': s.questsDone,
+    });
+  }
+
   bool _isConsumable(String item) {
     final t = w.itemType(item);
     return t == 'food' || t == 'drink';
@@ -76,7 +96,9 @@ class Engine {
 
   double gameMetersPerStep() {
     final m = _m('movement');
-    return toD(m['stepLengthM']) * toD(m['gameMultiplier']);
+    // Соотношение шагов — настройка игрока (s.stepMul); 0 — значение из balance. Влияет только на будущие шаги.
+    final mul = s.stepMul > 0 ? s.stepMul.toDouble() : toD(m['gameMultiplier']);
+    return toD(m['stepLengthM']) * mul;
   }
 
   int consumablesCount() {
@@ -1026,6 +1048,7 @@ class Engine {
       case 'finish':
         s.finished = true;
         s.stop = {'type': 'finish'};
+        _mark(now, w.chapters.length);
         _log(now, 'finish');
         return;
       case 'place':
@@ -1046,9 +1069,11 @@ class Engine {
         if (p['kind'] == 'finish') {
           s.finished = true;
           s.stop = {'type': 'finish', 'place': pid};
+          _mark(now, w.chapters.length);
         } else if (w.chapterEnd.containsKey(pid) && !s.seen.contains('chapter_end:$pid')) {
           // финал главы показывается один раз — после смерти с откатом город будет обычным привалом
           s.seen.add('chapter_end:$pid');
+          _mark(now, toI(w.chapterEnd[pid]!['id']));
           s.stop = {'type': 'chapter_end', 'place': pid, 'chapter': toI(w.chapterEnd[pid]!['id'])};
         } else {
           s.stop = {'type': 'place', 'place': pid};
@@ -1257,6 +1282,7 @@ class Engine {
         q.step += 1;
         if (q.step >= (w.quests[qid]!['steps'] as List).length) {
           s.quests.remove(qid);
+          s.questsDone += 1;
           _log(now, 'quest_done', {'quest': qid});
         }
       }
@@ -1273,6 +1299,7 @@ class Engine {
       if (questId != null) 'quest': questId,
       if (step0 != null) 'step': step0,
     });
+    s.eventsDone += 1;
     if (!died) s.stop = null;
     _saveRng();
     return ChoiceResult(ok: true, outcome: o, died: died, choice: choice);

@@ -22,6 +22,7 @@ class UiFlags {
     this.tipsEnabled = true,
     this.mapLayers,
     this.journalReadAt = 0,
+    this.finishMsgShown = false,
   }) : tourStepSeen = tourStepSeen ?? <String, int>{};
 
   /// false — ещё не прочитаны с диска (экраны ждут).
@@ -51,6 +52,9 @@ class UiFlags {
   /// «Журнал» и пометки «новое» — для записей позже этого времени; переживает перезапуск.
   int journalReadAt;
 
+  /// Сообщение «Путь пройден» на главной уже показано (один раз после финала; сброс пути — снова false).
+  bool finishMsgShown;
+
   UiFlags copy() => UiFlags(
         loaded: loaded,
         introDone: introDone,
@@ -65,6 +69,7 @@ class UiFlags {
         tipsEnabled: tipsEnabled,
         mapLayers: mapLayers == null ? null : List<String>.of(mapLayers!),
         journalReadAt: journalReadAt,
+        finishMsgShown: finishMsgShown,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -84,6 +89,7 @@ class UiFlags {
         'tipsEnabled': tipsEnabled,
         'mapLayers': mapLayers,
         'journalReadAt': journalReadAt,
+        'finishMsgShown': finishMsgShown,
       };
 
   static int _int(Object? v) => v is num ? v.toInt() : 0;
@@ -120,6 +126,7 @@ class UiFlags {
       tipsEnabled: j['tipsEnabled'] != false,
       mapLayers: layersRaw is List ? layersRaw.map((e) => '$e').toList() : null,
       journalReadAt: _int(j['journalReadAt']),
+      finishMsgShown: j['finishMsgShown'] == true,
     );
   }
 }
@@ -204,5 +211,6 @@ class UiFlagsController extends Notifier<UiFlags> {
         f.loadoutAdvisor = false;
         f.prologuePage = 0;
         f.firstStepDone = false;
+        f.finishMsgShown = false;
       });
 }

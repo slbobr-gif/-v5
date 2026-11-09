@@ -13,6 +13,8 @@ import '../widgets/common.dart';
 import '../widgets/gift_button.dart';
 import '../widgets/item_icon.dart';
 import '../widgets/spirit_card.dart';
+import 'chapter_end_flow.dart';
+import 'finale_flow.dart';
 import 'overflow_screens.dart';
 
 /// Показывает экран текущей остановки. Сам переключается, если остановка сменилась.
@@ -67,11 +69,11 @@ class _StopScreenState extends ConsumerState<StopScreen> {
       case 'place':
         return const _PlaceScreen();
       case 'chapter_end':
-        return const _ChapterEndScreen();
+        return const ChapterEndFlow();
       case 'death':
         return const _DeathScreen();
       case 'finish':
-        return const _FinishScreen();
+        return const FinaleFlow();
       case 'night':
         return const _NightScreen();
     }
@@ -669,57 +671,6 @@ class _OfferRow extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------- конец главы
-
-class _ChapterEndScreen extends ConsumerWidget {
-  const _ChapterEndScreen();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context);
-    final m = ref.watch(appProvider);
-    final c = ref.read(appProvider.notifier);
-    final w = m.content!.world;
-    final st = m.hero!.stop!;
-    final chId = toI(st['chapter']);
-    final ch = w.chapterById(chId);
-    final next = w.chapters.where((x) => toI(x['id']) == chId + 1).firstOrNull;
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: ListView(
-          padding: _listPadding(context),
-          children: [
-            Text(l.chapterDone(chId), style: const TextStyle(color: Palette.accent, letterSpacing: 1.5)),
-            Text('${ch['title']}', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: Gap.l),
-            StoryText('${ch['outro'] ?? ''}'),
-            // Финал главы зависит от прошлых решений: абзацы по флагам героя
-            for (final e in ((ch['outro_flags'] as Map?) ?? const {}).entries)
-              if (m.hero!.flags.contains(e.key)) ...[
-                const SizedBox(height: Gap.m),
-                StoryText('${e.value}'),
-              ],
-            if (next != null) ...[
-              const SizedBox(height: Gap.xl),
-              Text(l.chapterLabel(toI(next['id'])), style: const TextStyle(color: Palette.accent, letterSpacing: 1.5)),
-              Text('${next['title']}', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: Gap.s),
-              StoryText('${next['intro'] ?? ''}'),
-              if (next['playable'] != true) ...[
-                const SizedBox(height: Gap.m),
-                Text(l.chapterComingSoon, style: const TextStyle(color: Palette.parchmentDim, height: 1.4)),
-              ],
-            ],
-            const SizedBox(height: Gap.l),
-            FilledButton(onPressed: () => c.continueJourney(st), child: Text(l.next)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ---------------------------------------------------------------- ночёвка (V5-45)
 
 /// Ночёвка в пути показывается экраном исхода: тепло и утренний бонус чипами, «Дальше» — в путь теми же шагами.
@@ -812,38 +763,6 @@ class _DeathScreen extends ConsumerWidget {
         ),
       ),
     ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------- финиш
-
-class _FinishScreen extends ConsumerWidget {
-  const _FinishScreen();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context);
-    final m = ref.watch(appProvider);
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: ListView(
-          padding: _listPadding(context),
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(Gap.radius),
-              child: const Art('assets/art/finale/teriberka.svg', height: 240),
-            ),
-            const SizedBox(height: Gap.l),
-            Text(l.finishTitle, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: Gap.m),
-            StoryText(l.finishText(m.hero!.daySteps.length, m.hero!.deaths)),
-            const SizedBox(height: Gap.l),
-            OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: Text(l.close)),
-          ],
-        ),
-      ),
     );
   }
 }

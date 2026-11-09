@@ -14,6 +14,7 @@ import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
 import '../widgets/common.dart';
 import '../widgets/glass_paint.dart';
+import 'journeys_screen.dart';
 import 'thought_screen.dart';
 
 final _km = NumberFormat('0.#', 'ru');
@@ -312,6 +313,12 @@ class _JournalTabState extends ConsumerState<JournalTab> {
           title: l.journalTitle,
         ),
         actions: [
+          if ((m.profile?.journeys ?? const []).isNotEmpty)
+            IconButton(
+              tooltip: l.journalJourneys,
+              icon: const Icon(Icons.emoji_events_outlined),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const JourneysScreen())),
+            ),
           if (newCount > 0)
             Padding(
               padding: const EdgeInsets.only(right: Gap.m),

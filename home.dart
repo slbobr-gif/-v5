@@ -18,6 +18,7 @@ import '../widgets/coach_tour.dart';
 import '../widgets/common.dart';
 import '../widgets/route_ribbon.dart';
 import '../widgets/vessels.dart';
+import 'finished_home.dart';
 import 'hero_tab.dart';
 import 'journal_tab.dart';
 import 'map_tab.dart';
@@ -344,6 +345,19 @@ class _PathTabState extends ConsumerState<PathTab> {
     }
   }
 
+  bool _doneShown = false;
+
+  /// После финала: сообщение «Путь пройден» один раз (флаг finishMsgShown в ui_flags).
+  void _maybeDoneMessage(bool finishedHere) {
+    if (!finishedHere || _doneShown) return;
+    final flags = ref.read(uiFlagsProvider);
+    if (!flags.loaded || flags.finishMsgShown) return;
+    _doneShown = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) showDoneMessage(context, ref);
+    });
+  }
+
   void _maybeSurvey() {
     if (_surveyShown) return;
     final c = ref.read(appProvider.notifier);
@@ -391,6 +405,7 @@ class _PathTabState extends ConsumerState<PathTab> {
     final phase = eng.dayPhase();
     final wx = eng.weatherHere();
     _maybeSurvey();
+    _maybeDoneMessage(hero.finished && hero.stop == null);
 
     final stop = hero.stop;
     final nowMs = DateTime.now().millisecondsSinceEpoch;
@@ -444,6 +459,11 @@ class _PathTabState extends ConsumerState<PathTab> {
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, Gap.s),
               child: _StopBanner(onOpen: _openStop),
+            ),
+          if (hero.finished && stop == null)
+            const Padding(
+              padding: EdgeInsets.fromLTRB(12, 0, 12, Gap.s),
+              child: FinishedCards(),
             ),
           Padding(
             padding: side,

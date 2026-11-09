@@ -43,6 +43,7 @@ class GameContent {
     required this.items,
     required this.creatures,
     required this.thoughts,
+    this.chats = const {},
   });
 
   final World world;
@@ -50,6 +51,9 @@ class GameContent {
   final Map<String, Json> items; // имена и описания предметов
   final Map<String, Json> creatures;
   final List<Thought> thoughts;
+
+  /// Переписка Сергея с Сашей после статистики конца главы: номер главы → сообщения.
+  final Map<int, ChapterChat> chats;
 
   String itemName(String id) => items[id]?['name'] as String? ?? id;
   String itemDesc(String id) => items[id]?['desc'] as String? ?? '';
@@ -147,6 +151,17 @@ Future<GameContent> loadGameContent() async {
   final creaturesList = _list(await _json('$base/creatures.json'));
   final thoughtsList = _list(await _json('$base/thoughts.json'));
   final mapJson = ((await _json('assets/map/map.json')) as Map).cast<String, dynamic>();
+  final chats = <int, ChapterChat>{};
+  try {
+    final raw = ((await _json('$base/chapter_chats.json')) as Map).cast<String, dynamic>();
+    for (final e in raw.entries) {
+      final id = int.tryParse(e.key);
+      if (id == null || e.value is! Map) continue;
+      chats[id] = ChapterChat.fromJson((e.value as Map).cast<String, dynamic>());
+    }
+  } catch (_) {
+    // переписки не обязательны: без файла экран переписки просто пропускается
+  }
 
   final distances = (mapJson['placeDistances'] as Map).map((k, v) => MapEntry(k as String, toD(v)));
   final world = World(
@@ -177,5 +192,22 @@ Future<GameContent> loadGameContent() async {
     items: {for (final i in itemsList) i['id'] as String: i},
     creatures: {for (final c in creaturesList) c['id'] as String: c},
     thoughts: thoughtsList.map(Thought.new).toList(),
+    chats: chats,
   );
+}
+
+/// Переписка конца главы: время в шапке и сообщения (me — Сергей, her — Саша).
+class ChapterChat {
+  ChapterChat(this.time, this.messages);
+
+  factory ChapterChat.fromJson(Json j) => ChapterChat(
+        j['time'] as String? ?? '',
+        [
+          for (final m in (j['messages'] as List?) ?? const [])
+            if (m is List && m.length >= 2) (fromMe: m[0] == 'me', text: '${m[1]}'),
+        ],
+      );
+
+  final String time;
+  final List<({bool fromMe, String text})> messages;
 }

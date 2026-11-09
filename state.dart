@@ -115,7 +115,12 @@ class HeroState {
     Map<String, int>? expires,
     this.dayMark = 0,
     this.nextNightAt = -1.0,
-  })  : fed = fed ?? {},
+    this.stepMul = 0,
+    this.eventsDone = 0,
+    this.questsDone = 0,
+    List<Json>? marks,
+  })  : marks = marks ?? [],
+        fed = fed ?? {},
         expires = expires ?? {},
         gear = gear ?? [],
         gearUses = gearUses ?? {},
@@ -198,6 +203,19 @@ class HeroState {
 
   /// Позиция следующей ночёвки, м (V5-45); < 0 — не задана (старое сохранение), Engine вычислит по maxPos.
   double nextNightAt;
+
+  /// Сколько игровых шагов даёт один реальный (настройка «Соотношение шагов»: 1, 3 или 5). 0 — взять из balance.movement.
+  int stepMul;
+
+  /// Сколько событий герой прошёл за путь (для статистики глав и итога). Журнал обрезается, счётчик — нет.
+  int eventsDone;
+
+  /// Сколько сюжетных историй (квестов) завершено за путь.
+  int questsDone;
+
+  /// Отметки концов глав и финиша: {ch, t, day, steps, events, deaths} — из них считается статистика
+  /// конца главы и итог (lib/engine/journey_stats.dart). Пишутся один раз на главу.
+  List<Json> marks;
 
   static HeroState create(World w, int seed, int nowMs, String today, {int todaySteps = 0}) {
     final b = w.balance;
@@ -298,6 +316,10 @@ class HeroState {
         'expires': expires,
         'dayMark': dayMark,
         'nextNightAt': nextNightAt,
+        'stepMul': stepMul,
+        'eventsDone': eventsDone,
+        'questsDone': questsDone,
+        'marks': marks,
       };
 
   /// Загрузка сохранения. С [w] сохранение v1 (до v5.3) переводится в v2 (см. [migrate]);
@@ -353,6 +375,10 @@ class HeroState {
       expires: ints(j['expires']),
       dayMark: toI(j['dayMark']),
       nextNightAt: j['nextNightAt'] == null ? -1.0 : toD(j['nextNightAt']),
+      stepMul: j['stepMul'] == null ? 0 : toI(j['stepMul']),
+      eventsDone: toI(j['eventsDone'] ?? 0),
+      questsDone: toI(j['questsDone'] ?? 0),
+      marks: [for (final m in (j['marks'] as List?) ?? const []) (m as Map).cast<String, dynamic>()],
     );
     // Старые сохранения могли не знать какой-то показатель — не падаем на s.stats[k]!.
     for (final k in statKeys) {

@@ -114,6 +114,8 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: Gap.s),
           Text(l.stepsSourcesNote, style: const TextStyle(color: Palette.parchmentDim, fontSize: 12, height: 1.35)),
           const SizedBox(height: Gap.m),
+          _StepRatioCard(value: p.stepMul, onChanged: c.setStepMul),
+          const SizedBox(height: Gap.m),
           _StepsDiagnostics(model: m, today: c.today, onRefresh: () async {
             await c.refreshPermissions();
             await c.refresh();
@@ -338,6 +340,61 @@ class _AnalyticsLog extends StatelessWidget {
             child: Text('${fmt.format(log[i].at)}  ${log[i].name}\n${log[i].params}',
                 style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Выбор соотношения «реальные шаги : шаги Сергея» (1, 3 или 5).
+class _StepRatioCard extends StatelessWidget {
+  const _StepRatioCard({required this.value, required this.onChanged});
+
+  final int value;
+  final Future<void> Function(int) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final hint = switch (value) {
+      1 => l.settingsRatioHint1,
+      3 => l.settingsRatioHint3,
+      _ => l.settingsRatioHint5,
+    };
+    const dim = TextStyle(color: Palette.parchmentDim, fontSize: 12, height: 1.35);
+    return Material(
+      color: Palette.inkRaised,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Gap.radius),
+        side: const BorderSide(color: Palette.inkHigh),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(Gap.m),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.settingsRatioTitle, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: Gap.xs),
+            Text(l.settingsRatioBody, style: dim),
+            const SizedBox(height: Gap.s),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<int>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment<int>(value: 1, label: Text(l.settingsRatio1)),
+                  ButtonSegment<int>(value: 3, label: Text(l.settingsRatio3)),
+                  ButtonSegment<int>(value: 5, label: Text(l.settingsRatio5)),
+                ],
+                selected: {value},
+                onSelectionChanged: (v) => onChanged(v.first),
+              ),
+            ),
+            const SizedBox(height: Gap.s),
+            Text(hint, style: dim),
+            const SizedBox(height: Gap.xs),
+            Text(l.settingsRatioNote, style: dim),
+          ],
         ),
       ),
     );

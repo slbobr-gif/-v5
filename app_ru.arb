@@ -349,6 +349,15 @@
   "settingsSteps": "Шаги",
   "batteryHint": "Если шаги приходят с опозданием, разреши «Путнику» работать в фоне в настройках батареи телефона — особенно на Xiaomi, Huawei и Honor.",
   "settingsNotifications": "Уведомления",
+  "settingsRatioTitle": "Соотношение шагов",
+  "settingsRatioBody": "Сколько шагов делает Сергей за один твой шаг. Чем меньше число, тем дольше путь.",
+  "settingsRatio1": "1 к 1",
+  "settingsRatio3": "1 к 3",
+  "settingsRatio5": "1 к 5",
+  "settingsRatioHint1": "Путь займёт около года при 8 000 шагов в день. Для тех, кто ходит много.",
+  "settingsRatioHint3": "Путь займёт около четырёх месяцев при 8 000 шагов в день.",
+  "settingsRatioHint5": "Путь займёт два с половиной месяца при 8 000 шагов в день. Так задумана игра.",
+  "settingsRatioNote": "Пройденный путь не пересчитывается: новое соотношение действует на следующие шаги. Голод, жажда и холод идут и по часам, поэтому при 1 к 1 идти труднее.",
   "settingsNotifyOn": "Утренняя мысль и события пути",
   "settingsMorningTime": "Время утренней мысли",
   "settingsAbout": "О приложении",
@@ -1964,5 +1973,264 @@
   "nightMorning_nuts": "У старой ели нашёл беличью кладовую и честно взял горсть орехов — себе на завтрак.",
   "logNight": "Сергей заночевал в пути",
   "onbExitConfirm": "Выйти из игры? Пролог подождёт — откроется при следующем запуске.",
-  "onbExitYes": "Выйти"
+  "onbExitYes": "Выйти",
+  "monthsGen": "января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря",
+  "statsChapterKicker": "Глава {n} пройдена",
+  "@statsChapterKicker": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "statsKmChapter": "км за главу",
+  "statsProgress": "{pct}% пути · осталось {left} км",
+  "@statsProgress": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "statsFrom": "Москва",
+  "statsTo": "Териберка",
+  "statTime": "Время",
+  "statSteps": "Шаги",
+  "statDistance": "Расстояние",
+  "statBestDay": "Лучший день",
+  "statEncounters": "Встреч на дороге",
+  "statFalls": "Падений",
+  "statDays": "{days, plural, one{{days} день} few{{days} дня} many{{days} дней} other{{days} дня}}",
+  "@statDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "statDaysShort": "{days} дн.",
+  "@statDaysShort": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "statKm": "{km} км",
+  "@statKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "statBest": "{s} шагов · {date}",
+  "@statBest": {
+    "placeholders": {
+      "s": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "statBestNone": "—",
+  "shareButton": "Поделиться",
+  "shareFailed": "Не получилось поделиться. Попробуйте ещё раз.",
+  "shareCardBrand": "ПУТНИК",
+  "shareCardRoute": "Кремль → Териберка",
+  "shareCardChapter": "Глава {n} · {title}",
+  "@shareCardChapter": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "shareCardSlogan": "Иди вместе с Сергеем",
+  "shareCardDownload": "Скачать «Путник»",
+  "shareCardTime": "время",
+  "shareCardSteps": "шагов",
+  "shareCardDistance": "расстояние",
+  "shareTextChapter": "Глава {n} позади: {km} км пешком в «Путнике». Иду от Кремля до Териберки. {link}",
+  "@shareTextChapter": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "km": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "shareTextFinish": "Я дошёл до Териберки: 2 099 км пешком в «Путнике». {link}",
+  "@shareTextFinish": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "chatName": "Саша",
+  "chatOnline": "в сети",
+  "chatNext": "Дальше: «{title}»",
+  "@chatNext": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "finKicker": "Маршрут пройден",
+  "finTitle": "Кремль → Териберка",
+  "finDates": "{from} – {to}",
+  "@finDates": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "finDaysLabel": "{days, plural, one{день} few{дня} many{дней} other{дня}}",
+  "@finDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "finStepsLabel": "шагов",
+  "finDistLabel": "пройдено",
+  "finCardTitle": "Я дошёл до Териберки",
+  "finTotal": "Общее расстояние",
+  "medalKicker": "Медаль путника",
+  "medalFront": "лицевая",
+  "medalBack": "обратная",
+  "medalFlipHint": "Нажмите на медаль, чтобы перевернуть",
+  "medalPromise": "«Териберка. Пешком!»",
+  "medalPromiseDone": "Обещание исполнено.",
+  "medalBackDist": "пройдено",
+  "medalBackSteps": "шагов",
+  "medalBackDays": "в пути",
+  "achRoute": "от Кремля до Териберки",
+  "achSteps": "шагов",
+  "achDistance": "пройденное расстояние",
+  "achRecord": "рекорд по шагам",
+  "achEncounters": "встреч на дороге",
+  "achStories": "историй завершено",
+  "achStoriesValue": "{done} из {total}",
+  "@achStoriesValue": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "achFalls": "{n, plural, one{падение, и каждый раз дальше} few{падения, и каждый раз дальше} many{падений, и каждый раз дальше} other{падения, и каждый раз дальше}}",
+  "@achFalls": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "epilogueTitle": "ЭПИЛОГ",
+  "doneTitle": "Путь пройден",
+  "doneText": "Сергей откладывал эту мечту 25 лет. А когда наконец вышел, хватило {days, plural, one{{days} дня} few{{days} дней} many{{days} дней} other{{days} дня}}.\nИ каждый его шаг сделали вы: {steps} раз вы выбрали идти, а не «потом».\nУ каждого есть своя Териберка: поход, новый язык, своё дело, важный разговор.",
+  "@doneText": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "doneCall": "Выберите свою и назначьте ей дату.",
+  "doneUnseenTitle": "Дорога показала не всё",
+  "doneUnseen": "Вы не встретили {n} из {total} случайных историй. Пройдите путь заново, они ждут.",
+  "@doneUnseen": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "doneRatioTitle": "Пройти честно, шаг в шаг",
+  "doneRatio": "В настройках можно поставить соотношение 1 к 1: каждый ваш шаг — один шаг Сергея.",
+  "doneKeep": "Медаль и итог останутся в Журнале.",
+  "doneRestart": "Начать путь заново",
+  "doneSteps": "Настроить шаги",
+  "homeDoneLine": "{km} км · {days} · {steps} шагов",
+  "@homeDoneLine": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      },
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "homeDoneOpen": "Медаль и итог ›",
+  "homeRestartText": "Сергей снова выйдет от Кремля. Историй, которые вы ещё не встречали: {n}.",
+  "@homeRestartText": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "homeRestartKeep": "Медаль и итог прошлого пути сохранятся в Журнале.",
+  "homeRestartButton": "Начать заново",
+  "homeRatio": "Шаги: 1 к {n}",
+  "@homeRatio": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "homeRatioChange": "изменить",
+  "restartTitle": "Начать путь заново?",
+  "restartText": "Сергей вернётся на нулевой километр у Кремля. Начнётся новая история: пролог, рюкзак и первые шаги.",
+  "restartKeep": "Сохранятся медаль и итог прошлого пути. С нуля начнутся километры, рюкзак, монеты и записи Журнала.",
+  "journalJourneys": "Пройденные пути",
+  "journalJourneyLine": "{from} – {to} · {days}",
+  "@journalJourneyLine": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  }
 }

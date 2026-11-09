@@ -9,6 +9,7 @@ import '../analytics/analytics.dart';
 import '../data/content_repository.dart';
 import '../data/storage.dart';
 import '../engine/engine.dart';
+import '../engine/journey_stats.dart';
 import '../engine/state.dart';
 import '../engine/world.dart';
 import '../platform/notify_platform.dart';
@@ -267,6 +268,25 @@ class AppController extends Notifier<AppModel> {
     await refresh();
   }
 
+  /// Соотношение шагов: сколько игровых шагов за один реальный (1, 3 или 5).
+  int get stepMul => state.profile?.stepMul ?? 5;
+
+  /// Меняет соотношение. Уже пройденный путь не пересчитывается: новое значение действует на следующие шаги.
+  Future<void> setStepMul(int v) async {
+    if (!const [1, 3, 5].contains(v)) return;
+    final hero = state.hero;
+    // Сначала засчитываем накопленные шаги по старому соотношению, чтобы они не пересчитались по новому.
+    if (hero != null) await refresh();
+    await updateProfile((p) => p.stepMul = v);
+    final h = state.hero;
+    if (h != null) {
+      h.stepMul = v;
+      await _save(h);
+      state = state.copyWith(hero: h);
+    }
+    _a.event('step_ratio_changed', {'mul': v});
+  }
+
   Future<bool> requestNotifyPermission() async {
     final ok = await _notify.requestPermission();
     _a.event('perm_notifications', {'granted': ok});
@@ -320,6 +340,7 @@ class AppController extends Notifier<AppModel> {
     final seed = math.Random().nextInt(0x7FFFFFFF);
     final now = _now;
     final hero = HeroState.create(content.world, seed, now, today, todaySteps: baseline);
+    hero.stepMul = state.profile?.stepMul ?? 5;
     final def = defaultLoadout;
     final chosen = _chosenLoadout;
     var useGear = gear ?? chosen?.gear ?? def.gear;
@@ -588,6 +609,34 @@ class AppController extends Notifier<AppModel> {
     if (!eng.continueJourney(_now)) return;
     if (state.hero!.stop == null) _advance(eng);
     _commit();
+  }
+
+  /// Финал прочитан («Дальше» на экране медали): остановка «финиш» снимается, путь остаётся пройденным,
+  /// итог пути сохраняется в профиль (переживает сброс). Сообщение «Путь пройден» покажет главная.
+  Future<void> closeFinish() async {
+    final hero = state.hero;
+    if (hero == null || !hero.finished) return;
+    await archiveJourney();
+    if (hero.stop?['type'] == 'finish') hero.stop = null;
+    _a.event('finish_closed');
+    _commit();
+  }
+
+  /// Итог текущего пути — в профиль (один раз на путь).
+  Future<void> archiveJourney() async {
+    final hero = state.hero;
+    if (hero == null || !hero.finished) return;
+    final st = journeyStats(content.world, hero, today: today);
+    final key = '${hero.startedAt}';
+    if ((state.profile?.journeys ?? const []).any((j) => j['key'] == key)) return;
+    await updateProfile((p) => p.journeys.add({...st.toJson(), 'key': key, 'totalKm': st.totalKm}));
+  }
+
+  /// «Начать путь заново» после финала: сохранить итог и начать с пролога.
+  Future<void> restartAfterFinish() async {
+    await archiveJourney();
+    _a.event('journey_restart');
+    await resetJourney();
   }
 
   Future<void> dismissDeath() async {
