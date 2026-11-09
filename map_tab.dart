@@ -44,6 +44,8 @@ const _creatureArt = <String>{
   'rusalka',
   'baba_yaga',
   'ovinnik',
+  'hiisi',
+  'seid',
 };
 
 const _halo = <Shadow>[Shadow(color: Palette.ink, blurRadius: 3), Shadow(color: Palette.ink, blurRadius: 2)];
