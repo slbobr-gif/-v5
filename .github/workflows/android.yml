@@ -92,6 +92,37 @@ jobs:
         with:
           name: smoke-test
           path: smoke/
+
+  # APK без архива: постоянная ссылка для телефона
+  # https://github.com/<владелец>/<репозиторий>/releases/latest/download/putnik-test.apk
+  # Выкладывается только после того, как APK установился и запустился на эмуляторе.
+  release:
+    name: Выложить APK
+    needs: smoke
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: putnik-apk
+          path: apk
+      - name: Релиз «Последняя сборка»
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="$(grep -m1 '^version:' app/pubspec.yaml | sed 's/version: *//')"
+          N="${V%%+*}.${{ github.run_number }}"
+          gh release create "build-${{ github.run_number }}" apk/putnik-test.apk \
+            --target "${{ github.sha }}" --latest \
+            --title "Путник $N" \
+            --notes "Сборка $V, запуск №${{ github.run_number }}. Скачай putnik-test.apk на телефон и открой — установится поверх, прогресс сохранится."
+          # старые релизы-сборки не копим: оставляем 5 последних
+          gh release list --limit 100 --json tagName --jq '.[].tagName' | grep '^build-' | tail -n +6 | while read -r t; do
+            gh release delete "$t" --yes --cleanup-tag || true
+          done
           retention-days: 14
 
   checks:
