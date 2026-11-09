@@ -51,7 +51,9 @@ jobs:
       - name: Сборка
         env:
           APPMETRICA_KEY: ${{ secrets.APPMETRICA_KEY }}
-        run: flutter build apk --release --build-number=${{ github.run_number }} --dart-define=APPMETRICA_KEY="$APPMETRICA_KEY"
+        # Номер сборки (versionCode) обязан только расти: прежний файл main.yml давал номера до ~100,
+        # у android.yml счёт запусков начался заново — поэтому +1000, иначе Android не ставит APK поверх.
+        run: flutter build apk --release --build-number=$((1000 + ${{ github.run_number }})) --dart-define=APPMETRICA_KEY="$APPMETRICA_KEY"
 
       - name: Переименовать файл
         run: cp build/app/outputs/flutter-apk/app-release.apk putnik-test.apk
@@ -92,6 +94,7 @@ jobs:
         with:
           name: smoke-test
           path: smoke/
+          retention-days: 14
 
   # APK без архива: постоянная ссылка для телефона
   # https://github.com/<владелец>/<репозиторий>/releases/latest/download/putnik-test.apk
@@ -120,10 +123,9 @@ jobs:
             --title "Путник $N" \
             --notes "Сборка $V, запуск №${{ github.run_number }}. Скачай putnik-test.apk на телефон и открой — установится поверх, прогресс сохранится."
           # старые релизы-сборки не копим: оставляем 5 последних
-          gh release list --limit 100 --json tagName --jq '.[].tagName' | grep '^build-' | tail -n +6 | while read -r t; do
+          gh release list --limit 100 --json tagName --jq '.[].tagName' | { grep '^build-' || true; } | tail -n +6 | while read -r t; do
             gh release delete "$t" --yes --cleanup-tag || true
           done
-          retention-days: 14
 
   checks:
     name: Проверки и тесты
