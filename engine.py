@@ -370,6 +370,9 @@ def new_state(world: World, seed: int, now_ms: int, today: str, today_steps: int
         "deaths": 0,
         "journal": [],
         "finished": False,
+        "eventsDone": 0,
+        "questsDone": 0,
+        "marks": [],
     }
     d = b["loadout"]["default"]
     _loadout_into(world, s, d["gear"], d["pack"])
@@ -436,6 +439,16 @@ class Engine:
     def _save_rng(self):
         self.s["rng"] = self.rng.state
 
+    def _mark(self, now: int, ch: int):
+        """Отметка конца главы ch для статистики (один раз на главу) — как Engine._mark в Dart."""
+        marks = self.s.setdefault("marks", [])
+        if any(m["ch"] == ch for m in marks):
+            return
+        days = sorted(self.s["daySteps"])
+        marks.append({"ch": ch, "t": now, "day": days[-1] if days else self.s["startDay"],
+                      "steps": sum(self.s["daySteps"].values()), "events": self.s.get("eventsDone", 0),
+                      "deaths": self.s["deaths"], "quests": self.s.get("questsDone", 0)})
+
     def _log(self, now: int, kind: str, text: str, **extra):
         # pos — где это случилось, м (в Dart — pyRound(s.pos)); extra может передать свой pos
         self.s["journal"].append({"t": now, "kind": kind, "text": text, "pos": py_round(self.s["pos"]), **extra})
@@ -444,7 +457,9 @@ class Engine:
 
     def game_m_per_step(self) -> float:
         m = self.b["movement"]
-        return m["stepLengthM"] * m["gameMultiplier"]
+        # настройка игрока «соотношение шагов» (state.stepMul: 1, 3, 5); 0/нет — из balance
+        mul = self.s.get("stepMul", 0) or m["gameMultiplier"]
+        return m["stepLengthM"] * mul
 
     def consumables_count(self) -> int:
         return sum(n for k, n in self.s["inv"].items() if self.w.item_type(k) in CONSUMABLE)
@@ -1278,6 +1293,7 @@ class Engine:
         if kind == "finish":
             self.s["finished"] = True
             self.s["stop"] = {"type": "finish"}
+            self._mark(now, len(self.w.chapters))
             self._log(now, "finish", "Сергей дошёл до Териберки")
             return
         if kind == "place":
@@ -1295,9 +1311,11 @@ class Engine:
             if p["kind"] == "finish":
                 self.s["finished"] = True
                 self.s["stop"] = {"type": "finish", "place": p["id"]}
+                self._mark(now, len(self.w.chapters))
             elif p["id"] in self.w.chapter_end and f"chapter_end:{p['id']}" not in self.s["seen"]:
                 # финал главы показывается один раз — после смерти с откатом город будет обычным привалом
                 self.s["seen"].append(f"chapter_end:{p['id']}")
+                self._mark(now, self.w.chapter_end[p["id"]]["id"])
                 self.s["stop"] = {"type": "chapter_end", "place": p["id"], "chapter": self.w.chapter_end[p["id"]]["id"]}
             else:
                 self.s["stop"] = {"type": "place", "place": p["id"]}
@@ -1466,12 +1484,14 @@ class Engine:
                 self.s["quests"][qid]["step"] += 1
                 if self.s["quests"][qid]["step"] >= len(self.w.quests[qid]["steps"]):
                     del self.s["quests"][qid]
+                    self.s["questsDone"] = self.s.get("questsDone", 0) + 1
                     self._log(now, "quest", f"Квест завершён: {self.w.quests[qid]['title']}")
         qx = {"quest": qid0} if qid0 is not None else {}
         if step0 is not None:
             qx["step"] = step0
         self._log(now, "event", ev["title"], event=ev["id"], choice=choice_id, outcome=o.get("text", ""),
                   cid=choice_id, oi=oi, pos=pos0, **qx)
+        self.s["eventsDone"] = self.s.get("eventsDone", 0) + 1
         if not died:
             self.s["stop"] = None
         self._save_rng()

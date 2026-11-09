@@ -990,5 +990,74 @@ class SaveLoad(unittest.TestCase):
         self.assertIn(ev_["id"], b["recentRandom"] + b["seen"])
 
 
+class StepRatio(unittest.TestCase):
+    """Настройка «соотношение шагов» (state.stepMul): 1, 3, 5 игровых шагов на реальный."""
+
+    def test_meters_per_step(self):
+        step_m = BAL["movement"]["stepLengthM"]
+        default = BAL["movement"]["gameMultiplier"]
+        _, s, e = fresh()
+        self.assertAlmostEqual(e.game_m_per_step(), step_m * default)  # без поля — значение из баланса
+        for mul in (1, 3, 5):
+            s["stepMul"] = mul
+            self.assertAlmostEqual(e.game_m_per_step(), step_m * mul)
+
+    def test_new_ratio_only_for_new_steps(self):
+        _, s, e = fresh()
+        day = "2026-05-01"
+        s["stepMul"] = 5
+        e.sync_steps({day: 1000}, T0 + MS_HOUR)
+        buf5 = s["buffer"]
+        s["stepMul"] = 1
+        e.sync_steps({day: 2000}, T0 + 2 * MS_HOUR)
+        step_m = BAL["movement"]["stepLengthM"]
+        self.assertAlmostEqual(s["buffer"] - buf5, 1000 * step_m)  # прибавка — по новому соотношению
+        self.assertAlmostEqual(buf5, 1000 * step_m * 5)           # старое не пересчитано
+
+
+class JourneyMarks(unittest.TestCase):
+    """Отметки концов глав (state.marks) и счётчики событий/историй для статистики главы и итога."""
+
+    def test_finish_mark_and_counters(self):
+        _, s, e = fresh()
+        now = T0 + MS_HOUR
+        e.sync_steps({"2026-05-01": 20000, "2026-05-02": 30000, "2026-05-03": 25000}, now)
+        events = 0
+        for _ in range(400):
+            st = s["stop"]
+            if st and st["type"] == "finish":
+                break
+            if st and st["type"] == "event":
+                ev_ = e.current_event()
+                e.choose(next(c for c in ev_["choices"] if e.choice_available(c))["id"], now)
+                events += 1
+            elif st and st["type"] == "death":
+                s["stop"] = None
+            elif st:
+                e.continue_journey(now)
+            while s["overflow"]:
+                o = s["overflow"][0]
+                if o["kind"] == "gear":
+                    e.resolve_overflow_gear([g for g in s["gear"] if not e.w.is_gift(g)])
+                else:
+                    e.resolve_overflow_backpack("drop", None, now)
+            e.advance(now)
+            if not s["stop"] and s["buffer"] <= 0.5:
+                now += MS_DAY
+                e.sync_steps({"2026-05-04": 40000 + now % 7}, now)
+        self.assertTrue(s["finished"])
+        self.assertEqual(s["eventsDone"], events)
+        self.assertEqual(len(s["marks"]), 1)
+        m = s["marks"][0]
+        self.assertEqual(m["ch"], 1)
+        # конец главы 1 (место d) раньше конца маршрута: отметка — шаги и день на момент прихода в d
+        before = {k: v for k, v in s["daySteps"].items() if k <= m["day"]}
+        self.assertEqual(m["steps"], sum(before.values()))
+        self.assertLessEqual(m["events"], events)
+        self.assertIn(m["day"], s["daySteps"])
+        e._mark(now, 1)  # повторная отметка той же главы не дублируется
+        self.assertEqual(len(s["marks"]), 1)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)
