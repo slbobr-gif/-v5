@@ -32,12 +32,33 @@ class StepsStatus {
 }
 
 class DailySteps {
-  const DailySteps({required this.days, required this.sensor, required this.hc});
+  const DailySteps({
+    required this.days,
+    required this.sensor,
+    required this.hc,
+    this.hcState = 'unavailable',
+    this.hcOrigins = const [],
+    this.readAt,
+  });
 
   /// Итог по дню: максимум из источников.
   final Map<String, int> days;
   final Map<String, int> sensor;
+
+  /// Health Connect: агрегат StepsRecord.COUNT_TOTAL по местным суткам (пересечения часов и телефона
+  /// Health Connect уже убрал), за окно чтения — см. [StepsPlatform.dailySteps].
   final Map<String, int> hc;
+
+  /// ok | no_permission | unavailable | failed — чем кончилось чтение Health Connect.
+  final String hcState;
+
+  /// Приложения, записавшие шаги в Health Connect (сегодня, а если сегодня пусто — за окно чтения).
+  final List<String> hcOrigins;
+
+  /// Когда прочитано (null — чтения не было).
+  final DateTime? readAt;
+
+  static const empty = DailySteps(days: {}, sensor: {}, hc: {});
 
   static Map<String, int> _ints(Object? m) =>
       ((m as Map?) ?? const {}).map((k, v) => MapEntry(k as String, (v as num).toInt()));
@@ -63,6 +84,13 @@ class DailySteps {
 class StepsPlatform {
   static const _ch = MethodChannel('putnik/steps');
 
+  /// Health Connect: каждое чтение — сегодня + 7 прошлых суток (часы синхронизируются с опозданием,
+  /// дозагруженные шаги за прошедшие дни подхватываются). Раз в несколько часов и при первом
+  /// чтении после запуска — полное окно, чтобы не потерять дни, если приложение долго не открывали.
+  static const recentDays = 8;
+  static const _wideEvery = Duration(hours: 6);
+  DateTime? _lastWide;
+
   Future<StepsStatus> status() async {
     try {
       final m = await _ch.invokeMethod<Map<Object?, Object?>>('getStatus');
@@ -82,20 +110,29 @@ class StepsPlatform {
 
   Future<void> startBackgroundTracking() => _bool('startBackgroundTracking');
 
-  /// Шаги по локальным дням за последние [days] дней.
+  /// Шаги по локальным дням за последние [days] дней (Health Connect — см. [recentDays]).
   Future<DailySteps> dailySteps({int days = 30}) async {
+    final now = DateTime.now();
+    final last = _lastWide;
+    final wide = last == null || now.difference(last) >= _wideEvery || now.isBefore(last);
+    final hcDays = wide || days <= recentDays ? days : recentDays;
     try {
-      final m = await _ch.invokeMethod<Map<Object?, Object?>>('getDailySteps', {'days': days});
-      if (m == null) return const DailySteps(days: {}, sensor: {}, hc: {});
+      final m = await _ch.invokeMethod<Map<Object?, Object?>>('getDailySteps', {'days': days, 'hcDays': hcDays});
+      if (m == null) return DailySteps.empty;
+      final hcState = (m['hcState'] as String?) ?? 'unavailable';
+      if (hcState == 'ok' && hcDays >= days && days > recentDays) _lastWide = now;
       return DailySteps(
         days: DailySteps._ints(m['days']),
         sensor: DailySteps._ints(m['sensor']),
         hc: DailySteps._ints(m['hc']),
+        hcState: hcState,
+        hcOrigins: ((m['hcOrigins'] as List?) ?? const []).map((e) => '$e').toList(),
+        readAt: now,
       );
     } on MissingPluginException {
-      return const DailySteps(days: {}, sensor: {}, hc: {});
+      return DailySteps.empty;
     } on PlatformException {
-      return const DailySteps(days: {}, sensor: {}, hc: {});
+      return DailySteps.empty;
     }
   }
 

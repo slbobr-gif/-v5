@@ -16,6 +16,7 @@ import '../../engine/world.dart';
 import '../../l10n/app_localizations.dart';
 import '../screens/first_step_screen.dart';
 import '../theme/tokens.dart';
+import 'common.dart';
 
 /// Реестр целей: id якоря → ключ виджета на экране.
 class TourRegistry {
@@ -349,7 +350,8 @@ class _CoachHostState extends ConsumerState<CoachHost> {
         final estH = 190.0 * math.max(1.0, scale);
         final cardW = math.min(size.width - 32, 360.0);
         final left = (size.width - cardW) / 2;
-        final below = size.height - hole.bottom - pad.bottom;
+        final sysBottom = systemBottom(ctx); // системная панель Android (жесты или кнопки)
+        final below = size.height - hole.bottom - sysBottom;
         final above = hole.top - pad.top;
         double? top;
         double? bottom;
@@ -361,7 +363,7 @@ class _CoachHostState extends ConsumerState<CoachHost> {
           bottom = size.height - hole.top + 14;
           arrow = -1;
         } else {
-          bottom = pad.bottom + Gap.m;
+          bottom = sysBottom + Gap.m;
         }
         final radius = hole.width >= size.width - 4 ? 4.0 : 16.0;
         final total = steps.length;

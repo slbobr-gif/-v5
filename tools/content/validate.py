@@ -237,7 +237,9 @@ for name in sorted(p.name for p in C.glob("events_ch*.json")):
         check_event(name, e, need_anchor=True)
         anchored.append(e)
         a = e.get("anchor") or {}
-        if a.get("after") in places and places[a["after"]].get("chapter") != e.get("chapter"):
+        # точка из той же главы — или город, с которого глава начинается (конец прошлой главы)
+        starts = chapters.get(e.get("chapter"), {}).get("from")
+        if a.get("after") in places and places[a["after"]].get("chapter") != e.get("chapter") and a.get("after") != starts:
             errors.append(f"{name}:{e.get('id')}: точка {a['after']} из главы {places[a['after']].get('chapter')}, а событие главы {e.get('chapter')}")
         if (not e.get("detour_only") and e.get("zone") in Z.ZONES and a.get("after") in places
                 and isinstance(a.get("km"), (int, float))):
@@ -246,8 +248,15 @@ for name in sorted(p.name for p in C.glob("events_ch*.json")):
                 errors.append(f"{name}:{e.get('id')}: zone {e['zone']}, а якорь {a['after']}+{a['km']} км "
                               f"({Z.anchor_km(a):.1f} км от Кремля) — в зоне {real}; меняйте якорь или текст, не зону")
 randoms = load("events_random.json", [])
+from check_random_zones import TOPONYMS, NORTH, NORTH_TAGS  # noqa: E402  (корни топонимов — там)
 for e in randoms:
     check_event("events_random.json", e)
+    _flat = event_texts(e).replace("\n", " ")
+    _topo = sorted({m.group(0) for m in TOPONYMS.finditer(_flat)})
+    if _topo:
+        errors.append(f"events_random.json:{e.get('id')}: конкретные места в случайном событии: {', '.join(_topo)}")
+    if NORTH.search(_flat) and not NORTH_TAGS & set(e.get("tags", [])):
+        errors.append(f"events_random.json:{e.get('id')}: северные реалии без тега северной главы (ch3+)")
     if e.get("kind") != "random":
         errors.append(f"events_random.json:{e.get('id')}: kind должен быть random")
     bad = set(e.get("tags", [])) - TAGS

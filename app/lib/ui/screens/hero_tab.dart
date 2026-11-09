@@ -292,7 +292,7 @@ class _HeroTabState extends ConsumerState<HeroTab> {
     final hot = eng.isHeated(now);
     final gearSlots = eng.gearSlots();
     final packSlots = eng.backpackSlots();
-    final bottom = MediaQuery.paddingOf(context).bottom;
+    final bottom = systemBottom(context);
 
     // Ячейки рюкзака: каждая единица еды/питья — ячейка (по алфавиту id, как раньше).
     final consumables =

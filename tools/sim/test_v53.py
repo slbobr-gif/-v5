@@ -887,5 +887,177 @@ class Gifts(unittest.TestCase):
         self.assertIn("rybnik", ids)
 
 
+# ---------------------------------------------------------------- V5-45: ночёвка в пути
+def walk_until(e, now, want, guard=200):
+    """Ходит, закрывая прочие остановки (первый вариант события, «Дальше» в месте), пока не встретит want."""
+    for _ in range(guard):
+        st = e.s["stop"]
+        if st and st["type"] == want:
+            return st
+        if st and st["type"] == "event":
+            ev_ = e.current_event()
+            e.choose(next(c for c in ev_["choices"] if e.choice_available(c))["id"], now)
+        elif st:
+            e.continue_journey(now)
+        while e.s["overflow"]:
+            o = e.s["overflow"][0]
+            if o["kind"] == "gear":
+                e.resolve_overflow_gear([g for g in e.s["gear"] if not e.w.is_gift(g)])
+            else:
+                e.resolve_overflow_backpack("drop", None, now)
+        e.advance(now)
+        if not e.s["stop"] and e.s["buffer"] <= 0.5:
+            return None
+    return None
+
+
+class Night(unittest.TestCase):
+    def setUp(self):
+        self.L = BAL["movement"]["dayLengthKm"] * 1000.0
+        self.at = BAL["night"]["atPhase"] * BAL["movement"]["dayLengthKm"] * 1000.0
+
+    def test_night_stop_gives_warmth_and_walks_on_same_steps(self):
+        w, s, e = fresh(gear=["socks"], pack={"bread": 3, "water": 2})
+        self.assertAlmostEqual(s["nextNightAt"], self.at)
+        s["buffer"] = 60000.0  # шагов хватает дальше ночёвки
+        s["stats"]["warmth"] = 30.0
+        st = walk_until(e, T0, "night")
+        self.assertIsNotNone(st)
+        self.assertAlmostEqual(s["pos"], self.at, places=3)
+        mo = next(m for m in BAL["night"]["morning"] if m["id"] == st["morning"])
+        self.assertEqual(st["gain"]["warmth"], BAL["night"]["warmth"] + int(mo.get("warmth", 0)))
+        self.assertGreater(s["stats"]["warmth"], 30.0)
+        self.assertEqual(s["journal"][-1]["kind"] if s["journal"][-1]["kind"] != "camp" else s["journal"][-2]["kind"],
+                         "night")
+        self.assertAlmostEqual(s["nextNightAt"], self.at + self.L)
+        buf = s["buffer"]
+        self.assertTrue(e.continue_journey(T0))
+        e.advance(T0)  # тот же момент времени, новых шагов нет — герой всё равно идёт дальше
+        self.assertGreater(s["pos"], self.at + 1.0)
+        self.assertLess(s["buffer"], buf)
+
+    def test_no_night_when_rewalking_after_death(self):
+        _, s, e = fresh(pack={"bread": 3})
+        s["maxPos"] = self.at + 5000.0
+        s["nextNightAt"] = self.at + self.L
+        s["buffer"] = 10000.0
+        st = walk_until(e, T0, "night")
+        self.assertIsNone(st)
+
+    def test_place_near_night_replaces_it(self):
+        w, s, e = fresh(pack={"bread": 3})
+        nb = BAL["night"]
+        place = w.pos_of["b"]
+        s["nextNightAt"] = place + nb["skipNearPlaceKm"] * 1000.0 - 500.0  # ночёвка в 2,5 км после места
+        s["pos"] = s["maxPos"] = place - 100.0
+        s["nextRandomAt"] = place + 50000.0
+        s["buffer"] = 200.0
+        e.advance(T0)
+        self.assertEqual(s["stop"]["type"], "place")
+        self.assertGreater(s["nextNightAt"], place + nb["skipNearPlaceKm"] * 1000.0)
+
+    def test_old_save_without_night_field(self):
+        w, s, _ = fresh()
+        s["maxPos"] = 3 * self.L
+        del s["nextNightAt"]
+        Engine(w, s)
+        self.assertGreater(s["nextNightAt"], 3 * self.L)
+        self.assertLessEqual(s["nextNightAt"], 4 * self.L)
+
+
+# ---------------------------------------------------------------- V5-44: сохранение и загрузка идемпотентны
+class SaveLoad(unittest.TestCase):
+    def test_choose_save_load_resync_is_idempotent(self):
+        """choose → сохранить → загрузить → те же шаги и тот же момент: ничего не откатывается и не повторяется."""
+        w, s, e = fresh(pack={"bread": 3, "water": 2})
+        day = "2026-05-01"
+        e.sync_steps({day: 9000}, T0 + MS_HOUR)
+        st = walk_until(e, T0 + MS_HOUR, "event")
+        self.assertIsNotNone(st)
+        ev_ = e.current_event()
+        e.choose(ev_["choices"][0]["id"], T0 + MS_HOUR)
+        saved = json.loads(json.dumps(s))
+        # продолжение без перезапуска и после перезапуска с теми же шагами — одинаково
+        a = copy.deepcopy(saved)
+        ea = Engine(w, a)
+        ea.sync_steps({day: 9000}, T0 + 2 * MS_HOUR)
+        ea.advance(T0 + 2 * MS_HOUR)
+        b = json.loads(json.dumps(saved))
+        eb = Engine(w, b)
+        self.assertEqual(eb.sync_steps({day: 9000}, T0 + 2 * MS_HOUR), 0)  # день уже засчитан: шаги не «переигрываются»
+        eb.advance(T0 + 2 * MS_HOUR)
+        self.assertEqual(json.dumps(a, sort_keys=True), json.dumps(b, sort_keys=True))
+        self.assertIn(ev_["id"], b["recentRandom"] + b["seen"])
+
+
+class StepRatio(unittest.TestCase):
+    """Настройка «соотношение шагов» (state.stepMul): 1, 3, 5 игровых шагов на реальный."""
+
+    def test_meters_per_step(self):
+        step_m = BAL["movement"]["stepLengthM"]
+        default = BAL["movement"]["gameMultiplier"]
+        _, s, e = fresh()
+        self.assertAlmostEqual(e.game_m_per_step(), step_m * default)  # без поля — значение из баланса
+        for mul in (1, 3, 5):
+            s["stepMul"] = mul
+            self.assertAlmostEqual(e.game_m_per_step(), step_m * mul)
+
+    def test_new_ratio_only_for_new_steps(self):
+        _, s, e = fresh()
+        day = "2026-05-01"
+        s["stepMul"] = 5
+        e.sync_steps({day: 1000}, T0 + MS_HOUR)
+        buf5 = s["buffer"]
+        s["stepMul"] = 1
+        e.sync_steps({day: 2000}, T0 + 2 * MS_HOUR)
+        step_m = BAL["movement"]["stepLengthM"]
+        self.assertAlmostEqual(s["buffer"] - buf5, 1000 * step_m)  # прибавка — по новому соотношению
+        self.assertAlmostEqual(buf5, 1000 * step_m * 5)           # старое не пересчитано
+
+
+class JourneyMarks(unittest.TestCase):
+    """Отметки концов глав (state.marks) и счётчики событий/историй для статистики главы и итога."""
+
+    def test_finish_mark_and_counters(self):
+        _, s, e = fresh()
+        now = T0 + MS_HOUR
+        e.sync_steps({"2026-05-01": 20000, "2026-05-02": 30000, "2026-05-03": 25000}, now)
+        events = 0
+        for _ in range(400):
+            st = s["stop"]
+            if st and st["type"] == "finish":
+                break
+            if st and st["type"] == "event":
+                ev_ = e.current_event()
+                e.choose(next(c for c in ev_["choices"] if e.choice_available(c))["id"], now)
+                events += 1
+            elif st and st["type"] == "death":
+                s["stop"] = None
+            elif st:
+                e.continue_journey(now)
+            while s["overflow"]:
+                o = s["overflow"][0]
+                if o["kind"] == "gear":
+                    e.resolve_overflow_gear([g for g in s["gear"] if not e.w.is_gift(g)])
+                else:
+                    e.resolve_overflow_backpack("drop", None, now)
+            e.advance(now)
+            if not s["stop"] and s["buffer"] <= 0.5:
+                now += MS_DAY
+                e.sync_steps({"2026-05-04": 40000 + now % 7}, now)
+        self.assertTrue(s["finished"])
+        self.assertEqual(s["eventsDone"], events)
+        self.assertEqual(len(s["marks"]), 1)
+        m = s["marks"][0]
+        self.assertEqual(m["ch"], 1)
+        # конец главы 1 (место d) раньше конца маршрута: отметка — шаги и день на момент прихода в d
+        before = {k: v for k, v in s["daySteps"].items() if k <= m["day"]}
+        self.assertEqual(m["steps"], sum(before.values()))
+        self.assertLessEqual(m["events"], events)
+        self.assertIn(m["day"], s["daySteps"])
+        e._mark(now, 1)  # повторная отметка той же главы не дублируется
+        self.assertEqual(len(s["marks"]), 1)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

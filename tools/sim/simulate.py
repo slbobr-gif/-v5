@@ -207,6 +207,8 @@ class Player:
                 self.resolve_overflow(eng, now)
                 self.shop(eng, now)
                 eng.continue_journey(now)
+            elif t == "night":
+                eng.continue_journey(now)  # ночёвка (V5-45): «Дальше» — и тем же буфером в путь
             elif t == "death":
                 eng.s["stop"] = None
             elif t == "finish":

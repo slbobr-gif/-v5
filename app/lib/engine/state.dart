@@ -114,7 +114,13 @@ class HeroState {
     Map<String, bool>? fed,
     Map<String, int>? expires,
     this.dayMark = 0,
-  })  : fed = fed ?? {},
+    this.nextNightAt = -1.0,
+    this.stepMul = 0,
+    this.eventsDone = 0,
+    this.questsDone = 0,
+    List<Json>? marks,
+  })  : marks = marks ?? [],
+        fed = fed ?? {},
         expires = expires ?? {},
         gear = gear ?? [],
         gearUses = gearUses ?? {},
@@ -195,6 +201,22 @@ class HeroState {
   /// Последняя обработанная игровая дата (смена дня: лапоть, венок).
   int dayMark;
 
+  /// Позиция следующей ночёвки, м (V5-45); < 0 — не задана (старое сохранение), Engine вычислит по maxPos.
+  double nextNightAt;
+
+  /// Сколько игровых шагов даёт один реальный (настройка «Соотношение шагов»: 1, 3 или 5). 0 — взять из balance.movement.
+  int stepMul;
+
+  /// Сколько событий герой прошёл за путь (для статистики глав и итога). Журнал обрезается, счётчик — нет.
+  int eventsDone;
+
+  /// Сколько сюжетных историй (квестов) завершено за путь.
+  int questsDone;
+
+  /// Отметки концов глав и финиша: {ch, t, day, steps, events, deaths} — из них считается статистика
+  /// конца главы и итог (lib/engine/journey_stats.dart). Пишутся один раз на главу.
+  List<Json> marks;
+
   static HeroState create(World w, int seed, int nowMs, String today, {int todaySteps = 0}) {
     final b = w.balance;
     final start = ((b['stats'] as Map)['start'] as Map).cast<String, dynamic>();
@@ -213,6 +235,7 @@ class HeroState {
       daySteps: {today: 0},
     );
     final gd = (b['gameDay'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+    s.nextNightAt = firstNightAfter(b, -1.0);
     s.dayMark = (nowMs + (toD(gd['utcOffsetHours']) * 3600000).toInt()) ~/ 86400000;
     // Набор по умолчанию (balance.loadout.default); экран «Собери рюкзак» заменяет его Engine.startLoadout().
     final lo = (b['loadout'] as Map?)?.cast<String, dynamic>();
@@ -292,6 +315,11 @@ class HeroState {
         'fed': fed,
         'expires': expires,
         'dayMark': dayMark,
+        'nextNightAt': nextNightAt,
+        'stepMul': stepMul,
+        'eventsDone': eventsDone,
+        'questsDone': questsDone,
+        'marks': marks,
       };
 
   /// Загрузка сохранения. С [w] сохранение v1 (до v5.3) переводится в v2 (см. [migrate]);
@@ -346,6 +374,11 @@ class HeroState {
       fed: ((j['fed'] as Map?) ?? {}).map((k, v) => MapEntry(k as String, v == true)),
       expires: ints(j['expires']),
       dayMark: toI(j['dayMark']),
+      nextNightAt: j['nextNightAt'] == null ? -1.0 : toD(j['nextNightAt']),
+      stepMul: j['stepMul'] == null ? 0 : toI(j['stepMul']),
+      eventsDone: toI(j['eventsDone'] ?? 0),
+      questsDone: toI(j['questsDone'] ?? 0),
+      marks: [for (final m in (j['marks'] as List?) ?? const []) (m as Map).cast<String, dynamic>()],
     );
     // Старые сохранения могли не знать какой-то показатель — не падаем на s.stats[k]!.
     for (final k in statKeys) {

@@ -990,6 +990,20 @@
       "Остановка с киоском"
     ]
   },
+  "night": {
+    "_comment": "Ночёвка (V5-45): остановка в пути каждые movement.dayLengthKm км (на фазе atPhase — начало «ночи» в dayPhase), только на новом пути (pos ≥ maxPos). +warmth тепла, затем утренний бонус — один из morning по весам (тексты — l10n nightMorning_<id>), плюс camp-перки снаряжения (спальник). Герой идёт дальше теми же шагами после «Дальше», ждать следующего дня не нужно. Место-остановка ближе skipNearPlaceKm до ночёвки заменяет её.",
+    "atPhase": 0.75,
+    "skipNearPlaceKm": 3,
+    "warmth": 40,
+    "morning": [
+      {"id": "quiet", "weight": 3},
+      {"id": "stream", "weight": 2, "water": 30},
+      {"id": "berries", "weight": 2, "satiety": 20},
+      {"id": "sun", "weight": 1, "warmth": 15},
+      {"id": "dew", "weight": 1, "water": 15},
+      {"id": "nuts", "weight": 1, "satiety": 10, "water": 5}
+    ]
+  },
   "zones": {
     "_comment": "Зона пути: city (город) / suburb (пригород и сёла) / wild (окрестности). Радиусы в км вдоль маршрута в обе стороны от места. Зона точки = самая городская из зон ближайших мест. Единый источник правды для Dart, Python и валидатора.",
     "byKind": {

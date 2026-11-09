@@ -36,7 +36,7 @@ FORCED = {  # день (индекс) → выдать предметы посл
     14: {"shell_vodyanoy": 1, "thread_yaga": 1},
 }
 # дни (индекс), когда бот выбирает ПОСЛЕДНИЙ доступный вариант (обычно рискованный) — ради смертей и аптечки
-BOLD_DAYS = {4, 5, 6, 7, 8}  # после V5-43 (дары без ячеек) этот отрезок даёт и смерть, и аптечку
+BOLD_DAYS = set(range(2, 11))  # подобрано под V5-43/45: в сценарии есть смерть, аптечка, ночёвки
 # день (индекс) → «Нагреть»: (сколько раз нажать, выпить/съесть ли горячее). День 4: греет и не пьёт —
 # к следующему дню (новая игровая дата) горелка остывает без траты заряда.
 HEAT_DAYS = {0: (2, True), 3: (1, False), 6: (1, True), 10: (1, True)}
@@ -183,6 +183,8 @@ class Bot:
                     self.r.sell(it, now)
                 self.resolve(now)
                 self.r.continue_journey(now)
+            elif st["type"] == "night":
+                self.r.continue_journey(now)  # ночёвка (V5-45)
             elif st["type"] == "death":
                 self.r.dismiss_death()
             self.r.advance(now)
@@ -220,6 +222,7 @@ def snapshot(w, s, e):
         "zone": w.zone_at(s["pos"]),
         "delayUntil": s["delayUntil"],
         "nextRandomAt": round(s["nextRandomAt"], 2),
+        "nextNightAt": round(s["nextNightAt"], 2),
     }
 
 
@@ -280,7 +283,7 @@ def main():
     jk = {}
     for j in s["journal"]:
         jk[j["kind"]] = jk.get(j["kind"], 0) + 1
-    print("журнал:", {k: jk[k] for k in sorted(jk) if k in ("first_aid", "death", "gift", "ability", "camp", "upkeep", "wilt", "sell")})
+    print("журнал:", {k: jk[k] for k in sorted(jk) if k in ("first_aid", "death", "gift", "ability", "camp", "upkeep", "wilt", "sell", "night")})
     print(f"parity v2: {len(out)} дней, итог {last['pos']/1000:.1f} км, монет {last['coins']}, событий {last['seen']}, "
           f"смертей {last['deaths']}, снаряжение {last['gear']}, заряды {last['gearUses']}; вызовы {used}")
     zones = {}

@@ -58,7 +58,11 @@ class MainActivity : FlutterFragmentActivity() {
     private val healthLauncher = registerForActivityResult(
         PermissionController.createRequestPermissionResultContract()
     ) { granted ->
-        pendingHealth?.success(granted.containsAll(HealthReader.PERMISSIONS))
+        val ok = granted.containsAll(HealthReader.PERMISSIONS)
+        // Считаем отказы: после двух Health Connect молча перестаёт показывать диалог
+        val denials = if (ok) 0 else permPrefs.getInt(KEY_HC_DENIALS, 0) + 1
+        permPrefs.edit().putInt(KEY_HC_DENIALS, denials).apply()
+        pendingHealth?.success(ok)
         pendingHealth = null
     }
 
@@ -88,15 +92,19 @@ class MainActivity : FlutterFragmentActivity() {
                     StepWorker.schedule(applicationContext)
                     result.success(true)
                 }
+                "openHealthConnectSettings" -> {
+                    result.success(openHealthConnectSettings())
+                }
                 "getDailySteps" -> {
                     val days = call.argument<Int>("days") ?: 30
+                    val hcDays = call.argument<Int>("hcDays") ?: days
                     scope.launch {
                         val data = try {
-                            dailySteps(days)
+                            dailySteps(hcDays)
                         } catch (e: Exception) {
                             Log.e("Putnik", "daily steps failed", e)
                             mapOf("days" to emptyMap<String, Long>(), "sensor" to emptyMap<String, Long>(),
-                                "hc" to emptyMap<String, Long>())
+                                "hc" to emptyMap<String, Long>(), "hcState" to "failed")
                         }
                         result.success(data)
                     }
@@ -141,6 +149,8 @@ class MainActivity : FlutterFragmentActivity() {
         val sm = getSystemService(SENSOR_SERVICE) as SensorManager
         val hcStatus = HealthReader.statusString(this)
         val hcGranted = if (hcStatus == "available") HealthReader.granted(this) else false
+        // Выдали в настройках Health Connect — счётчик отказов больше не нужен (после отзыва снова покажем диалог)
+        if (hcGranted && permPrefs.getInt(KEY_HC_DENIALS, 0) != 0) permPrefs.edit().putInt(KEY_HC_DENIALS, 0).apply()
         return mapOf(
             "sensorAvailable" to (sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null),
             "activityPermission" to hasActivityPermission(),
@@ -149,7 +159,11 @@ class MainActivity : FlutterFragmentActivity() {
         )
     }
 
-    private suspend fun dailySteps(days: Int): Map<String, Any> {
+    /**
+     * Шаги по дням: датчик телефона (вся история StepStore) и Health Connect за [hcDays] суток.
+     * Итог дня — максимум, никогда не сумма: часы и телефон считают одни и те же шаги.
+     */
+    private suspend fun dailySteps(hcDays: Int): Map<String, Any> {
         withContext(Dispatchers.IO) {
             try {
                 StepTracker.sample(applicationContext)
@@ -157,20 +171,37 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
         val sensor: Map<String, Long> = StepStore(applicationContext).days().mapValues { it.value.toLong() }
-        val hc: Map<String, Long> =
-            if (HealthReader.statusString(this) == "available" && HealthReader.granted(this)) {
-                try {
-                    HealthReader.dailySteps(this, days)
-                } catch (e: Exception) {
-                    emptyMap()
-                }
+        var hc: Map<String, Long> = emptyMap()
+        var origins: List<String> = emptyList()
+        // ok | no_permission | unavailable | failed — для экрана диагностики
+        var hcState = "unavailable"
+        if (HealthReader.statusString(this) == "available") {
+            if (!HealthReader.granted(this)) {
+                hcState = "no_permission"
             } else {
-                emptyMap()
+                try {
+                    val r = HealthReader.dailySteps(this, hcDays)
+                    hc = r.days
+                    origins = r.originsToday.ifEmpty { r.originsAll }
+                    hcState = "ok"
+                } catch (e: Exception) {
+                    // Например, превышен лимит запросов Health Connect: шаги не теряются, дочитаем в следующий раз
+                    Log.e("Putnik", "health connect read failed", e)
+                    hcState = "failed"
+                }
             }
+        }
         val merged = HashMap<String, Long>()
         for ((d, v) in sensor) merged[d] = maxOf(merged[d] ?: 0L, v)
         for ((d, v) in hc) merged[d] = maxOf(merged[d] ?: 0L, v)
-        return mapOf("days" to merged, "sensor" to sensor, "hc" to hc)
+        return mapOf(
+            "days" to merged,
+            "sensor" to sensor,
+            "hc" to hc,
+            "hcState" to hcState,
+            "hcDays" to hcDays,
+            "hcOrigins" to origins,
+        )
     }
 
     private fun requestActivityPermission(result: MethodChannel.Result) {
@@ -194,6 +225,13 @@ class MainActivity : FlutterFragmentActivity() {
             result.success(false)
             return
         }
+        if (permPrefs.getInt(KEY_HC_DENIALS, 0) >= 2) {
+            // Диалог больше не появится — ведём на экран разрешений Health Connect.
+            // Вернувшись, приложение перечитает статус (onResume → refreshPermissions).
+            openHealthConnectSettings()
+            result.success(false)
+            return
+        }
         pendingHealth = result
         try {
             healthLauncher.launch(HealthReader.PERMISSIONS)
@@ -204,17 +242,21 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     private fun openHealthConnectInstall() {
-        val pkg = "com.google.android.apps.healthdata"
-        val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg"))
-        val web = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$pkg"))
-        try {
-            startActivity(market)
-        } catch (e: Exception) {
+        startFirst(HealthReader.installIntents())
+    }
+
+    private fun openHealthConnectSettings(): Boolean = startFirst(HealthReader.settingsIntents(this))
+
+    /** Открыть первый из вариантов, который есть на телефоне. */
+    private fun startFirst(intents: List<Intent>): Boolean {
+        for (i in intents) {
             try {
-                startActivity(web)
-            } catch (e2: Exception) {
+                startActivity(i)
+                return true
+            } catch (e: Exception) {
             }
         }
+        return false
     }
 
     // ---------------------------------------------------------------- уведомления
@@ -293,5 +335,6 @@ class MainActivity : FlutterFragmentActivity() {
     companion object {
         private const val REQ_ACTIVITY = 501
         private const val REQ_NOTIFY = 502
+        private const val KEY_HC_DENIALS = "hc_denials"
     }
 }

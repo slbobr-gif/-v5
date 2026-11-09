@@ -20,7 +20,9 @@ class Profile {
     this.surveyAnswered = false,
     this.stepsSensor = true,
     this.stepsHc = true,
-  });
+    this.stepMul = 5,
+    List<Map<String, dynamic>>? journeys,
+  }) : journeys = journeys ?? [];
 
   String name;
   String email;
@@ -37,6 +39,12 @@ class Profile {
   bool stepsSensor;
   bool stepsHc;
 
+  /// Соотношение шагов: сколько игровых шагов за один реальный (1, 3 или 5). Переживает сброс пути.
+  int stepMul;
+
+  /// Итоги пройденных путей (снимки JourneyStats.toJson + даты): переживают сброс пути, видны в Журнале.
+  List<Map<String, dynamic>> journeys;
+
   Json toJson() => {
         'name': name,
         'email': email,
@@ -49,6 +57,8 @@ class Profile {
         'surveyAnswered': surveyAnswered,
         'stepsSensor': stepsSensor,
         'stepsHc': stepsHc,
+        'stepMul': stepMul,
+        'journeys': journeys,
       };
 
   static Profile fromJson(Json j) => Profile(
@@ -64,6 +74,8 @@ class Profile {
         // Старые сохранения без этих полей: оба источника включены.
         stepsSensor: j['stepsSensor'] != false,
         stepsHc: j['stepsHc'] != false,
+        stepMul: const [1, 3, 5].contains(j['stepMul']) ? toI(j['stepMul']) : 5,
+        journeys: [for (final x in (j['journeys'] as List?) ?? const []) if (x is Map) x.cast<String, dynamic>()],
       );
 }
 
@@ -78,6 +90,7 @@ class Storage {
   static const _kNotifSent = 'notif_sent_v1';
   static const _kNotifPlanned = 'notif_planned_v1';
   static const _kHeroBroken = 'hero_v1_broken';
+  static const _kHeroRev = 'hero_rev_v1';
   static const _kLoadout = 'loadout_v1';
 
   Profile loadProfile() {
@@ -95,6 +108,7 @@ class Storage {
   /// Состояние героя. С [world] старое сохранение (v1, до v5.3) переводится в v2: снаряжение из inv — в gear.
   /// Если сохранение не читается, его копия остаётся под отдельным ключом (прогресс не теряется молча).
   HeroState? loadHero([World? world]) {
+    _heroRev = _p.getInt(_kHeroRev) ?? 0;
     final raw = _p.getString(_kHero);
     if (raw == null) return null;
     try {
@@ -105,7 +119,43 @@ class Storage {
     }
   }
 
-  Future<void> saveHero(HeroState s) => _p.setString(_kHero, jsonEncode(s.toJson()));
+  /// Номер записи героя, на которой основана копия в памяти этого движка (V5-44).
+  int _heroRev = 0;
+
+  /// Сохранить героя. Номер записи (ключ hero_rev_v1) растёт с каждой записью; если на диске номер больше,
+  /// чем видела эта копия, значит, героя сохранил ДРУГОЙ Flutter-движок (вторая MainActivity) — устаревшая
+  /// копия не перезаписывает свежую: вернёт false, и контроллер перечитает героя ([loadHeroFresh]).
+  /// JSON собирается до первого await: сохраняется ровно то состояние, что было на момент вызова.
+  Future<bool> saveHero(HeroState s) async {
+    final raw = jsonEncode(s.toJson());
+    try {
+      await _p.reload(); // увидеть запись другого движка (у каждого изолята свой кэш)
+    } catch (_) {}
+    final disk = _p.getInt(_kHeroRev) ?? 0;
+    if (disk > _heroRev) return false;
+    _heroRev = disk + 1;
+    await _p.setInt(_kHeroRev, _heroRev);
+    await _p.setString(_kHero, raw);
+    return true;
+  }
+
+  /// Записал ли героя другой движок после того, как эта копия его загрузила/сохранила.
+  Future<bool> heroChangedElsewhere() async {
+    try {
+      await _p.reload();
+    } catch (_) {
+      return false;
+    }
+    return (_p.getInt(_kHeroRev) ?? 0) > _heroRev;
+  }
+
+  /// Перечитать героя с диска (после [heroChangedElsewhere] / отказа [saveHero]).
+  Future<HeroState?> loadHeroFresh([World? world]) async {
+    try {
+      await _p.reload();
+    } catch (_) {}
+    return loadHero(world);
+  }
 
   /// Ответы игрока Сергею: {день мысли: {text, at}} — только на телефоне.
   Map<String, Json> loadAnswers() {
@@ -171,6 +221,8 @@ class Storage {
   Future<void> resetJourney() async {
     await _p.remove(_kNotifPlanned);
     await _p.remove(_kHero);
+    await _p.remove(_kHeroRev);
+    _heroRev = 0;
     await _p.remove(_kAnswers);
     await _p.remove(_kThoughtSeen);
     await _p.remove(_kLoadout);

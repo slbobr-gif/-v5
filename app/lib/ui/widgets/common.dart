@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -39,12 +41,22 @@ class Art extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
+    final svg = SvgPicture.asset(
       path,
       height: height,
       width: width,
       fit: fit,
       placeholderBuilder: (_) => Container(height: height, width: width, color: Palette.inkHigh),
+    );
+    if (!path.endsWith('.svg')) return svg;
+    // Готовая растровая картинка (WebP) рядом с SVG имеет приоритет: положили
+    // файл с тем же именем и расширением .webp — он заменит векторную заглушку.
+    return Image.asset(
+      '${path.substring(0, path.length - 4)}.webp',
+      height: height,
+      width: width,
+      fit: fit,
+      errorBuilder: (_, __, ___) => svg,
     );
   }
 }
@@ -317,4 +329,45 @@ class AccentProgress extends StatelessWidget {
       ),
     );
   }
+}
+
+// ---------------------------------------------------------------- системная панель Android
+
+/// Высота системной панели Android снизу (жесты или кнопки): большее из padding и viewPadding —
+/// при edge-to-edge одно из них бывает нулём.
+double systemBottom(BuildContext context) =>
+    math.max(MediaQuery.paddingOf(context).bottom, MediaQuery.viewPaddingOf(context).bottom);
+
+/// Нижний лист, который не уходит под системную панель: useSafeArea + isScrollControlled,
+/// высота не больше 0,85 экрана, снизу отступ панели + 12. [builder] отдаёт содержимое,
+/// которое умеет сжиматься (SingleChildScrollView, ListView(shrinkWrap) или Column с Flexible).
+Future<T?> showSafeSheet<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  Color? backgroundColor,
+  bool showDragHandle = true,
+}) {
+  return showModalBottomSheet<T>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    showDragHandle: showDragHandle,
+    backgroundColor: backgroundColor,
+    builder: (BuildContext ctx) {
+      // useSafeArea оставляет низ листа открытым (SafeArea(bottom: false)) — отступ ставим сами.
+      // Свой SafeArea здесь только по бокам: снизу он обнулил бы viewPadding, и отступ пропал бы.
+      final bottom = systemBottom(ctx) + 12;
+      return SafeArea(
+        top: false,
+        bottom: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.85),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottom),
+            child: builder(ctx),
+          ),
+        ),
+      );
+    },
+  );
 }

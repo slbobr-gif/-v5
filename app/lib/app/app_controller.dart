@@ -9,12 +9,14 @@ import '../analytics/analytics.dart';
 import '../data/content_repository.dart';
 import '../data/storage.dart';
 import '../engine/engine.dart';
+import '../engine/journey_stats.dart';
 import '../engine/state.dart';
 import '../engine/world.dart';
 import '../platform/notify_platform.dart';
 import '../platform/steps_platform.dart';
 import 'journal_view.dart';
 import 'notification_planner.dart';
+import 'ui_flags.dart';
 
 String dayKey(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -59,6 +61,7 @@ class AppModel {
     this.stepsStatus = const StepsStatus(),
     this.todaySteps = 0,
     this.lastSyncSources = const {},
+    this.lastSteps,
     this.notifyPermission = false,
     this.rev = 0,
   });
@@ -74,6 +77,9 @@ class AppModel {
 
   /// Сколько шагов сегодня дал каждый источник: {sensor: n, hc: n}.
   final Map<String, int> lastSyncSources;
+
+  /// Последнее чтение шагов целиком (для экрана диагностики в настройках).
+  final DailySteps? lastSteps;
   final bool notifyPermission;
 
   /// Номер ревизии: состояние героя изменяется на месте, ревизия заставляет перерисоваться.
@@ -115,6 +121,7 @@ class AppModel {
     StepsStatus? stepsStatus,
     int? todaySteps,
     Map<String, int>? lastSyncSources,
+    DailySteps? lastSteps,
     bool? notifyPermission,
   }) =>
       AppModel(
@@ -127,6 +134,7 @@ class AppModel {
         stepsStatus: stepsStatus ?? this.stepsStatus,
         todaySteps: todaySteps ?? this.todaySteps,
         lastSyncSources: lastSyncSources ?? this.lastSyncSources,
+        lastSteps: lastSteps ?? this.lastSteps,
         notifyPermission: notifyPermission ?? this.notifyPermission,
         rev: rev + 1,
       );
@@ -260,6 +268,25 @@ class AppController extends Notifier<AppModel> {
     await refresh();
   }
 
+  /// Соотношение шагов: сколько игровых шагов за один реальный (1, 3 или 5).
+  int get stepMul => state.profile?.stepMul ?? 5;
+
+  /// Меняет соотношение. Уже пройденный путь не пересчитывается: новое значение действует на следующие шаги.
+  Future<void> setStepMul(int v) async {
+    if (!const [1, 3, 5].contains(v)) return;
+    final hero = state.hero;
+    // Сначала засчитываем накопленные шаги по старому соотношению, чтобы они не пересчитались по новому.
+    if (hero != null) await refresh();
+    await updateProfile((p) => p.stepMul = v);
+    final h = state.hero;
+    if (h != null) {
+      h.stepMul = v;
+      await _save(h);
+      state = state.copyWith(hero: h);
+    }
+    _a.event('step_ratio_changed', {'mul': v});
+  }
+
   Future<bool> requestNotifyPermission() async {
     final ok = await _notify.requestPermission();
     _a.event('perm_notifications', {'granted': ok});
@@ -313,6 +340,7 @@ class AppController extends Notifier<AppModel> {
     final seed = math.Random().nextInt(0x7FFFFFFF);
     final now = _now;
     final hero = HeroState.create(content.world, seed, now, today, todaySteps: baseline);
+    hero.stepMul = state.profile?.stepMul ?? 5;
     final def = defaultLoadout;
     final chosen = _chosenLoadout;
     var useGear = gear ?? chosen?.gear ?? def.gear;
@@ -355,6 +383,10 @@ class AppController extends Notifier<AppModel> {
     if (_syncing || state.hero == null) return;
     _syncing = true;
     try {
+      // Героя мог сохранить другой Flutter-движок (вторая MainActivity) — сначала берём его свежую копию,
+      // иначе эта, устаревшая, затёрла бы пройденные события (V5-44).
+      if (await _storage.heroChangedElsewhere()) await _adoptFromDisk();
+      if (state.hero == null) return;
       final hero = state.hero!;
       final ds = await _steps.dailySteps(days: 30);
       // Пока ждали шагомер, путь могли сбросить — не воскрешаем старого героя.
@@ -387,11 +419,12 @@ class AppController extends Notifier<AppModel> {
         _trackStop(e, hero);
       }
       // Без await до обновления состояния: сброс пути не должен вклиниться между проверкой и записью.
-      final saving = _storage.saveHero(hero);
+      final saving = _save(hero);
       state = state.copyWith(
         hero: hero,
         todaySteps: days[today] ?? 0,
         lastSyncSources: {'sensor': ds.sensor[today] ?? 0, 'hc': ds.hc[today] ?? 0},
+        lastSteps: ds,
       );
       await saving;
       await _replanNotifications();
@@ -422,12 +455,27 @@ class AppController extends Notifier<AppModel> {
         if (hero.pos >= hero.maxPos - 0.5) _a.event('chapter_done', {'chapter': toI(st['chapter'])});
       case 'finish':
         _a.event('journey_finished', {'days': hero.daySteps.length});
+      case 'night':
+        _a.event('night_stop', {'morning': '${st['morning'] ?? ''}', 'km': (hero.pos / 1000).round()});
     }
+  }
+
+  /// Сохранить героя; если на диске запись новее (её сделал другой движок), не затирать, а перечитать.
+  Future<void> _save(HeroState hero) async {
+    final ok = await _storage.saveHero(hero);
+    if (!ok && identical(state.hero, hero)) await _adoptFromDisk();
+  }
+
+  Future<void> _adoptFromDisk() async {
+    final fresh = await _storage.loadHeroFresh(content.world);
+    if (fresh == null) return;
+    _dropBrokenStop(content, fresh);
+    state = state.copyWith(hero: fresh);
   }
 
   void _commit() {
     final hero = state.hero!;
-    _storage.saveHero(hero);
+    _save(hero);
     state = state.copyWith(hero: hero);
     _replanNotifications();
   }
@@ -561,6 +609,34 @@ class AppController extends Notifier<AppModel> {
     if (!eng.continueJourney(_now)) return;
     if (state.hero!.stop == null) _advance(eng);
     _commit();
+  }
+
+  /// Финал прочитан («Дальше» на экране медали): остановка «финиш» снимается, путь остаётся пройденным,
+  /// итог пути сохраняется в профиль (переживает сброс). Сообщение «Путь пройден» покажет главная.
+  Future<void> closeFinish() async {
+    final hero = state.hero;
+    if (hero == null || !hero.finished) return;
+    await archiveJourney();
+    if (hero.stop?['type'] == 'finish') hero.stop = null;
+    _a.event('finish_closed');
+    _commit();
+  }
+
+  /// Итог текущего пути — в профиль (один раз на путь).
+  Future<void> archiveJourney() async {
+    final hero = state.hero;
+    if (hero == null || !hero.finished) return;
+    final st = journeyStats(content.world, hero, today: today);
+    final key = '${hero.startedAt}';
+    if ((state.profile?.journeys ?? const []).any((j) => j['key'] == key)) return;
+    await updateProfile((p) => p.journeys.add({...st.toJson(), 'key': key, 'totalKm': st.totalKm}));
+  }
+
+  /// «Начать путь заново» после финала: сохранить итог и начать с пролога.
+  Future<void> restartAfterFinish() async {
+    await archiveJourney();
+    _a.event('journey_restart');
+    await resetJourney();
   }
 
   Future<void> dismissDeath() async {
@@ -840,8 +916,13 @@ class AppController extends Notifier<AppModel> {
       p.prologueRead = false;
     });
     _chosenLoadout = null;
+    // Герой и флаги входа меняются в одном кадре: главная снимается сразу (она не успеет открыть
+    // «Первый шаг» по сброшенному firstStepDone), а OnboardingFlow читает уже новые флаги:
+    // пролог → «Как играть» → рюкзак → первый шаг (docs/v5/09 §7.4).
     state = state.copyWith(clearHero: true);
+    final flagsReset = ref.read(uiFlagsProvider.notifier).startOverAfterReset();
     await _notify.replaceAll(const []);
+    await flagsReset;
   }
 
   // ------------------------------------------------ уведомления

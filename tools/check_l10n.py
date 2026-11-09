@@ -27,7 +27,7 @@ for loc in LOCALES[1:]:
 
 def placeholders(text: str) -> set:
     # имена в {name} и {name, plural, ...}; внутри plural-веток — только вложенные {name}
-    return set(re.findall(r"\{(\w+)(?:,|\})", text))
+    return set(re.findall(r"\{([A-Za-z_][A-Za-z0-9_]*)(?:,|\})", text))  # имена плейсхолдеров — латиница; {слово} в ветке plural — текст
 
 
 for k in sorted(base):

@@ -1,9 +1,11 @@
-// Вход в игру (docs/v5/09 §2–§4): вступление → имя и согласие → шаги (разрешения, источники) →
-// «Собери рюкзак» → пролог → старт пути. Шаг сохраняется: закрыли приложение — вернёмся сюда же.
+// Вход в игру (docs/v5/09 §2–§4): пролог → «Как играть» (слайды правил) → имя и согласие → шаги
+// (разрешения, источники) → «Собери рюкзак» → старт пути → «Первый шаг у Кремля».
+// Шаг сохраняется: закрыли приложение — вернёмся сюда же.
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../analytics/analytics.dart';
@@ -16,13 +18,13 @@ import '../widgets/item_icon.dart';
 import 'intro_screens.dart';
 import 'loadout_screen.dart';
 import 'overflow_screens.dart' show safeBottom;
+import 'watch_help_screen.dart';
 
-const _order = <String>['profile', 'perm_activity', 'perm_notify', 'perm_hc', 'sources', 'loadout', 'prologue'];
+const _order = <String>['profile', 'perm_activity', 'perm_notify', 'perm_hc', 'sources', 'loadout'];
 
 int _stageOf(String step) => switch (step) {
       'profile' => 0,
       'loadout' => 2,
-      'prologue' => 3,
       _ => 1,
     };
 
@@ -36,7 +38,14 @@ class OnboardingFlow extends ConsumerStatefulWidget {
 class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   String? _step;
   final List<String> _history = <String>[];
+
+  /// Пролог и «Как играть» были в этой сессии: с первого шага онбординга «назад» ведёт к правилам.
   bool _introThisSession = false;
+
+  /// «Как играть» открыть с последнего слайда (вернулись назад с первого шага онбординга).
+  bool _rulesFromEnd = false;
+  bool _askingExit = false;
+  bool _starting = false;
 
   @override
   void initState() {
@@ -83,17 +92,16 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     final flags = ref.read(uiFlagsProvider);
     String step;
     if (!flags.introDone) {
-      step = 'intro';
+      // Новый игрок или путь сброшен: пролог, затем «Как играть».
+      step = flags.onboardingStep == 'rules' ? 'rules' : 'prologue';
     } else if (flags.onboardingStep.isEmpty) {
-      // Путь сброшен («Начать заново»): сразу рюкзак, если имя и согласие уже есть (§7.4).
-      if (_profileOk) {
-        await ref.read(uiFlagsProvider.notifier).startOverAfterReset();
-        step = 'loadout';
-      } else {
-        step = 'profile';
-      }
+      // Путь сброшен, а флаги ещё старые (сброс в прежней сборке или приложение закрыли посреди сброса).
+      await ref.read(uiFlagsProvider.notifier).startOverAfterReset();
+      step = 'prologue';
     } else {
       step = flags.onboardingStep;
+      // Прежние сборки: пролог шёл после рюкзака — черновик сохранён, путь начнём с рюкзака.
+      if (step == 'prologue') step = 'loadout';
       if (!_order.contains(step)) step = 'profile';
       if (step != 'profile' && !_profileOk) step = 'profile';
       if (_skippable(step)) step = _firstShown(_order.indexOf(step));
@@ -104,14 +112,23 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
 
   void _enter(String step, {required bool back}) {
     setState(() => _step = step);
-    if (step == 'intro') return;
     ref.read(uiFlagsProvider.notifier).update((f) => f.onboardingStep = step);
     Analytics.instance.event('onboarding_step', {'name': step, 'back': back});
   }
 
+  /// Пролог и «Как играть»: шаг пишем на телефон, только пока они не пройдены (introDone == false).
+  /// Вернулись к ним с первого шага онбординга — только показываем, сохранённый шаг не трогаем.
+  void _enterIntro(String step, {required bool back}) {
+    if (ref.read(uiFlagsProvider).introDone) {
+      setState(() => _step = step);
+      return;
+    }
+    _enter(step, back: back);
+  }
+
   void _go(String step) {
     final cur = _step;
-    if (cur != null && cur != 'intro') _history.add(cur);
+    if (cur != null && _order.contains(cur)) _history.add(cur);
     _enter(step, back: false);
   }
 
@@ -126,8 +143,91 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
       _enter(_history.removeLast(), back: true);
       return;
     }
-    // O1 → I6, если вступление было в этой сессии; иначе назад некуда (на O6 после сброса — тоже).
-    if (_step == 'profile' && _introThisSession) setState(() => _step = 'intro');
+    // Первый шаг после «Как играть» → последний слайд правил (если они были в этой сессии); иначе назад некуда.
+    if (_introThisSession) {
+      _rulesFromEnd = true;
+      _enterIntro('rules', back: true);
+    }
+  }
+
+  /// Пролог прочитан или пропущен → сразу «Как играть».
+  Future<void> _prologueDone({required bool skipped, required int pages}) async {
+    Analytics.instance.event('prologue_done', {'skipped': skipped, 'pages': pages});
+    if (skipped) {
+      final l = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.onbPrologueLater)));
+    }
+    _rulesFromEnd = false;
+    _enterIntro('rules', back: false);
+  }
+
+  /// «Как играть» пройдено → знакомство (новый игрок) или сразу рюкзак (после сброса: имя и согласие есть).
+  /// Если к правилам вернулись «назад» с первого шага онбординга — снова на этот шаг (он сохранён).
+  Future<void> _rulesDone() async {
+    final flags = ref.read(uiFlagsProvider);
+    final String next;
+    if (flags.introDone && _order.contains(flags.onboardingStep)) {
+      next = flags.onboardingStep;
+    } else {
+      next = _profileOk ? 'loadout' : 'profile';
+    }
+    _introThisSession = true;
+    _history.clear();
+    await ref.read(uiFlagsProvider.notifier).update((f) {
+      f.introDone = true;
+      f.onboardingStep = next;
+    });
+    if (mounted) _enter(next, back: false);
+  }
+
+  /// Первая страница пролога при первом прохождении: «назад» не закрывает игру молча.
+  Future<void> _confirmExit() async {
+    if (_askingExit) return;
+    _askingExit = true;
+    final l = AppLocalizations.of(context);
+    final exit = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext ctx) => AlertDialog(
+        content: Text(l.onbExitConfirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text(l.cancel)),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text(l.onbExitYes)),
+        ],
+      ),
+    );
+    _askingExit = false;
+    if (exit == true) await SystemNavigator.pop();
+  }
+
+  /// Рюкзак собран → старт пути; дальше _Gate покажет главную, а она — «Первый шаг у Кремля».
+  Future<void> _startJourney() async {
+    if (_starting) return;
+    _starting = true;
+    // Всё нужное берём до первого await: после старта пути этот экран снимается.
+    final c = ref.read(appProvider.notifier);
+    final flagsCtl = ref.read(uiFlagsProvider.notifier);
+    final f = ref.read(uiFlagsProvider);
+    try {
+      final gear = f.loadoutGear;
+      final pack = f.loadoutPack;
+      if (gear != null || pack != null) {
+        c.chooseLoadout(gear ?? <String>[], pack ?? <String, int>{}, isDefault: f.loadoutAdvisor);
+      }
+      await flagsCtl.update((ff) {
+        ff.firstStepDone = false;
+        ff.prologuePage = 0;
+      });
+      await c.markPrologueRead();
+      await c.startJourney();
+      await flagsCtl.update((ff) {
+        ff.onboardingStep = '';
+        ff.loadoutGear = null;
+        ff.loadoutPack = null;
+        ff.loadoutAdvisor = false;
+      });
+    } finally {
+      _starting = false;
+    }
   }
 
   PreferredSizeWidget _bar(String step) => _StageBar(stage: _stageOf(step));
@@ -137,15 +237,17 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     final step = _step;
     if (step == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     switch (step) {
-      case 'intro':
-        return IntroSlides(onDone: (bool skipped) async {
-          _introThisSession = true;
-          await ref.read(uiFlagsProvider.notifier).update((f) {
-            f.introDone = true;
-            f.onboardingStep = 'profile';
-          });
-          if (mounted) _enter('profile', back: false);
-        });
+      case 'prologue':
+        return _PrologueStep(
+          onBack: _confirmExit,
+          onDone: (bool skipped, int pages) => _prologueDone(skipped: skipped, pages: pages),
+        );
+      case 'rules':
+        return IntroSlides(
+          startAtEnd: _rulesFromEnd,
+          onBack: () => _enterIntro('prologue', back: true),
+          onDone: (bool skipped) => _rulesDone(),
+        );
       case 'profile':
         return _ProfileStep(bar: _bar(step), onDone: _next, onBack: _history.isNotEmpty || _introThisSession ? _back : null);
       case 'perm_activity':
@@ -170,10 +272,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             _go(st.sensorAvailable ? 'perm_activity' : 'perm_hc');
           },
         );
-      case 'loadout':
-        return LoadoutScreen(stageBar: _bar(step), onDone: _next, onBack: _back);
       default:
-        return _PrologueStep(bar: _bar(step), onBack: () => _enter('loadout', back: true));
+        return LoadoutScreen(stageBar: _bar(step), onDone: () => _startJourney(), onBack: _back);
     }
   }
 }
@@ -190,7 +290,7 @@ class _StageBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final names = [l.onbStageMeet, l.onbStageSteps, l.onbStagePack, l.onbStageStory];
+    final names = [l.onbStageMeet, l.onbStageSteps, l.onbStagePack];
     return Semantics(
       label: l.onbStageLabel(stage + 1, names.length, names[stage]),
       excludeSemantics: true,
@@ -660,6 +760,15 @@ class _HealthStepState extends ConsumerState<_HealthStep> {
         ),
         const SizedBox(height: Gap.m),
         Text(l.onbHcBody, style: _bodyStyle),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            icon: const Icon(Icons.watch_outlined),
+            label: Text(l.watchHelpOpen),
+            onPressed: () =>
+                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const WatchHelpScreen())),
+          ),
+        ),
         if (needInstall) ...[
           const SizedBox(height: Gap.m),
           SectionCard(
@@ -874,6 +983,9 @@ class _SourceRow extends StatelessWidget {
 // ---------------------------------------------------------------- O7 пролог
 
 /// Страницы пролога из chapters.json. [onFinish] — последняя кнопка, [onSkip] — «Пропустить» (со 2-й страницы).
+/// «Назад» (стрелка и системное, в т. ч. predictive back): на стр. 2+ — предыдущая страница; на первой —
+/// [onBack], а без него (перечитывание из настроек) — закрыть экран. Без [onBack] на первой странице
+/// маршрут снимается самим Navigator (canPop: true), вручную pop не зовём.
 class PrologueView extends ConsumerStatefulWidget {
   const PrologueView({
     super.key,
@@ -901,6 +1013,7 @@ class PrologueView extends ConsumerStatefulWidget {
 class _PrologueViewState extends ConsumerState<PrologueView> {
   late int _i;
   bool _busy = false;
+  bool _closing = false;
 
   @override
   void initState() {
@@ -923,8 +1036,18 @@ class _PrologueViewState extends ConsumerState<PrologueView> {
     if (b != null) {
       b();
     } else {
-      Navigator.of(context).maybePop();
+      _close();
     }
+  }
+
+  /// Закрыть перечитывание ровно один раз: повторное нажатие во время анимации ухода
+  /// не должно снять ещё и экран под ним (настройки).
+  void _close() {
+    if (_closing) return;
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) return;
+    _closing = true;
+    Navigator.of(context).pop();
   }
 
   @override
@@ -938,9 +1061,13 @@ class _PrologueViewState extends ConsumerState<PrologueView> {
     final last = _i >= count - 1;
     final skip = widget.onSkip;
     return PopScope(
-      canPop: false,
+      canPop: _i == 0 && widget.onBack == null,
       onPopInvokedWithResult: (bool didPop, Object? result) {
-        if (!didPop) _back();
+        if (didPop) {
+          _closing = true;
+          return;
+        }
+        _back();
       },
       child: Scaffold(
         appBar: AppBar(
@@ -998,7 +1125,7 @@ class _PrologueViewState extends ConsumerState<PrologueView> {
                   Text('${_i + 1} / $count', textAlign: TextAlign.center, style: _dimStyle),
                   const SizedBox(height: Gap.s),
                   FilledButton(
-                    onPressed: _busy
+                    onPressed: _busy || _closing
                         ? null
                         : () async {
                             if (!last) {
@@ -1021,56 +1148,28 @@ class _PrologueViewState extends ConsumerState<PrologueView> {
   }
 }
 
+/// Пролог при первом прохождении (и после сброса пути) — до «Как играть». Страница сохраняется.
 class _PrologueStep extends ConsumerWidget {
-  const _PrologueStep({required this.bar, required this.onBack});
-  final PreferredSizeWidget bar;
+  const _PrologueStep({required this.onBack, required this.onDone});
   final VoidCallback onBack;
-
-  Future<void> _start(BuildContext context, WidgetRef ref, {required bool skipped, required int pages}) async {
-    final l = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final c = ref.read(appProvider.notifier);
-    final flagsCtl = ref.read(uiFlagsProvider.notifier);
-    final f = ref.read(uiFlagsProvider);
-    // Выбор рюкзака уже передан на O6; повторяем из черновика на случай перезапуска приложения.
-    final gear = f.loadoutGear;
-    final pack = f.loadoutPack;
-    if (gear != null || pack != null) {
-      c.chooseLoadout(gear ?? <String>[], pack ?? <String, int>{}, isDefault: f.loadoutAdvisor);
-    }
-    Analytics.instance.event('prologue_done', {'skipped': skipped, 'pages': pages});
-    await flagsCtl.update((ff) {
-      ff.firstStepDone = false;
-      ff.prologuePage = 0;
-    });
-    await c.markPrologueRead();
-    await c.startJourney();
-    await flagsCtl.update((ff) {
-      ff.onboardingStep = '';
-      ff.loadoutGear = null;
-      ff.loadoutPack = null;
-      ff.loadoutAdvisor = false;
-    });
-    if (skipped) messenger.showSnackBar(SnackBar(content: Text(l.onbPrologueLater)));
-  }
+  final Future<void> Function(bool skipped, int pages) onDone;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final f = ref.read(uiFlagsProvider);
     return PrologueView(
-      bar: bar,
       onBack: onBack,
       initialPage: f.prologuePage,
       onPage: (int i) => ref.read(uiFlagsProvider.notifier).update((ff) => ff.prologuePage = i),
-      finishLabel: l.prologueGo,
-      onFinish: (int pages) => _start(context, ref, skipped: false, pages: pages),
-      onSkip: (int pages) => _start(context, ref, skipped: true, pages: pages),
+      finishLabel: l.next,
+      onFinish: (int pages) => onDone(false, pages),
+      onSkip: (int pages) => onDone(true, pages),
     );
   }
 }
 
-/// «Перечитать пролог» из настроек: только чтение.
+/// «Перечитать пролог» из настроек: только чтение. «Закрыть» и «назад» с первой страницы — в настройки.
 class PrologueReplayScreen extends StatelessWidget {
   const PrologueReplayScreen({super.key});
 
@@ -1079,7 +1178,10 @@ class PrologueReplayScreen extends StatelessWidget {
     final l = AppLocalizations.of(context);
     return PrologueView(
       finishLabel: l.close,
-      onFinish: (int pages) async => Navigator.of(context).pop(),
+      onFinish: (int pages) async {
+        final route = ModalRoute.of(context);
+        if (route != null && route.isCurrent) Navigator.of(context).pop();
+      },
     );
   }
 }

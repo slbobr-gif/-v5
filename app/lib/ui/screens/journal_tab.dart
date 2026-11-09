@@ -14,6 +14,7 @@ import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
 import '../widgets/common.dart';
 import '../widgets/glass_paint.dart';
+import 'journeys_screen.dart';
 import 'thought_screen.dart';
 
 final _km = NumberFormat('0.#', 'ru');
@@ -120,6 +121,8 @@ String? _title(AppLocalizations l, AppController c, JRow r) {
     // v5.3 (docs/v5/08 §5.15, §13): рюкзак, горелка, аптечка, подсказки, дары, привал, лапоть, венок, продажа.
     case 'loadout':
       return l.logLoadout;
+    case 'night': // V5-45: ночёвка в пути
+      return l.logNight;
     case 'heat':
       return l.logHeat;
     case 'first_aid':
@@ -310,6 +313,12 @@ class _JournalTabState extends ConsumerState<JournalTab> {
           title: l.journalTitle,
         ),
         actions: [
+          if ((m.profile?.journeys ?? const []).isNotEmpty)
+            IconButton(
+              tooltip: l.journalJourneys,
+              icon: const Icon(Icons.emoji_events_outlined),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const JourneysScreen())),
+            ),
           if (newCount > 0)
             Padding(
               padding: const EdgeInsets.only(right: Gap.m),
@@ -493,11 +502,8 @@ class _JournalTabState extends ConsumerState<JournalTab> {
       return;
     }
     setState(() => _sel = r.id);
-    showModalBottomSheet<void>(
+    showSafeSheet<void>(
       context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      useSafeArea: true,
       builder: (ctx) => _EntrySheet(
         view: v,
         row: r,
@@ -522,11 +528,8 @@ class _JournalTabState extends ConsumerState<JournalTab> {
 
   /// Расширенный фильтр: тип, зона, исход — нижний лист с чипами.
   void _openFilter(AppLocalizations l) {
-    showModalBottomSheet<void>(
+    showSafeSheet<void>(
       context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      useSafeArea: true,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheet) {
           void toggle<T>(Set<T> s, T value) {
@@ -543,41 +546,52 @@ class _JournalTabState extends ConsumerState<JournalTab> {
                   Wrap(spacing: 6, children: chips),
                 ],
               );
-          return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(Gap.m, 0, Gap.m, Gap.m),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(l.journalFilterMore, style: Theme.of(ctx).textTheme.titleMedium),
-                group(l.journalFilterType, [
-                  for (final k in JKind.values)
-                    _Pill(
-                      label: _kindLabel(l, k),
-                      selected: _types.contains(k),
-                      mark: journalKindColor(k),
-                      onTap: () => toggle<JKind>(_types, k),
-                    ),
-                ]),
-                group(l.journalFilterZone, [
-                  for (final z in _zones)
-                    _Pill(
-                      label: _zoneLabel(l, z),
-                      selected: _zoneSet.contains(z),
-                      bar: Palette.zone(z),
-                      onTap: () => toggle<String>(_zoneSet, z),
-                    ),
-                ]),
-                group(l.journalFilterOutcome, [
-                  for (final t in JTone.values)
-                    _Pill(
-                      label: _toneLabel(l, t),
-                      selected: _tones.contains(t),
-                      onTap: () => toggle<JTone>(_tones, t),
-                    ),
-                ]),
-                const SizedBox(height: Gap.m),
-                Row(
+          // Чипы прокручиваются, кнопки «Сбросить» / «Готово» всегда видны над системной панелью.
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: Gap.m),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                        Text(l.journalFilterMore, style: Theme.of(ctx).textTheme.titleMedium),
+                        group(l.journalFilterType, [
+                          for (final k in JKind.values)
+                            _Pill(
+                              label: _kindLabel(l, k),
+                              selected: _types.contains(k),
+                              mark: journalKindColor(k),
+                              onTap: () => toggle<JKind>(_types, k),
+                            ),
+                        ]),
+                        group(l.journalFilterZone, [
+                          for (final z in _zones)
+                            _Pill(
+                              label: _zoneLabel(l, z),
+                              selected: _zoneSet.contains(z),
+                              bar: Palette.zone(z),
+                              onTap: () => toggle<String>(_zoneSet, z),
+                            ),
+                        ]),
+                        group(l.journalFilterOutcome, [
+                          for (final t in JTone.values)
+                            _Pill(
+                              label: _toneLabel(l, t),
+                              selected: _tones.contains(t),
+                              onTap: () => toggle<JTone>(_tones, t),
+                            ),
+                        ]),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(Gap.m, Gap.m, Gap.m, 0),
+                child: Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
@@ -601,8 +615,8 @@ class _JournalTabState extends ConsumerState<JournalTab> {
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -699,7 +713,7 @@ class _EntrySheet extends ConsumerWidget {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(Gap.m, 0, Gap.m, Gap.m),
+      padding: const EdgeInsets.symmetric(horizontal: Gap.m),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -716,8 +730,8 @@ class _EntrySheet extends ConsumerWidget {
               children: [
                 if (prev != null) _LinkBox(label: l.journalBefore, onTap: () => onOpen(prev), child: _link(l, prev)),
                 Container(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                  decoration: BoxDecoration(border: Border(left: BorderSide(color: col, width: 3))),
+                  padding: const EdgeInsets.fromLTRB(_cardPad, 10, _cardPad, 12),
+                  decoration: BoxDecoration(border: Border(left: BorderSide(color: col, width: _stripe))),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -808,6 +822,10 @@ class _EntrySheet extends ConsumerWidget {
   }
 }
 
+/// Полоса цепочки слева у основного блока панели и общий горизонтальный отступ её блоков.
+const _stripe = 3.0;
+const _cardPad = 12.0;
+
 /// Тусклый цвет невыбранных вариантов.
 const _faint = Color(0xFF56677A);
 
@@ -825,7 +843,8 @@ class _LinkBox extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 7, 12, 8),
+          // тот же левый край, что у текста основного блока (полоса цепочки + отступ)
+          padding: const EdgeInsets.fromLTRB(_stripe + _cardPad, 7, _cardPad, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

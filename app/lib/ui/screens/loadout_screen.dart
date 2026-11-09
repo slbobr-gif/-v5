@@ -1,4 +1,4 @@
-// «Собери рюкзак» (O6, docs/v5/09 §4.6): до maxGear снаряжения и до maxPackSlots ячеек еды перед прологом.
+// «Собери рюкзак» (O6, docs/v5/09 §4.6): до maxGear снаряжения и до maxPackSlots ячеек еды перед стартом пути.
 // Все пределы и перки — из balance.json через World; выбор уходит в AppController.chooseLoadout.
 
 import 'dart:async';
@@ -13,6 +13,7 @@ import '../../app/ui_flags.dart';
 import '../../engine/world.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
+import '../widgets/common.dart';
 import '../widgets/item_icon.dart';
 
 /// Текст ошибки старт-набора по коду из World.loadoutError (§5.3).
@@ -265,7 +266,7 @@ class _LoadoutScreenState extends ConsumerState<LoadoutScreen> {
     });
     _saveTimer?.cancel();
     await _saveDraft();
-    await ref.read(uiFlagsProvider.notifier).update((f) => f.onboardingStep = 'prologue');
+    // Дальше — старт пути (OnboardingFlow); шаг остаётся 'loadout', пока путь не начат.
     if (mounted) widget.onDone();
   }
 
@@ -290,17 +291,15 @@ class _LoadoutScreenState extends ConsumerState<LoadoutScreen> {
     final reservedGear = _gearSlots - _maxGear;
     final reservedPack = _packSlots - _maxPack;
     final showFree = freeGear > reservedGear || freePack > reservedPack;
-    return showModalBottomSheet<bool>(
+    // Лист не уходит под системную панель: высота ≤ 0,85 экрана, снизу её отступ (showSafeSheet).
+    return showSafeSheet<bool>(
       context: context,
-      isScrollControlled: true,
       backgroundColor: Palette.inkRaised,
+      showDragHandle: false,
       builder: (BuildContext ctx) {
-        final bottom = MediaQuery.paddingOf(ctx).bottom;
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.85),
-          child: ListView(
+        return ListView(
             shrinkWrap: true,
-            padding: EdgeInsets.fromLTRB(Gap.l, Gap.l, Gap.l, Gap.l + bottom),
+            padding: const EdgeInsets.fromLTRB(Gap.l, Gap.l, Gap.l, Gap.s),
             children: [
               Text(l.loadoutSummaryTitle, style: Theme.of(ctx).textTheme.titleLarge),
               const SizedBox(height: Gap.m),
@@ -334,7 +333,6 @@ class _LoadoutScreenState extends ConsumerState<LoadoutScreen> {
                 child: Text(l.loadoutEdit),
               ),
             ],
-          ),
         );
       },
     );
@@ -348,7 +346,7 @@ class _LoadoutScreenState extends ConsumerState<LoadoutScreen> {
     final w = content.world;
     final starterGear = w.starterGear;
     final starterPack = w.starterPack;
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final bottomInset = systemBottom(context);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) {

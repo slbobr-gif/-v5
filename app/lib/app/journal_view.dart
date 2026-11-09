@@ -237,6 +237,7 @@ JournalView buildJournalView(GameContent content, HeroState hero, int today) {
         kind = JKind.death;
       case 'place':
       case 'camp':
+      case 'night':
         kind = JKind.camp;
       case 'quest_done':
         kind = JKind.quest;

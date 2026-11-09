@@ -582,3 +582,20 @@ String useGift(String item, int now);    // 'ok' или код giftStatus
 * `String? dropItem(String item)` (Python `drop_item`): дар у героя → `'gift'`; в `gear` → убрать целиком (`_onGearRemoved`); в `inv` → `_takeInv(item, 1)` (инструмент, вынутый целиком, теряет `gearUses`); иначе `'no_item'`; успех → `null`, `_saveRng()`, в журнал не пишется. Контроллер: `bool dropItem(item)`, `String? dropBlocker(item)`; аналитика `item_dropped`.
 * UI: ячейки снаряжения показывают только не-дары (`hero.gear.where(!isGift)`), дары — строкой; экран «Что взять с собой» выбирает среди не-даров.
 * Фикстура: op `dropItem` → `e.dropItem(item)` → `String?`.
+
+---
+
+## 14. Ночёвка в пути (V5-45) и защита сохранения (V5-44)
+
+### 14.1. Ночёвка
+* `balance.json → night`: `atPhase` 0.75, `skipNearPlaceKm` 3, `warmth` 40, `morning: [{id, weight, satiety?, water?, warmth?}]`. Шаг ночёвок `L = movement.dayLengthKm × 1000` (та же длина «суток пути», что `Engine.dayPhase()`).
+* Состояние: `nextNightAt` (double, м). `create`: `firstNightAfter(b, −1)` = `atPhase × dayLengthKm × 1000`. Старое сохранение без поля (`fromJson` → −1) — `Engine` в конструкторе ставит `firstNightAfter(b, maxPos)`. `firstNightAfter(b, x)`: `at = atPhase·dayLengthKm·1000`, `while at <= x + 1e-6: at += L` (повторное сложение, бит в бит Python ↔ Dart).
+* `nextStop`: после случайного — `(nextNightAt, 'night')`, если `night` есть, `nextNightAt > pos`, ближе прочих и `pos ≥ maxPos − 1e-6` (после смерти, на повторном пути, ночёвок нет).
+* `_arrive('night')` (+ `aidLock = false`, как у любой остановки): `mo = morning[rng.pickWeighted(weights)]` (тратит RNG); `gain = {warmth: night.warmth}` + числа `mo` по `satiety, water, warmth`; `stats += gain`, `_clampStats`; `_log('night', {morning, gain})`; `_camp({id: ''}, now)` (спальник и т. п.; «у воды» — нет); `stop = {type: 'night', morning: id, gain}`; `nextNightAt = firstNightAfter(b, pos)`.
+* `_arrive('place')` после `_camp`: если `0 ≤ nextNightAt − pos ≤ skipNearPlaceKm·1000` → `nextNightAt = firstNightAfter(b, pos + skip)` (ночуют в месте).
+* «Идти дальше»: `continueJourney` → `stop = null`, `advance` ведёт героя тем же буфером. Рынка нет (`market()` пуст).
+* UI: экран исхода (`_NightScreen` в `stop_screens.dart`) — `nightTitle`, `nightText` + `nightMorning_<id>`, чипы из `gain`; карточка на главной `stopNight`; журнал `logNight`. Аналитика `night_stop {morning, km}`.
+* Фикстура: снимок дня + `nextNightAt` (±0.02).
+
+### 14.2. Сохранение героя (V5-44)
+`Storage.saveHero(hero) → Future<bool>`: JSON собирается синхронно; `prefs.reload()`; если `hero_rev_v1` на диске больше номера, который видела эта копия, — `false` (героя сохранил другой Flutter-движок), иначе номер +1 и запись. `heroChangedElsewhere()`, `loadHeroFresh(world)`. Контроллер: `refresh()` сначала проверяет `heroChangedElsewhere` и берёт свежую копию; `_commit`/`refresh` при `false` перечитывают героя. `MainActivity` — `launchMode="singleTask"`.

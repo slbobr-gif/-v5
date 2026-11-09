@@ -22,13 +22,15 @@ class UiFlags {
     this.tipsEnabled = true,
     this.mapLayers,
     this.journalReadAt = 0,
+    this.finishMsgShown = false,
   }) : tourStepSeen = tourStepSeen ?? <String, int>{};
 
   /// false — ещё не прочитаны с диска (экраны ждут).
   bool loaded;
   bool introDone;
 
-  /// profile | perm_activity | perm_notify | perm_hc | sources | loadout | prologue | '' (путь начат)
+  /// До introDone: prologue | rules. После: profile | perm_activity | perm_notify | perm_hc | sources | loadout;
+  /// '' — путь начат. Старое значение prologue при introDone == true (прежние сборки) — рюкзак уже собран.
   String onboardingStep;
 
   /// Черновик рюкзака (null — игрок ещё ничего не выбирал).
@@ -50,6 +52,9 @@ class UiFlags {
   /// «Журнал» и пометки «новое» — для записей позже этого времени; переживает перезапуск.
   int journalReadAt;
 
+  /// Сообщение «Путь пройден» на главной уже показано (один раз после финала; сброс пути — снова false).
+  bool finishMsgShown;
+
   UiFlags copy() => UiFlags(
         loaded: loaded,
         introDone: introDone,
@@ -64,6 +69,7 @@ class UiFlags {
         tipsEnabled: tipsEnabled,
         mapLayers: mapLayers == null ? null : List<String>.of(mapLayers!),
         journalReadAt: journalReadAt,
+        finishMsgShown: finishMsgShown,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -83,6 +89,7 @@ class UiFlags {
         'tipsEnabled': tipsEnabled,
         'mapLayers': mapLayers,
         'journalReadAt': journalReadAt,
+        'finishMsgShown': finishMsgShown,
       };
 
   static int _int(Object? v) => v is num ? v.toInt() : 0;
@@ -119,6 +126,7 @@ class UiFlags {
       tipsEnabled: j['tipsEnabled'] != false,
       mapLayers: layersRaw is List ? layersRaw.map((e) => '$e').toList() : null,
       journalReadAt: _int(j['journalReadAt']),
+      finishMsgShown: j['finishMsgShown'] == true,
     );
   }
 }
@@ -193,14 +201,16 @@ class UiFlagsController extends Notifier<UiFlags> {
         f.tipsEnabled = true;
       });
 
-  /// Новый путь после сброса (§7.4): сразу рюкзак, пролог, первый шаг; тур не повторяем.
+  /// Новый путь после сброса (§7.4): пролог → «Как играть» → рюкзак → первый шаг; тур не повторяем.
+  /// Чистит всё, что относится к прошлому входу в игру, чтобы не осталось «висящих» шагов и черновиков.
   Future<void> startOverAfterReset() => update((f) {
-        f.introDone = true;
-        f.onboardingStep = 'loadout';
+        f.introDone = false;
+        f.onboardingStep = 'prologue';
         f.loadoutGear = null;
         f.loadoutPack = null;
         f.loadoutAdvisor = false;
         f.prologuePage = 0;
         f.firstStepDone = false;
+        f.finishMsgShown = false;
       });
 }

@@ -6,7 +6,8 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <!-- Уведомления: утренняя мысль и события пути (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Health Connect: только чтение шагов -->
+    <!-- Health Connect: только чтение шагов. Читаем лишь при открытом приложении (движок работает там же),
+         поэтому READ_HEALTH_DATA_IN_BACKGROUND не нужен; в фоне WorkManager копит только датчик телефона. -->
     <uses-permission android:name="android.permission.health.READ_STEPS" />
 
     <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
@@ -47,10 +48,14 @@
             </intent-filter>
         </activity>
 
+        <!-- singleTask: ровно один экземпляр (и один Flutter-движок). При singleTop уведомление
+             (NEW_TASK + CLEAR_TOP, taskAffinity="") или повторный запуск через LaunchActivity создавали
+             вторую MainActivity со своим движком; старый движок в фоне раз в минуту сохранял устаревшего
+             героя поверх нового — «прогресс откатился» (V5-44). -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"

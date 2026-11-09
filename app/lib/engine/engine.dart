@@ -41,7 +41,10 @@ class MarketOffer {
 }
 
 class Engine {
-  Engine(this.w, this.s) : rng = Rng(s.rng);
+  Engine(this.w, this.s) : rng = Rng(s.rng) {
+    // Сохранение до V5-45: первая ночёвка — дальше уже пройденного.
+    if (s.nextNightAt < 0) s.nextNightAt = firstNightAfter(w.balance, s.maxPos);
+  }
 
   final World w;
   final HeroState s;
@@ -66,6 +69,26 @@ class Engine {
     }
   }
 
+  /// Отметка конца главы [ch] для статистики (один раз на главу): время, последний день с шагами,
+  /// всего реальных шагов, событий и падений к этому моменту.
+  void _mark(int now, int ch) {
+    if (s.marks.any((m) => toI(m['ch']) == ch)) return;
+    final days = s.daySteps.keys.toList()..sort();
+    var steps = 0;
+    for (final d in days) {
+      steps += s.daySteps[d]!;
+    }
+    s.marks.add(<String, dynamic>{
+      'ch': ch,
+      't': now,
+      'day': days.isEmpty ? s.startDay : days.last,
+      'steps': steps,
+      'events': s.eventsDone,
+      'deaths': s.deaths,
+      'quests': s.questsDone,
+    });
+  }
+
   bool _isConsumable(String item) {
     final t = w.itemType(item);
     return t == 'food' || t == 'drink';
@@ -73,7 +96,9 @@ class Engine {
 
   double gameMetersPerStep() {
     final m = _m('movement');
-    return toD(m['stepLengthM']) * toD(m['gameMultiplier']);
+    // Соотношение шагов — настройка игрока (s.stepMul); 0 — значение из balance. Влияет только на будущие шаги.
+    final mul = s.stepMul > 0 ? s.stepMul.toDouble() : toD(m['gameMultiplier']);
+    return toD(m['stepLengthM']) * mul;
   }
 
   int consumablesCount() {
@@ -937,6 +962,10 @@ class Engine {
     if (s.nextRandomAt > pos + 1e-6 && s.nextRandomAt < best.$1 && s.pos >= s.maxPos - 1e-6) {
       best = (s.nextRandomAt, 'random', null);
     }
+    final nn = s.nextNightAt;
+    if (_nightOn && nn > pos + 1e-6 && nn < best.$1 && s.pos >= s.maxPos - 1e-6) {
+      best = (nn, 'night', null);
+    }
     return best;
   }
 
@@ -1019,6 +1048,7 @@ class Engine {
       case 'finish':
         s.finished = true;
         s.stop = {'type': 'finish'};
+        _mark(now, w.chapters.length);
         _log(now, 'finish');
         return;
       case 'place':
@@ -1029,13 +1059,21 @@ class Engine {
         _clampStats();
         _log(now, 'place', {'place': p['id']});
         _camp(p, now);
+        if (_nightOn) {
+          final skip = toD(_m('night')['skipNearPlaceKm']) * 1000.0;
+          final ahead = s.nextNightAt - s.pos;
+          // ночёвка рядом с местом — ночуют в месте (это и есть привал), отдельной остановки нет
+          if (ahead >= 0 && ahead <= skip) s.nextNightAt = firstNightAfter(b, s.pos + skip);
+        }
         final pid = p['id'] as String;
         if (p['kind'] == 'finish') {
           s.finished = true;
           s.stop = {'type': 'finish', 'place': pid};
+          _mark(now, w.chapters.length);
         } else if (w.chapterEnd.containsKey(pid) && !s.seen.contains('chapter_end:$pid')) {
           // финал главы показывается один раз — после смерти с откатом город будет обычным привалом
           s.seen.add('chapter_end:$pid');
+          _mark(now, toI(w.chapterEnd[pid]!['id']));
           s.stop = {'type': 'chapter_end', 'place': pid, 'chapter': toI(w.chapterEnd[pid]!['id'])};
         } else {
           s.stop = {'type': 'place', 'place': pid};
@@ -1048,6 +1086,9 @@ class Engine {
         final qid = data as String;
         final q = s.quests[qid]!;
         s.stop = {'type': 'event', 'quest': qid, 'step': q.step, 'event': _questEvent(qid)['id']};
+        return;
+      case 'night':
+        _night(now);
         return;
       case 'random':
         final e = _pickRandom(now);
@@ -1066,6 +1107,34 @@ class Engine {
         if (e != null) s.stop = {'type': 'event', 'event': e['id'], 'random': true};
         return;
     }
+  }
+
+  bool get _nightOn {
+    final n = b['night'];
+    return n is Map && n.isNotEmpty;
+  }
+
+  /// Ночёвка в пути (V5-45): +тепло, утренний бонус по весам (тратит RNG), camp-перки снаряжения.
+  /// Остановка как привал: «Дальше» — и герой идёт теми же шагами, ждать следующего дня не нужно.
+  void _night(int now) {
+    final nb = _m('night');
+    final morning = ((nb['morning'] as List?) ?? const []).map((m) => (m as Map).cast<String, dynamic>()).toList();
+    final mo = morning.isEmpty
+        ? const <String, dynamic>{}
+        : morning[rng.pickWeighted(morning.map((m) => toI(m['weight'])).toList())];
+    final gain = <String, int>{'warmth': toI(nb['warmth'])};
+    for (final k in statKeys) {
+      if (truthy(mo[k])) gain[k] = (gain[k] ?? 0) + toI(mo[k]);
+    }
+    gain.forEach((k, v) {
+      s.stats[k] = s.stats[k]! + v;
+    });
+    _clampStats();
+    final mid = (mo['id'] as String?) ?? '';
+    _log(now, 'night', {'morning': mid, 'gain': Map<String, int>.of(gain)});
+    _camp(const <String, dynamic>{'id': ''}, now);
+    s.stop = {'type': 'night', 'morning': mid, 'gain': gain};
+    s.nextNightAt = firstNightAfter(b, s.pos);
   }
 
   List<String> _tags(Json e) => ((e['tags'] as List?) ?? const []).map((t) => '$t').toList();
@@ -1213,6 +1282,7 @@ class Engine {
         q.step += 1;
         if (q.step >= (w.quests[qid]!['steps'] as List).length) {
           s.quests.remove(qid);
+          s.questsDone += 1;
           _log(now, 'quest_done', {'quest': qid});
         }
       }
@@ -1229,6 +1299,7 @@ class Engine {
       if (questId != null) 'quest': questId,
       if (step0 != null) 'step': step0,
     });
+    s.eventsDone += 1;
     if (!died) s.stop = null;
     _saveRng();
     return ChoiceResult(ok: true, outcome: o, died: died, choice: choice);

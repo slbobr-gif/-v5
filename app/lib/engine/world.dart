@@ -87,6 +87,22 @@ class ItemPerk {
 
 const _zoneRank = {'city': 2, 'suburb': 1, 'wild': 0};
 
+/// Шаг ночёвок, м: movement.dayLengthKm (та же длина «суток пути», что и dayPhase) — V5-45.
+double nightLen(Json b) => toD((b['movement'] as Map)['dayLengthKm']) * 1000.0;
+
+/// Первая точка ночёвки (м) строго дальше [x]: atPhase·L, затем +L повторным сложением (бит в бит с Python).
+/// Без раздела balance.night — 0 (ночёвок нет).
+double firstNightAfter(Json b, double x) {
+  final n = b['night'];
+  if (n is! Map || n.isEmpty) return 0.0;
+  final length = nightLen(b);
+  var at = toD(n['atPhase']) * toD((b['movement'] as Map)['dayLengthKm']) * 1000.0;
+  while (at <= x + 1e-6) {
+    at += length;
+  }
+  return at;
+}
+
 /// Python `str.capitalize()`: первая буква заглавная, остальные строчные.
 String pyCapitalize(String x) => x.isEmpty ? x : x[0].toUpperCase() + x.substring(1).toLowerCase();
 

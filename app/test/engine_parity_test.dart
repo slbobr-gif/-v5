@@ -151,6 +151,7 @@ void _check(World w, HeroState s, Map<String, dynamic> x, String where) {
   expect(w.zoneAt(s.pos), x['zone'], reason: '$dbg: зона');
   expect(s.delayUntil, _i(x['delayUntil']), reason: '$dbg: задержка');
   expect(s.nextRandomAt, closeTo((x['nextRandomAt'] as num).toDouble(), 0.02), reason: '$dbg: следующее случайное');
+  expect(s.nextNightAt, closeTo((x['nextNightAt'] as num).toDouble(), 0.02), reason: '$dbg: следующая ночёвка');
 }
 
 /// Проигрывает весь сценарий фикстуры; [onDay] — проверка после каждого дня.
@@ -220,6 +221,28 @@ void main() {
     expect(jsonEncode(back.toJson()), raw);
     expect(back.gear, s.gear);
     expect(back.overflow.length, s.overflow.length);
+  });
+
+  test('выбор → сохранить → загрузить → те же шаги: ничего не откатывается и не повторяется (V5-44)', () async {
+    final fx = _fixture();
+    final w = (await loadGameContent()).world;
+    final (s, _) = _replay(w, fx);
+    final days = (fx['days'] as List).map((d) => (d as Map).cast<String, dynamic>()).toList();
+    final last = days.last;
+    final sync = ((last['ops'] as List).map((o) => (o as Map).cast<String, dynamic>()))
+        .firstWhere((o) => o['op'] == 'syncSteps');
+    final later = _i(sync['now']) + 3600000;
+    final raw = jsonEncode(s.toJson());
+    final a = HeroState.fromJson((jsonDecode(raw) as Map).cast<String, dynamic>(), w);
+    final b = HeroState.fromJson((jsonDecode(raw) as Map).cast<String, dynamic>(), w);
+    final ea = Engine(w, a);
+    final eb = Engine(w, b);
+    expect(ea.syncSteps(_ints(sync['days']), later), 0, reason: 'день уже засчитан');
+    ea.advance(later);
+    eb.advance(later);
+    expect(jsonEncode(a.toJson()), jsonEncode(b.toJson()));
+    expect(a.seen.length, s.seen.length);
+    expect(a.quests.keys.toList(), s.quests.keys.toList());
   });
 
   test('миграция сохранения v1: снаряжение из рюкзака переезжает в gear, лишнее — монетами', () async {

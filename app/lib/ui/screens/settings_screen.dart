@@ -12,6 +12,7 @@ import '../theme/tokens.dart';
 import '../widgets/common.dart';
 import 'intro_screens.dart' show IntroReplayScreen;
 import 'onboarding.dart' show PermissionTile, PrologueReplayScreen;
+import 'watch_help_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -36,7 +37,7 @@ class SettingsScreen extends ConsumerWidget {
     };
     final time =
         '${p.morningHour.toString().padLeft(2, '0')}:${p.morningMinute.toString().padLeft(2, '0')}';
-    final bottom = MediaQuery.paddingOf(context).bottom;
+    final bottom = systemBottom(context);
     return Scaffold(
       appBar: AppBar(title: ScreenTitle(kicker: l.appName, title: l.settingsTitle)),
       body: ListView(
@@ -102,9 +103,23 @@ class SettingsScreen extends ConsumerWidget {
                   }
                 : null,
           ),
+          ListTile(
+            leading: const Icon(Icons.watch_outlined, color: Palette.accent),
+            title: Text(l.watchHelpOpen),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () =>
+                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const WatchHelpScreen())),
+          ),
           ]),
           const SizedBox(height: Gap.s),
           Text(l.stepsSourcesNote, style: const TextStyle(color: Palette.parchmentDim, fontSize: 12, height: 1.35)),
+          const SizedBox(height: Gap.m),
+          _StepRatioCard(value: p.stepMul, onChanged: c.setStepMul),
+          const SizedBox(height: Gap.m),
+          _StepsDiagnostics(model: m, today: c.today, onRefresh: () async {
+            await c.refreshPermissions();
+            await c.refresh();
+          }),
           const SizedBox(height: Gap.m),
           Text(l.batteryHint, style: const TextStyle(color: Palette.parchmentDim, fontSize: 12, height: 1.35)),
           SectionHeader(l.settingsNotifications),
@@ -157,6 +172,7 @@ class SettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.auto_stories_outlined, color: Palette.accent),
             title: Text(l.introReplaySettings),
             onTap: () {
+              if (!_isTop(context)) return;
               Analytics.instance.event('intro_replay');
               Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const IntroReplayScreen()));
             },
@@ -164,8 +180,10 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.menu_book_outlined, color: Palette.accent),
             title: Text(l.onbPrologueReread),
-            onTap: () =>
-                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const PrologueReplayScreen())),
+            onTap: () {
+              if (!_isTop(context)) return;
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const PrologueReplayScreen()));
+            },
           ),
           ]),
           SectionHeader(l.settingsAbout),
@@ -206,6 +224,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               );
               if (ok == true) {
+                // resetJourney сбрасывает и флаги входа: пролог → «Как играть» → рюкзак → первый шаг.
                 await c.resetJourney();
                 if (context.mounted) Navigator.of(context).popUntil((r) => r.isFirst);
               }
@@ -214,6 +233,63 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: Gap.l),
           Text(l.version, style: const TextStyle(color: Palette.parchmentDim, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Экран настроек сейчас сверху: второй тап во время перехода не откроет пролог/слайды поверх них же.
+bool _isTop(BuildContext context) => ModalRoute.of(context)?.isCurrent ?? true;
+
+/// Диагностика для тестеров: что дал каждый источник сегодня, что пошло в игру, когда синхронизировались
+/// и какие приложения пишут шаги в Health Connect.
+class _StepsDiagnostics extends StatelessWidget {
+  const _StepsDiagnostics({required this.model, required this.today, required this.onRefresh});
+
+  final AppModel model;
+  final String today;
+  final Future<void> Function() onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final fmt = NumberFormat.decimalPattern('ru');
+    final ds = model.lastSteps;
+    final p = model.profile!;
+    final phone = ds?.sensor[today] ?? 0;
+    final hc = ds?.hc[today] ?? 0;
+    final game = model.hero?.daySteps[today] ?? 0;
+    final at = ds?.readAt;
+    final String hcLine = switch (ds?.hcState) {
+      'ok' => ds!.hcOrigins.isEmpty ? l.stepsDiagNoOrigins : l.stepsDiagOrigins(ds.hcOrigins.join(', ')),
+      'no_permission' => l.stepsDiagHcNoPerm,
+      'failed' => l.stepsDiagHcFailed,
+      _ => l.stepsDiagHcOff,
+    };
+    const dim = TextStyle(color: Palette.parchmentDim, fontSize: 12, height: 1.4);
+    return SectionCard(
+      padding: const EdgeInsets.all(Gap.s + Gap.xs),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(l.stepsDiagTitle, style: Theme.of(context).textTheme.titleSmall)),
+              IconButton(
+                tooltip: l.stepsDiagRefresh,
+                icon: const Icon(Icons.refresh, color: Palette.accent),
+                onPressed: onRefresh,
+              ),
+            ],
+          ),
+          Text(l.stepsDiagToday(fmt.format(phone), fmt.format(hc), fmt.format(game)),
+              style: const TextStyle(height: 1.4)),
+          const SizedBox(height: Gap.xs),
+          Text(at == null ? l.stepsDiagNever : l.stepsDiagSync(DateFormat('HH:mm').format(at)), style: dim),
+          Text(hcLine, style: dim),
+          if (!p.stepsSensor) Text(l.stepsDiagSensorIgnored, style: dim),
+          if (!p.stepsHc) Text(l.stepsDiagHcIgnored, style: dim),
         ],
       ),
     );
@@ -255,7 +331,7 @@ class _AnalyticsLog extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l.analyticsLog)),
       body: ListView.builder(
-        padding: EdgeInsets.fromLTRB(Gap.m, Gap.m, Gap.m, Gap.m + MediaQuery.paddingOf(context).bottom),
+        padding: EdgeInsets.fromLTRB(Gap.m, Gap.m, Gap.m, Gap.m + systemBottom(context)),
         itemCount: log.length,
         itemBuilder: (_, i) => Padding(
           padding: const EdgeInsets.only(bottom: Gap.s),
@@ -264,6 +340,61 @@ class _AnalyticsLog extends StatelessWidget {
             child: Text('${fmt.format(log[i].at)}  ${log[i].name}\n${log[i].params}',
                 style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Выбор соотношения «реальные шаги : шаги Сергея» (1, 3 или 5).
+class _StepRatioCard extends StatelessWidget {
+  const _StepRatioCard({required this.value, required this.onChanged});
+
+  final int value;
+  final Future<void> Function(int) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final hint = switch (value) {
+      1 => l.settingsRatioHint1,
+      3 => l.settingsRatioHint3,
+      _ => l.settingsRatioHint5,
+    };
+    const dim = TextStyle(color: Palette.parchmentDim, fontSize: 12, height: 1.35);
+    return Material(
+      color: Palette.inkRaised,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Gap.radius),
+        side: const BorderSide(color: Palette.inkHigh),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(Gap.m),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.settingsRatioTitle, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: Gap.xs),
+            Text(l.settingsRatioBody, style: dim),
+            const SizedBox(height: Gap.s),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<int>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment<int>(value: 1, label: Text(l.settingsRatio1)),
+                  ButtonSegment<int>(value: 3, label: Text(l.settingsRatio3)),
+                  ButtonSegment<int>(value: 5, label: Text(l.settingsRatio5)),
+                ],
+                selected: {value},
+                onSelectionChanged: (v) => onChanged(v.first),
+              ),
+            ),
+            const SizedBox(height: Gap.s),
+            Text(hint, style: dim),
+            const SizedBox(height: Gap.xs),
+            Text(l.settingsRatioNote, style: dim),
+          ],
         ),
       ),
     );
