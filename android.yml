@@ -23,9 +23,15 @@ jobs:
 
       # Карта берётся из репозитория (app/assets/map/map.json): километраж мест — основа зон,
       # якорей событий и фикстуры движка, поэтому в CI её больше не пересобираем из OSM.
-      - name: Проверка контента
+      # Строгая проверка контента — в задаче «Проверки и тесты». Здесь она только предупреждает:
+      # тестовый APK должен собираться, даже если валидатор нашёл расхождение.
+      - name: Проверка контента (не блокирует сборку)
         working-directory: .
+        continue-on-error: true
         run: python3 tools/content/validate.py --strict
+
+      - name: Версия сборки
+        run: grep -m1 '^version:' pubspec.yaml
 
       - uses: actions/setup-java@v4
         with:
