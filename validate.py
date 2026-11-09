@@ -237,7 +237,9 @@ for name in sorted(p.name for p in C.glob("events_ch*.json")):
         check_event(name, e, need_anchor=True)
         anchored.append(e)
         a = e.get("anchor") or {}
-        if a.get("after") in places and places[a["after"]].get("chapter") != e.get("chapter"):
+        # точка из той же главы — или город, с которого глава начинается (конец прошлой главы)
+        starts = chapters.get(e.get("chapter"), {}).get("from")
+        if a.get("after") in places and places[a["after"]].get("chapter") != e.get("chapter") and a.get("after") != starts:
             errors.append(f"{name}:{e.get('id')}: точка {a['after']} из главы {places[a['after']].get('chapter')}, а событие главы {e.get('chapter')}")
         if (not e.get("detour_only") and e.get("zone") in Z.ZONES and a.get("after") in places
                 and isinstance(a.get("km"), (int, float))):
