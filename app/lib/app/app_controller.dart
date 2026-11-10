@@ -400,7 +400,17 @@ class AppController extends Notifier<AppModel> {
       _storage.loadManualSteps().forEach((d, n) {
         if (n > (days[d] ?? 0)) days[d] = n;
       });
-      final added = eng.syncSteps(days, _now);
+      // V5-57: без подписки у конца бесплатного пути шаги не копятся. Счётчик дня обновляем без зачёта
+      // (после оформления не придут задним числом), остаток пути обнуляем, часы ожидания показатели не тратят.
+      final waiting = _waitsForPremium(hero.stop);
+      if (waiting) {
+        days.forEach((d, n) {
+          if (d.compareTo(hero.startDay) >= 0 && n > (hero.counted[d] ?? 0)) hero.counted[d] = n;
+        });
+        hero.buffer = 0;
+        hero.lastTick = _now;
+      }
+      final added = waiting ? 0 : eng.syncSteps(days, _now);
       final goalCoins = hero.coins - coinsBefore;
       final bonusBefore = eng.inBonus();
       final noticedBefore = eng.noticed();
@@ -474,6 +484,7 @@ class AppController extends Notifier<AppModel> {
       'warmth_b': Analytics.bucket(hero.stats['warmth']!.round(), const [1, 25, 50, 75]),
       'pack_n': eng.consumablesCount(),
       'pack_slots': eng.backpackSlots(),
+      'backpack': eng.currentPack() ?? 'base',
       'gear_n': gear.length,
       'gear': {for (final g in gear) g: 1},
       'gifts_n': gifts.length,
@@ -507,12 +518,14 @@ class AppController extends Notifier<AppModel> {
   }
 
   /// Остановка у конца бесплатной части пути (или дальше): без подписки «Идти дальше» ведёт на экран подписки.
-  /// Шаги при этом не теряются — копятся и засчитаются, когда путь продолжится.
-  bool paywallAt(Json? st) {
-    if (premium || st == null || st['type'] != 'place') return false;
+  bool paywallAt(Json? st) => st != null && st['type'] == 'place' && _waitsForPremium(st);
+
+  /// Герой ждёт подписку: стоит в месте (или на конце главы) у конца бесплатной части пути или дальше.
+  /// Пока ждёт, шаги не засчитываются (V5-57).
+  bool _waitsForPremium(Json? st) {
+    if (premium || st == null || (st['type'] != 'place' && st['type'] != 'chapter_end')) return false;
     final w = content.world;
-    final last = w.chapters.where((c) => toI(c['id']) == freeChapters).firstOrNull;
-    if (last == null) return false;
+    if (!w.chapters.any((c) => toI(c['id']) == freeChapters)) return false;
     final pos = w.posOf['${st['place']}'];
     return pos != null && pos >= w.chapterEndPos(freeChapters) - 1.0;
   }
@@ -526,16 +539,39 @@ class AppController extends Notifier<AppModel> {
   /// Мысль закрыта: без подписки доступны первые freeThoughts.
   bool thoughtLocked(int day) => !premium && thoughtNumber(day) > freeThoughts;
 
-  /// Шагов накоплено, пока герой ждёт (для экрана подписки): буфер пути в реальных шагах.
-  int waitingSteps() {
-    final eng = engine;
-    if (eng == null) return 0;
-    final mps = eng.gameMetersPerStep();
-    return mps <= 0 ? 0 : (state.hero!.buffer / mps).round();
-  }
-
   void paywallShown(String from) => _a.event('paywall_shown', {'from': from, 'chapter': state.hero == null ? 0 : content.world.chapterAt(state.hero!.pos)});
   void paywallTap(String from) => _a.event('paywall_tap', {'from': from});
+
+  // ------------------------------------------------ покупка монет (V5-58)
+  /// Наборы монет: {id, coins, rub}.
+  List<Json> coinPacks() {
+    final shop = (content.world.balance['shop'] as Map?) ?? const {};
+    return [for (final p in (shop['coinPacks'] as List?) ?? const []) if (p is Map) p.cast<String, dynamic>()];
+  }
+
+  /// Оплаты ещё нет (RuStore — следующий шаг): в тестовой сборке монеты начисляются сразу.
+  static const testPurchases = true;
+
+  void coinShopShown(String from) => _a.event('coin_shop_shown', {'from': from});
+
+  /// Тестовая покупка: +монеты герою. Возвращает, сколько начислено (0 — нет героя или набора).
+  int buyCoinsTest(String packId) {
+    final hero = state.hero;
+    if (hero == null || !testPurchases) return 0;
+    final pack = coinPacks().where((p) => p['id'] == packId).firstOrNull;
+    if (pack == null) return 0;
+    final n = toI(pack['coins']);
+    hero.coins += n;
+    _a.event('coins_purchase', {
+      'pack': packId,
+      'coins': n,
+      'rub': toI(pack['rub']),
+      'test': true,
+      'chapter': content.world.chapterAt(hero.pos),
+    });
+    _commit();
+    return n;
+  }
 
   // ------------------------------------------------ ручной ввод шагов (V5-54)
   static const manualStepsMax = 30000;
@@ -876,6 +912,7 @@ class AppController extends Notifier<AppModel> {
     final eng = engine;
     if (eng == null) return 'no_item';
     if (content.world.isGift(item) && eng.hasItem(item)) return 'gift';
+    if (content.world.isPack(item) && eng.hasItem(item)) return 'pack';
     return eng.hasItem(item) ? null : 'no_item';
   }
 
@@ -916,7 +953,7 @@ class AppController extends Notifier<AppModel> {
     final hero = eng.s;
     final o = hero.overflow.isEmpty ? null : hero.overflow.first;
     // дары духов в выборе не участвуют (V5-43) — в «выброшенные» их не записываем
-    final cands = [...hero.gear.where((g) => !content.world.isGift(g)), if (o != null) o.item];
+    final cands = [...hero.gear.where((g) => !content.world.freeSlot(g)), if (o != null) o.item];
     final err = eng.resolveGearOverflow(keep);
     if (err != null) return err;
     final dropped = cands.where((c) => !keep.contains(c)).toList();

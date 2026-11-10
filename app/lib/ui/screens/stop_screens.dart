@@ -14,6 +14,7 @@ import '../widgets/gift_button.dart';
 import '../widgets/item_icon.dart';
 import '../widgets/spirit_card.dart';
 import 'chapter_end_flow.dart';
+import 'coin_shop_screen.dart';
 import 'finale_flow.dart';
 import 'overflow_screens.dart';
 import 'paywall_screen.dart';
@@ -512,7 +513,13 @@ class _PlaceScreen extends ConsumerWidget {
                   const Icon(Icons.toll, color: Palette.accent, size: 18),
                   const SizedBox(width: 4),
                   Text('${m.hero!.coins}'),
-                  const SizedBox(width: Gap.m),
+                  // Купить монеты (V5-58)
+                  IconButton(
+                    tooltip: l.coinShopOpen,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.add_circle_outline, color: Palette.accent, size: 20),
+                    onPressed: () => openCoinShop(context, ref, 'market'),
+                  ),
                   const Icon(Icons.backpack_outlined, color: Palette.parchmentDim, size: 18),
                   const SizedBox(width: 4),
                   Text('${eng.consumablesCount()}/${eng.backpackSlots()}'),
@@ -664,6 +671,7 @@ class _OfferRow extends StatelessWidget {
       'gear_full' => l.buyGearFull,
       'no_stove' => l.buyNoStove,
       'gas_full' => l.buyGasFull,
+      'pack_smaller' => l.buyPackSmaller,
       _ => null,
     };
     return SectionCard(

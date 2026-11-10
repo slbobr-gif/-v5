@@ -245,6 +245,11 @@ class Player:
         for gear in ("socks", "raincoat"):
             if gear in prices and eng.buy_blocker(gear) is None and eng.s["coins"] >= prices[gear] + 30:
                 eng.buy(gear, now)
+        # V5-56: рюкзак побольше, когда есть запас монет (продаётся с главы 3)
+        for pk in ("pack_expedition", "pack_tourist"):
+            if pk in prices and eng.buy_blocker(pk) is None and eng.s["coins"] >= prices[pk] + 40:
+                eng.buy(pk, now)
+                break
 
 
 class CarelessPlayer(Player):

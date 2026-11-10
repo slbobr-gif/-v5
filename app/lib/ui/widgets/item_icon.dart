@@ -264,6 +264,10 @@ String perkText(AppLocalizations l, ItemPerk p, {String item = ''}) {
       return l.gearPerkExpires(v);
     case 'sell':
       return l.gearPerkSell(v);
+    case 'packSlots':
+      return l.gearPerkPackSlots(v);
+    case 'packGear':
+      return l.gearPerkPackGear(v);
     case 'rescueWarmth':
       return l.gearPerkRescueWarmth(v);
     case 'satiety':

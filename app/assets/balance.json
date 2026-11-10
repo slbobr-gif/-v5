@@ -6,6 +6,14 @@
     "freeChapters": 1,
     "freeThoughts": 14
   },
+  "shop": {
+    "_comment": "Покупка монет за деньги (V5-58): RuStore, разовые покупки. Пока оплаты нет, в тестовой сборке монеты начисляются сразу (тестовая покупка).",
+    "coinPacks": [
+      {"id": "coins_100", "coins": 100, "rub": 99},
+      {"id": "coins_300", "coins": 300, "rub": 249},
+      {"id": "coins_800", "coins": 800, "rub": 499}
+    ]
+  },
   "movement": {
     "stepLengthM": 0.75,
     "gameMultiplier": 5,
@@ -300,80 +308,103 @@
           "dried_fish"
         ],
         "chudovo": [
-          "birch_sap"
-        ],
+          "birch_sap",
+          "pack_tourist"
+      ],
         "novaya_ladoga": [
           "ryapushka",
           "dried_fish"
         ],
         "lodeynoe": [
-          "ryapushka"
-        ],
+          "ryapushka",
+          "pack_tourist"
+      ],
         "olonets": [
           "kalitka_potato",
           "kalitka_millet",
           "lingon_mors",
-          "ryapushka"
-        ],
+          "ryapushka",
+          "pack_tourist"
+      ],
         "petrozavodsk": [
           "kalitka_potato",
           "kalitka_millet",
           "kalitka_berry",
           "rybnik",
           "lingon_mors",
-          "ryapushka"
-        ],
+          "ryapushka",
+          "pack_tourist",
+          "pack_expedition"
+      ],
         "kondopoga": [
           "kalitka_potato",
           "kalitka_berry",
-          "rybnik"
-        ],
+          "rybnik",
+          "pack_tourist"
+      ],
         "medvezhyegorsk": [
           "kalitka_potato",
           "kalitka_millet",
-          "lingon_mors"
-        ],
+          "lingon_mors",
+          "pack_tourist"
+      ],
         "segezha": [
           "kalitka_millet",
           "kalitka_berry",
-          "lingon_mors"
-        ],
+          "lingon_mors",
+          "pack_tourist"
+      ],
         "belomorsk": [
           "rybnik",
-          "kalitka_berry"
-        ],
+          "kalitka_berry",
+          "pack_tourist"
+      ],
         "kem": [
           "rybnik",
           "cloudberry",
-          "lingon_mors"
-        ],
+          "lingon_mors",
+          "pack_tourist",
+          "pack_expedition"
+      ],
         "loukhi": [
           "cloudberry",
           "ivan_chai"
         ],
         "kandalaksha": [
           "cloudberry",
-          "ivan_chai"
-        ],
+          "ivan_chai",
+          "pack_tourist",
+          "pack_expedition"
+      ],
         "polyarnye_zori": [
           "ivan_chai"
         ],
         "monchegorsk": [
-          "reindeer_tongue"
-        ],
+          "reindeer_tongue",
+          "pack_tourist"
+      ],
         "olenegorsk": [
           "reindeer_tongue"
         ],
         "kola": [
           "cod",
-          "ivan_chai"
-        ],
+          "ivan_chai",
+          "pack_tourist"
+      ],
         "murmansk": [
           "cod",
           "reindeer_tongue",
-          "ivan_chai"
-        ],
-        "teriberka": [
+          "ivan_chai",
+          "pack_tourist",
+          "pack_expedition"
+      ],
+        "kirishi": [
+        "pack_tourist"
+      ],
+      "volkhov": [
+        "pack_tourist"
+      ],
+      "teriberka": [
           "cod"
         ]
       },
@@ -618,6 +649,18 @@
       "riskReduce": 0.1,
       "price": 40,
       "region": "valday"
+    },
+    "pack_tourist": {
+      "type": "gear",
+      "price": 90,
+      "pack": {"slots": 9},
+      "region": "north"
+    },
+    "pack_expedition": {
+      "type": "gear",
+      "price": 180,
+      "pack": {"slots": 12, "gear": 1},
+      "region": "north"
     },
     "birch_sap": {
       "type": "drink",

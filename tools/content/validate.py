@@ -457,9 +457,9 @@ if gifts_doc.exists():
     for gid in sorted(set(re.findall(r"^\| `([a-z_]+)` \|", gifts_doc.read_text(encoding="utf-8"), re.M))):
         if gid not in BI:
             errors.append(f"folklore-gifts.md: дар {gid} не заведён в balance.json → items")
-# каталог в коридоре 50–60 (заказ, Дополнение A, п. 27)
-if STRICT and not 50 <= len(BI) <= 60:
-    errors.append(f"каталог: предметов {len(BI)}, нужно 50–60")
+# каталог в коридоре 50–70 (заказ, Дополнение A, п. 27; верх поднят до 70 в V5-56 — рюкзаки)
+if STRICT and not 50 <= len(BI) <= 70:
+    errors.append(f"каталог: предметов {len(BI)}, нужно 50–70")
 LO = B.get("loadout", {})
 if not LO:
     errors.append("balance.json: нет раздела loadout")

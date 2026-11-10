@@ -264,7 +264,24 @@ class World:
             out.append({"key": "expires", "value": int(it["expiresDays"])})
         if "sellPrice" in it:
             out.append({"key": "sell", "value": int(it["sellPrice"])})
+        pk = it.get("pack")
+        if isinstance(pk, dict):
+            out.append({"key": "packSlots", "value": int(pk["slots"])})
+            if int(pk.get("gear", 0)) > 0:
+                out.append({"key": "packGear", "value": int(pk["gear"])})
         return out
+
+    def pack_spec(self, item: str):
+        """Рюкзак (V5-56): items.<id>.pack = {slots, gear?}."""
+        p = self.items.get(item, {}).get("pack")
+        return p if isinstance(p, dict) else None
+
+    def is_pack(self, item: str) -> bool:
+        return self.pack_spec(item) is not None
+
+    def free_slot(self, item: str) -> bool:
+        """Не занимает ячейку снаряжения: дар духа или рюкзак."""
+        return self.is_gift(item) or self.is_pack(item)
 
     def is_gift(self, item: str) -> bool:
         """Дар духа (items.<id>.gift): действует как снаряжение, но ячейку снаряжения не занимает и
@@ -464,15 +481,26 @@ class Engine:
     def consumables_count(self) -> int:
         return sum(n for k, n in self.s["inv"].items() if self.w.item_type(k) in CONSUMABLE)
 
+    def current_pack(self):
+        """Рюкзак героя (V5-56): не больше одного, в gear, ячейку снаряжения не занимает."""
+        for g in self.s["gear"]:
+            if self.w.is_pack(g):
+                return g
+        return None
+
     def backpack_slots(self) -> int:
-        return self.b["economy"]["backpackSlots"]
+        base = self.b["economy"]["backpackSlots"]
+        p = self.current_pack()
+        return base if p is None else max(base, int(self.w.pack_spec(p)["slots"]))
 
     def gear_slots(self) -> int:
-        return self.b["economy"]["gearSlots"]
+        base = self.b["economy"]["gearSlots"]
+        p = self.current_pack()
+        return base if p is None else base + int(self.w.pack_spec(p).get("gear", 0))
 
     def gear_used(self) -> int:
-        """Занятые ячейки снаряжения: дары духов (gift) не считаются (V5-43)."""
-        return sum(1 for g in self.s["gear"] if not self.w.is_gift(g))
+        """Занятые ячейки снаряжения: дары духов (V5-43) и рюкзак (V5-56) не считаются."""
+        return sum(1 for g in self.s["gear"] if not self.w.free_slot(g))
 
     def has_item(self, item: str) -> bool:
         """Есть ли предмет: в рюкзаке/инструментах (inv) или в снаряжении (gear)."""
@@ -1028,7 +1056,7 @@ class Engine:
                 g = r["item"]
                 if g in self.s["gear"]:
                     continue
-                if self.w.is_gift(g) or self.gear_used() < self.gear_slots():
+                if self.w.free_slot(g) or self.gear_used() < self.gear_slots():
                     self.s["gear"].append(g)
                     for fld, key in (("uses", "gearUses"), ("expires", "expires"), ("fed", "fed")):
                         if r.get(fld) is not None:
@@ -1539,7 +1567,7 @@ class Engine:
             else:
                 self.s["coins"] += math.floor(self.w.items[it].get("price", 0) * self.b["economy"]["duplicateGearShare"])
             return
-        if self.w.is_gift(it) or self.gear_used() < self.gear_slots():
+        if self.w.free_slot(it) or self.gear_used() < self.gear_slots():
             self.s["gear"].append(it)  # дар духа ячейку не занимает — сразу в снаряжение
             self._on_gear_added(it)
             return
@@ -1585,7 +1613,7 @@ class Engine:
         if not ov or ov[0]["kind"] != "gear":
             return "no_gear_overflow"
         new = ov[0]["item"]
-        if self.w.is_gift(new):  # старое сохранение: дар в очереди — просто взять (ячейку не занимает)
+        if self.w.free_slot(new):  # старое сохранение: дар в очереди — просто взять (ячейку не занимает)
             if new not in self.s["gear"]:
                 self.s["gear"].append(new)
                 self._on_gear_added(new)
@@ -1593,14 +1621,14 @@ class Engine:
             self._save_rng()
             return None
         # выбирают только среди обычного снаряжения; дары остаются на своих местах
-        cands = [g for g in self.s["gear"] if not self.w.is_gift(g)] + [new]
+        cands = [g for g in self.s["gear"] if not self.w.free_slot(g)] + [new]
         need = min(self.gear_slots(), len(cands))
         if len(keep) != need or len(set(keep)) != len(keep) or any(k not in cands for k in keep):
             return "bad_keep"
         for c in cands:
             if c not in keep and c != new:
                 self._on_gear_removed(c)
-        self.s["gear"] = [g for g in self.s["gear"] if self.w.is_gift(g) or g in keep] + ([new] if new in keep else [])
+        self.s["gear"] = [g for g in self.s["gear"] if self.w.free_slot(g) or g in keep] + ([new] if new in keep else [])
         if new in keep:
             self._on_gear_added(new)
         ov.pop(0)
@@ -1796,7 +1824,11 @@ class Engine:
         if t == "gear":
             if item in self.s["gear"]:
                 return "have_gear"
-            if not self.w.is_gift(item) and self.gear_used() >= self.gear_slots():
+            cur = self.current_pack()
+            if self.w.is_pack(item) and cur is not None and \
+                    int(self.w.pack_spec(cur)["slots"]) >= int(self.w.pack_spec(item)["slots"]):
+                return "pack_smaller"
+            if not self.w.free_slot(item) and self.gear_used() >= self.gear_slots():
                 return "gear_full"
         if t == "refill":
             tgt = self.w.items[item]["refill"]
@@ -1813,6 +1845,12 @@ class Engine:
         self.s["coins"] -= price
         t = self.w.item_type(item)
         if t == "gear":
+            # новый рюкзак: старый отдаём продавцу за долю цены
+            if self.w.is_pack(item):
+                for old in [g for g in self.s["gear"] if self.w.is_pack(g)]:
+                    self.s["gear"].remove(old)
+                    self._on_gear_removed(old)
+                    self.s["coins"] += math.floor(self.w.items[old]["price"] * self.b["economy"]["duplicateGearShare"])
             self._gain_gear(item, "market")
         elif t == "refill":
             self._gain_refill(item)
@@ -1826,6 +1864,8 @@ class Engine:
         None — выброшено; gift — дар духа выбросить нельзя; no_item — нечего выбрасывать."""
         if self.w.is_gift(item) and self.has_item(item):
             return "gift"
+        if self.w.is_pack(item) and item in self.s["gear"]:
+            return "pack"
         if item in self.s["gear"]:
             self.s["gear"].remove(item)
             self._on_gear_removed(item)

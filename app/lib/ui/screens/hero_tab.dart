@@ -18,6 +18,7 @@ import '../theme/tokens.dart';
 import '../widgets/common.dart';
 import '../widgets/gift_button.dart';
 import '../widgets/item_icon.dart';
+import 'coin_shop_screen.dart';
 import 'overflow_screens.dart' show OverflowRoute;
 
 /// Светлый пергамент для мелких пояснений (как `#CFC8B3` в эталоне).
@@ -186,7 +187,7 @@ class _HeroTabState extends ConsumerState<HeroTab> {
     }
     final best = _mostUseful(eng, w, units, heat);
     if (best != null) return best;
-    final plain = hero.gear.where((g) => !w.isGift(g)).toList();
+    final plain = hero.gear.where((g) => !w.freeSlot(g)).toList();
     if (plain.isNotEmpty) return _Pick(plain.first, gear: true);
     return null;
   }
@@ -302,7 +303,9 @@ class _HeroTabState extends ConsumerState<HeroTab> {
         for (var i = 0; i < (hero.inv[id] ?? 0); i++) id,
     ];
     // Дары — отдельной строкой: ячеек снаряжения они не занимают (V5-43), в ячейках — только обычное снаряжение.
-    final slotGear = hero.gear.where((g) => !w.isGift(g)).toList();
+    final slotGear = hero.gear.where((g) => !w.freeSlot(g)).toList();
+    // Рюкзак (V5-56) ячейку снаряжения не занимает: его имя — в заголовке карточки рюкзака.
+    final pack = eng.currentPack();
     final gifts = heldItemIds(hero).where((id) => _isGift(w, id)).toList();
     // Инструменты без ячейки (спички, жемчужина) — подписью у рюкзака.
     final tools = hero.inv.entries
@@ -326,7 +329,12 @@ class _HeroTabState extends ConsumerState<HeroTab> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: Gap.m),
-            child: Center(child: _CoinsChip(coins: hero.coins, label: l.heroCoinsA11y(hero.coins))),
+            child: Center(
+              child: GestureDetector(
+                onTap: () => openCoinShop(context, ref, 'hero'),
+                child: _CoinsChip(coins: hero.coins, label: l.heroCoinsA11y(hero.coins)),
+              ),
+            ),
           ),
         ],
       ),
@@ -420,7 +428,7 @@ class _HeroTabState extends ConsumerState<HeroTab> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _CardHead(
-                    title: l.backpack,
+                    title: pack == null ? l.backpack : content.itemName(pack),
                     count: tools.isEmpty
                         ? usedCount
                         : l.heroPackWithTools(usedCount, tools.map(content.itemName).join(', ')),

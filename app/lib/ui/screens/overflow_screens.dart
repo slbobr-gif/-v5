@@ -132,7 +132,7 @@ class _GearOverflowState extends ConsumerState<_GearOverflow> {
     // только обычное снаряжение: дары ячеек не занимают и в выборе не участвуют (V5-43)
     final m = ref.read(appProvider);
     final w = m.content!.world;
-    _keep = Set<String>.of(m.hero!.gear.where((g) => !w.isGift(g)));
+    _keep = Set<String>.of(m.hero!.gear.where((g) => !w.freeSlot(g)));
   }
 
   @override
@@ -145,7 +145,7 @@ class _GearOverflowState extends ConsumerState<_GearOverflow> {
     final hero = m.hero!;
     final eng = Engine(w, hero);
     // Дары духов ячеек не занимают и в выборе не участвуют (V5-43).
-    final plain = hero.gear.where((g) => !w.isGift(g)).toList();
+    final plain = hero.gear.where((g) => !w.freeSlot(g)).toList();
     final cands = <String>[...plain, if (!plain.contains(widget.item)) widget.item];
     final need = eng.gearSlots() < cands.length ? eng.gearSlots() : cands.length;
     final ready = cands.where(_keep.contains).length == need;

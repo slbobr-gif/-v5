@@ -6511,6 +6511,22 @@
     "value": 10
    }
   ],
+  "pack_tourist": [
+   {
+    "key": "packSlots",
+    "value": 9
+   }
+  ],
+  "pack_expedition": [
+   {
+    "key": "packSlots",
+    "value": 12
+   },
+   {
+    "key": "packGear",
+    "value": 1
+   }
+  ],
   "birch_sap": [
    {
     "key": "satiety",

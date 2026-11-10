@@ -613,7 +613,7 @@ class Gifts(unittest.TestCase):
         self.assertGreaterEqual(len(ids), 18)
         for i in ids:
             self.assertIn(i, BAL["items"], i)
-        self.assertTrue(50 <= len(BAL["items"]) <= 60, len(BAL["items"]))
+        self.assertTrue(50 <= len(BAL["items"]) <= 70, len(BAL["items"]))  # V5-56: верх 70
         q = json.loads((ROOT / "app" / "assets" / "content" / "quests.json").read_text(encoding="utf-8"))
         pop = json.dumps(next(x for x in q if x["id"] == "q_poputchik"), ensure_ascii=False)
         self.assertNotIn("ball_yaga", pop)
@@ -1057,6 +1057,38 @@ class JourneyMarks(unittest.TestCase):
         self.assertIn(m["day"], s["daySteps"])
         e._mark(now, 1)  # повторная отметка той же главы не дублируется
         self.assertEqual(len(s["marks"]), 1)
+
+
+class Packs(unittest.TestCase):
+    """V5-56: рюкзаки — ячейки рюкзака и снаряжения, замена только на больший, выбросить нельзя."""
+
+    def _world(self):
+        b = copy.deepcopy(BAL)
+        b["economy"]["markets"]["regional"]["d"] = ["pack_tourist", "pack_expedition"]
+        return make_world(balance=b)
+
+    def test_slots_swap_and_drop(self):
+        w, s, e = fresh(world=self._world(), gear=["socks", "raincoat", "gas_stove"], pack={"bread": 3})
+        eco = BAL["economy"]
+        it = BAL["items"]
+        s["stop"] = {"type": "place", "place": "d"}
+        s["coins"] = 1000
+        self.assertEqual(e.backpack_slots(), eco["backpackSlots"])
+        self.assertTrue(e.buy("pack_tourist", T0))
+        self.assertEqual(e.backpack_slots(), it["pack_tourist"]["pack"]["slots"])
+        self.assertEqual(e.gear_used(), 3)  # рюкзак ячейку снаряжения не занимает
+        self.assertEqual(e.buy_blocker("pack_tourist"), "have_gear")
+        coins = s["coins"]
+        self.assertTrue(e.buy("pack_expedition", T0))
+        self.assertNotIn("pack_tourist", s["gear"])
+        price = dict(e.market())["pack_expedition"]
+        refund = int(it["pack_tourist"]["price"] * eco["duplicateGearShare"])
+        self.assertEqual(s["coins"], coins - price + refund)
+        self.assertEqual(e.backpack_slots(), it["pack_expedition"]["pack"]["slots"])
+        self.assertEqual(e.gear_slots(), eco["gearSlots"] + it["pack_expedition"]["pack"]["gear"])
+        self.assertEqual(e.buy_blocker("pack_tourist"), "pack_smaller")
+        self.assertEqual(e.drop_item("pack_expedition"), "pack")
+        self.assertIn("pack_expedition", s["gear"])
 
 
 if __name__ == "__main__":

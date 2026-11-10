@@ -433,12 +433,28 @@ class World {
     if (_truthy(it['upkeep'])) out.add(const ItemPerk('upkeep', 1));
     if (it.containsKey('expiresDays')) out.add(ItemPerk('expires', toI(it['expiresDays'])));
     if (it.containsKey('sellPrice')) out.add(ItemPerk('sell', toI(it['sellPrice'])));
+    final pk = it['pack'];
+    if (pk is Map) {
+      out.add(ItemPerk('packSlots', toI(pk['slots'])));
+      if (toI(pk['gear'] ?? 0) > 0) out.add(ItemPerk('packGear', toI(pk['gear'])));
+    }
     return out;
   }
 
   /// Дар духа (items.<id>.gift): действует как снаряжение, но ячейку не занимает,
   /// переполнения не вызывает и не выбрасывается (V5-43).
   bool isGift(String item) => itemSpec(item)['gift'] == true;
+
+  /// Рюкзак (V5-56): items.<id>.pack = {slots, gear?} — ячеек рюкзака вместо базовых и + ячейки снаряжения.
+  Json? packSpec(String item) {
+    final p = itemSpec(item)['pack'];
+    return p is Map ? p.cast<String, dynamic>() : null;
+  }
+
+  bool isPack(String item) => packSpec(item) != null;
+
+  /// Не занимает ячейку снаряжения и не вызывает переполнения: дар духа или рюкзак.
+  bool freeSlot(String item) => isGift(item) || isPack(item);
 
   bool hasTag(String item, String tag) {
     final t = itemSpec(item)['tags'];

@@ -8,7 +8,6 @@ import '../../app/app_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
 import '../widgets/common.dart';
-import '../widgets/finale_widgets.dart' show groupInt;
 import 'overflow_screens.dart' show safeBottom;
 
 /// [from] — откуда пришли: chapter (конец бесплатного пути), thought (закрытая мысль), steps (ручной ввод шагов).
@@ -28,7 +27,6 @@ class PaywallScreen extends ConsumerWidget {
     final c = ref.read(appProvider.notifier);
     final hero = m.hero;
     final st = hero?.stop;
-    final waiting = c.waitingSteps();
     final place = st == null ? '' : c.content.placeName('${st['place'] ?? ''}');
     return Scaffold(
       appBar: AppBar(),
@@ -57,7 +55,7 @@ class PaywallScreen extends ConsumerWidget {
             if (from == 'chapter' && place.isNotEmpty) ...[
               const SizedBox(height: Gap.m),
               SectionCard(
-                child: Text(l.paywallWaiting(place, groupInt(waiting)),
+                child: Text(l.paywallWaiting(place),
                     style: const TextStyle(color: Palette.parchmentDim, height: 1.4)),
               ),
             ],

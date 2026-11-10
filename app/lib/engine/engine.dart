@@ -109,12 +109,28 @@ class Engine {
     return n;
   }
 
-  int backpackSlots() => toI(_m('economy')['backpackSlots']);
+  /// Рюкзак героя (V5-56): не больше одного, лежит в gear, ячейку снаряжения не занимает; null — базовый.
+  String? currentPack() {
+    for (final g in s.gear) {
+      if (w.isPack(g)) return g;
+    }
+    return null;
+  }
 
-  int gearSlots() => toI(_m('economy')['gearSlots']);
+  int backpackSlots() {
+    final base = toI(_m('economy')['backpackSlots']);
+    final p = currentPack();
+    return p == null ? base : math.max(base, toI(w.packSpec(p)!['slots']));
+  }
 
-  /// Занятые ячейки снаряжения: дары духов (gift) не считаются (V5-43).
-  int gearUsed() => s.gear.where((g) => !w.isGift(g)).length;
+  int gearSlots() {
+    final base = toI(_m('economy')['gearSlots']);
+    final p = currentPack();
+    return p == null ? base : base + toI(w.packSpec(p)!['gear'] ?? 0);
+  }
+
+  /// Занятые ячейки снаряжения: дары духов (gift, V5-43) и рюкзак (V5-56) не считаются.
+  int gearUsed() => s.gear.where((g) => !w.freeSlot(g)).length;
 
   int get gearSlotsLeft => gearSlots() - gearUsed();
 
@@ -755,7 +771,7 @@ class Engine {
         final r = (r0 as Map).cast<String, dynamic>();
         final g = r['item'] as String;
         if (s.gear.contains(g)) continue;
-        if (w.isGift(g) || gearUsed() < gearSlots()) {
+        if (w.freeSlot(g) || gearUsed() < gearSlots()) {
           s.gear.add(g);
           if (r['uses'] != null) s.gearUses[g] = toI(r['uses']);
           if (r['expires'] != null) s.expires[g] = toI(r['expires']);
@@ -1353,7 +1369,7 @@ class Engine {
       }
       return;
     }
-    if (w.isGift(it) || gearUsed() < gearSlots()) {
+    if (w.freeSlot(it) || gearUsed() < gearSlots()) {
       s.gear.add(it); // дар духа ячейку не занимает — сразу в снаряжение
       _onGearAdded(it);
       return;
@@ -1406,7 +1422,7 @@ class Engine {
     final ov = s.overflow;
     if (ov.isEmpty || ov.first.kind != 'gear') return 'no_gear_overflow';
     final nw = ov.first.item;
-    if (w.isGift(nw)) {
+    if (w.freeSlot(nw)) {
       // старое сохранение: дар в очереди — просто взять (ячейку не занимает)
       if (!s.gear.contains(nw)) {
         s.gear.add(nw);
@@ -1417,7 +1433,7 @@ class Engine {
       return null;
     }
     // выбирают только среди обычного снаряжения; дары остаются на своих местах
-    final cands = [...s.gear.where((g) => !w.isGift(g)), nw];
+    final cands = [...s.gear.where((g) => !w.freeSlot(g)), nw];
     final need = math.min(gearSlots(), cands.length);
     if (keep.length != need || keep.toSet().length != keep.length || keep.any((k) => !cands.contains(k))) {
       return 'bad_keep';
@@ -1426,7 +1442,7 @@ class Engine {
       if (!keep.contains(c) && c != nw) _onGearRemoved(c);
     }
     s.gear = [
-      ...s.gear.where((g) => w.isGift(g) || keep.contains(g)),
+      ...s.gear.where((g) => w.freeSlot(g) || keep.contains(g)),
       if (keep.contains(nw)) nw,
     ];
     if (keep.contains(nw)) _onGearAdded(nw);
@@ -1673,7 +1689,12 @@ class Engine {
     if ((t == 'food' || t == 'drink') && consumablesCount() >= backpackSlots()) return 'backpack_full';
     if (t == 'gear') {
       if (s.gear.contains(item)) return 'have_gear';
-      if (!w.isGift(item) && gearUsed() >= gearSlots()) return 'gear_full';
+      // рюкзак — только больше нынешнего (меньший освободил бы ячейки, а вещи бы не влезли)
+      final cur = currentPack();
+      if (w.isPack(item) && cur != null && toI(w.packSpec(cur)!['slots']) >= toI(w.packSpec(item)!['slots'])) {
+        return 'pack_smaller';
+      }
+      if (!w.freeSlot(item) && gearUsed() >= gearSlots()) return 'gear_full';
     }
     if (t == 'refill') {
       final tgt = '${w.itemSpec(item)['refill']}';
@@ -1689,6 +1710,14 @@ class Engine {
     s.coins -= price;
     final t = w.itemType(item);
     if (t == 'gear') {
+      // новый рюкзак: старый отдаём продавцу за долю цены (как дубликат снаряжения)
+      if (w.isPack(item)) {
+        for (final old in s.gear.where(w.isPack).toList()) {
+          s.gear.remove(old);
+          _onGearRemoved(old);
+          s.coins += (w.itemValue(old, 'price') * toD(_m('economy')['duplicateGearShare'])).floor();
+        }
+      }
       _gainGear(item, 'market');
     } else if (t == 'refill') {
       _gainRefill(item);
@@ -1703,6 +1732,7 @@ class Engine {
   /// null — выброшено; 'gift' — дар духа выбросить нельзя; 'no_item' — нечего выбрасывать.
   String? dropItem(String item) {
     if (w.isGift(item) && hasItem(item)) return 'gift';
+    if (w.isPack(item) && s.gear.contains(item)) return 'pack';
     if (s.gear.contains(item)) {
       s.gear.remove(item);
       _onGearRemoved(item);
