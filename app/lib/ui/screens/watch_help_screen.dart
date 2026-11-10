@@ -21,6 +21,8 @@ class WatchHelpScreen extends StatelessWidget {
       (Icons.sync_problem_outlined, l.watchHuaweiTitle, l.watchHuaweiBody),
       (Icons.block_outlined, l.watchAppleTitle, l.watchAppleBody),
       (Icons.low_priority, l.watchPriorityTitle, l.watchPriorityBody),
+      // V5-54: ручной ввод шагов за сегодня и вчера (подписка).
+      (Icons.edit_outlined, l.watchManualTitle, l.watchManualBody),
     ];
     return Scaffold(
       appBar: AppBar(title: Text(l.watchHelpTitle)),

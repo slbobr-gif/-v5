@@ -396,6 +396,10 @@ class AppController extends Notifier<AppModel> {
       final coinsBefore = hero.coins;
       // Для каждого дня берём максимум из включённых источников (настройки «Откуда брать шаги»).
       final days = ds.merged(useSensor: _useSensor, useHc: _useHc);
+      // Ручная поправка (V5-54): за день берётся больше из часов/телефона и введённого вручную.
+      _storage.loadManualSteps().forEach((d, n) {
+        if (n > (days[d] ?? 0)) days[d] = n;
+      });
       final added = eng.syncSteps(days, _now);
       final goalCoins = hero.coins - coinsBefore;
       final bonusBefore = eng.inBonus();
@@ -427,11 +431,162 @@ class AppController extends Notifier<AppModel> {
         lastSteps: ds,
       );
       await saving;
+      _daySummary(hero);
       await _replanNotifications();
     } finally {
       _syncing = false;
     }
   }
+
+  /// Сводка дня для статистики — раз в сутки, при первой синхронизации нового дня.
+  /// Шаги — за вчера (день закрыт), остальное — снимок героя сейчас. Вложенные карты — дерево в отчёте.
+  void _daySummary(HeroState hero) {
+    final st = _storage;
+    if (st.lastSummaryDay() == today) return;
+    st.setSummaryDay(today);
+    final eng = Engine(content.world, hero);
+    final w = content.world;
+    final yday = dayKey(DateTime.now().subtract(const Duration(days: 1)));
+    final ySteps = hero.daySteps[yday] ?? 0;
+    final gifts = <String>{
+      ...hero.gear.where(w.isGift),
+      ...hero.inv.entries.where((e) => e.value > 0 && w.isGift(e.key)).map((e) => e.key),
+    };
+    final gear = hero.gear.where((g) => !w.isGift(g)).toList();
+    final chapter = w.chapterAt(hero.pos);
+    final kmTotal = (hero.maxPos / 1000).round();
+    _a.event('day_summary', {
+      'yday_steps': ySteps,
+      'yday_steps_b': Analytics.bucket(ySteps, const [1, 2000, 5000, 8000, 11000, 15000, 20000]),
+      'yday_km': (ySteps * eng.gameMetersPerStep() / 1000).round(),
+      'ratio': hero.stepMul,
+      'chapter': chapter,
+      'km_total': kmTotal,
+      'km_total_b': Analytics.bucket(kmTotal, const [1, 50, 100, 200, 400, 700, 1000, 1500, 2000]),
+      'journey_day': journeyDay(),
+      'coins': hero.coins,
+      'coins_b': Analytics.bucket(hero.coins, const [1, 20, 50, 100, 200, 400]),
+      'satiety': hero.stats['satiety']!.round(),
+      'water': hero.stats['water']!.round(),
+      'warmth': hero.stats['warmth']!.round(),
+      'satiety_b': Analytics.bucket(hero.stats['satiety']!.round(), const [1, 25, 50, 75]),
+      'water_b': Analytics.bucket(hero.stats['water']!.round(), const [1, 25, 50, 75]),
+      'warmth_b': Analytics.bucket(hero.stats['warmth']!.round(), const [1, 25, 50, 75]),
+      'pack_n': eng.consumablesCount(),
+      'pack_slots': eng.backpackSlots(),
+      'gear_n': gear.length,
+      'gear': {for (final g in gear) g: 1},
+      'gifts_n': gifts.length,
+      if (gifts.isNotEmpty) 'gifts': {for (final g in gifts) g: 1},
+      'deaths': hero.deaths,
+      'thoughts_answered': answers().length,
+      'premium': premium,
+    });
+    _a.profileAttrs({
+      'chapter': chapter,
+      'km_total': kmTotal,
+      'coins': hero.coins,
+      'deaths': hero.deaths,
+      'gifts_n': gifts.length,
+      'step_ratio': hero.stepMul,
+      'premium': premium ? 'yes' : 'no',
+    });
+  }
+
+  // ------------------------------------------------ подписка (V5-52)
+  /// Есть ли подписка. Оплаты пока нет: в тестовой сборке — переключатель в настройках (по умолчанию вкл.).
+  bool get premium => state.profile?.premiumTest ?? true;
+
+  Json get _access => ((content.world.balance['access'] as Map?) ?? const {}).cast<String, dynamic>();
+  int get freeChapters => toI(_access['freeChapters'] ?? 99);
+  int get freeThoughts => toI(_access['freeThoughts'] ?? 999);
+
+  Future<void> setPremiumTest(bool v) async {
+    await updateProfile((p) => p.premiumTest = v);
+    _a.event('premium_test', {'on': v});
+  }
+
+  /// Остановка у конца бесплатной части пути (или дальше): без подписки «Идти дальше» ведёт на экран подписки.
+  /// Шаги при этом не теряются — копятся и засчитаются, когда путь продолжится.
+  bool paywallAt(Json? st) {
+    if (premium || st == null || st['type'] != 'place') return false;
+    final w = content.world;
+    final last = w.chapters.where((c) => toI(c['id']) == freeChapters).firstOrNull;
+    if (last == null) return false;
+    final pos = w.posOf['${st['place']}'];
+    return pos != null && pos >= w.chapterEndPos(freeChapters) - 1.0;
+  }
+
+  /// Номер мысли (1..30) для дня пути — как в thoughtForDay.
+  int thoughtNumber(int day) {
+    final n = content.thoughts.length;
+    return n == 0 ? 1 : ((day - 1) % n + n) % n + 1;
+  }
+
+  /// Мысль закрыта: без подписки доступны первые freeThoughts.
+  bool thoughtLocked(int day) => !premium && thoughtNumber(day) > freeThoughts;
+
+  /// Шагов накоплено, пока герой ждёт (для экрана подписки): буфер пути в реальных шагах.
+  int waitingSteps() {
+    final eng = engine;
+    if (eng == null) return 0;
+    final mps = eng.gameMetersPerStep();
+    return mps <= 0 ? 0 : (state.hero!.buffer / mps).round();
+  }
+
+  void paywallShown(String from) => _a.event('paywall_shown', {'from': from, 'chapter': state.hero == null ? 0 : content.world.chapterAt(state.hero!.pos)});
+  void paywallTap(String from) => _a.event('paywall_tap', {'from': from});
+
+  // ------------------------------------------------ ручной ввод шагов (V5-54)
+  static const manualStepsMax = 30000;
+
+  String get yesterday => dayKey(DateTime.now().subtract(const Duration(days: 1)));
+
+  Map<String, int> manualSteps() => state.storage?.loadManualSteps() ?? const {};
+
+  /// Шагов за день сейчас (больше из включённых источников и ручной поправки) — то, что видно на часах у нас.
+  int rawStepsOn(String day) {
+    final ds = state.lastSteps;
+    final auto = ds == null ? 0 : (ds.merged(useSensor: _useSensor, useHc: _useHc)[day] ?? 0);
+    return math.max(auto, manualSteps()[day] ?? 0);
+  }
+
+  /// Поправить можно сегодня и вчера (с начала пути), по одному разу на дату.
+  bool canEditSteps(String day) {
+    final hero = state.hero;
+    if (hero == null || hero.finished) return false;
+    if (day != today && day != yesterday) return false;
+    if (day.compareTo(hero.startDay) < 0) return false;
+    return !manualSteps().containsKey(day);
+  }
+
+  /// null — засчитано; иначе код: premium (нет подписки), used (уже поправляли), range (больше 30 000),
+  /// not_more (не больше, чем уже засчитано), day (не сегодня и не вчера).
+  /// Засчитывается только разница: герой проходит добавленные километры, показатели (сытость, вода, тепло)
+  /// расходуются за путь как при обычных шагах, цели дня дают монеты.
+  Future<String?> setManualSteps(String day, int n) async {
+    if (!premium) return 'premium';
+    if (day != today && day != yesterday) return 'day';
+    if (!canEditSteps(day)) return 'used';
+    if (n > manualStepsMax || n <= 0) return 'range';
+    final before = rawStepsOn(day);
+    if (n <= before) return 'not_more';
+    final m = Map<String, int>.from(manualSteps());
+    m[day] = n;
+    await _storage.saveManualSteps(m);
+    _a.event('manual_steps', {
+      'day': day == today ? 'today' : 'yesterday',
+      'entered': n,
+      'auto': before,
+      'delta': n - before,
+      'delta_b': Analytics.bucket(n - before, const [1, 1000, 3000, 5000, 10000, 20000]),
+    });
+    await refresh();
+    return null;
+  }
+
+  /// Раздел приложения открыт: вкладка или экран.
+  void screen(String name) => _a.event('screen_view', {'name': name});
 
   void _trackStop(EngineEvent e, HeroState hero) {
     if (e.type == 'death') {
@@ -545,12 +700,36 @@ class AppController extends Notifier<AppModel> {
       shortcutKm: (!res.died && eff['shortcut'] != null) ? (hero.pos - pos0) / 1000 : 0,
       itemsPending: pending,
     );
+    final chapterNow = content.world.chapterAt(hero.pos);
+    final creature = ev['creature'];
     _a.event('event_choice', {
       'id': '${ev['id']}',
       'choice': choiceId,
       'risk': '${res.choice?['risk'] ?? 'none'}',
       'died': res.died,
+      'chapter': chapterNow,
+      if (creature != null) 'creature': '$creature',
     });
+    // Отношения с духами: исход встречи — на пользу, во вред или ровно (по сумме показателей, монет и вещей).
+    if (creature != null) {
+      final score = view.stats.values.fold<int>(0, (a, b) => a + b) +
+          view.coins +
+          15 * gained.values.fold<int>(0, (a, b) => a + b) -
+          15 * lost.values.fold<int>(0, (a, b) => a + b);
+      final result = res.died ? 'bad' : (score > 5 ? 'good' : (score < -5 ? 'bad' : 'neutral'));
+      _a.event('spirit_choice', {
+        'creature': '$creature',
+        'result': result,
+        'event': '${ev['id']}',
+        'choice': choiceId,
+        'chapter': chapterNow,
+      });
+    }
+    for (final g in gained.keys) {
+      if (content.world.isGift(g)) {
+        _a.event('gift_received', {'item': g, 'creature': '${creature ?? ''}', 'chapter': chapterNow});
+      }
+    }
     if (eff['quest_start'] != null) _a.event('quest_started', {'id': '${eff['quest_start']}'});
     if (res.died) {
       _a.event('death', {'cause': 'event', 'chapter': content.world.chapterAt(hero.pos)});
@@ -655,7 +834,12 @@ class AppController extends Notifier<AppModel> {
     final price = eng.market().where((o) => o.item == item).map((o) => o.price).firstOrNull ?? 0;
     final ok = eng.buy(item, _now);
     if (ok) {
-      _a.event('buy', {'item': item, 'price': price});
+      _a.event('buy', {
+        'item': item,
+        'price': price,
+        'type': content.world.itemType(item),
+        'chapter': content.world.chapterAt(state.hero!.pos),
+      });
       _commit();
     }
     return ok;
@@ -883,13 +1067,17 @@ class AppController extends Notifier<AppModel> {
     state = state.copyWith();
   }
 
+  /// Мысль открыта (номер — 1..30); дочитана до конца — отдельным событием.
+  void thoughtOpened(int day) => _a.event('thought_opened', {'day': day, 'n': thoughtNumber(day)});
+  void thoughtReadFull(int day) => _a.event('thought_read_full', {'day': day, 'n': thoughtNumber(day)});
+
   Map<String, Json> answers() => state.storage?.loadAnswers() ?? {};
 
   Future<void> saveAnswer(int day, String text, {required bool open}) async {
     final a = answers();
     a['$day'] = {'text': text.trim(), 'at': _now};
     await _storage.saveAnswers(a);
-    _a.event('thought_answered', {'day': day, 'open': open, 'length': text.trim().length});
+    _a.event('thought_answered', {'day': day, 'n': thoughtNumber(day), 'open': open, 'length': text.trim().length});
     state = state.copyWith();
   }
 

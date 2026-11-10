@@ -15,6 +15,7 @@ import '../theme/tokens.dart';
 import '../widgets/common.dart';
 import '../widgets/glass_paint.dart';
 import 'journeys_screen.dart';
+import 'manual_steps_dialog.dart';
 import 'thought_screen.dart';
 
 final _km = NumberFormat('0.#', 'ru');
@@ -459,14 +460,24 @@ class _JournalTabState extends ConsumerState<JournalTab> {
                           final day = it.day;
                           final Widget body;
                           if (day != null) {
-                            body = _DayHeader(day: day, today: v.today, newCount: it.newCount);
+                            final key = dayKey(day.date);
+                            body = _DayHeader(
+                              day: day,
+                              today: v.today,
+                              newCount: it.newCount,
+                              manual: c.manualSteps().containsKey(key),
+                              editLabel: l.journalEditSteps,
+                              onEdit: c.canEditSteps(key) ? () => openManualSteps(context, ref, key) : null,
+                            );
                           } else {
                             final r = it.row!;
                             body = _RowCard(
                               row: r,
                               title: titles[r.id] ?? '',
                               sub: r.kind == JKind.thought
-                                  ? '«${c.content.thoughtForDay(r.thoughtDay ?? r.day).quote}»'
+                                  ? (c.thoughtLocked(r.thoughtDay ?? r.day)
+                                      ? l.thoughtLockedTitle(c.thoughtNumber(r.thoughtDay ?? r.day))
+                                      : '«${c.content.thoughtForDay(r.thoughtDay ?? r.day).quote}»')
                                   : (r.choice == null ? null : '«${r.choice}»'),
                               meta: r.kind == JKind.thought ? '' : _meta(l, r),
                               isNew: _isNew(r),
@@ -884,11 +895,23 @@ class _FxChip extends StatelessWidget {
 // ---------------------------------------------------------------- лента
 
 class _DayHeader extends StatelessWidget {
-  const _DayHeader({required this.day, required this.today, required this.newCount});
+  const _DayHeader({
+    required this.day,
+    required this.today,
+    required this.newCount,
+    this.manual = false,
+    this.editLabel = '',
+    this.onEdit,
+  });
 
   final JDay day;
   final int today;
   final int newCount;
+
+  /// Шаги дня поправлены вручную (значок ✎); [onEdit] — можно поправить (сегодня/вчера, один раз).
+  final bool manual;
+  final String editLabel;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -897,7 +920,7 @@ class _DayHeader extends StatelessWidget {
     final to = day.kmTo;
     final stats = [
       if (from != null && to != null) l.journalDayKm(_km.format(from), _km.format(to)),
-      if (day.steps > 0) l.journalDaySteps(_num.format(day.steps)),
+      if (day.steps > 0) l.journalDaySteps(_num.format(day.steps)) + (manual ? ' ✎' : ''),
     ].join(' · ');
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 12, 0, 4),
@@ -922,6 +945,16 @@ class _DayHeader extends StatelessWidget {
               ),
             ],
           ),
+          if (onEdit != null)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 14),
+                label: Text(editLabel, style: const TextStyle(fontSize: 12)),
+              ),
+            ),
           if (newCount > 0)
             Padding(
               padding: const EdgeInsets.only(top: 2),

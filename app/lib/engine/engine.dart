@@ -1094,6 +1094,9 @@ class Engine {
         final e = _pickRandom(now);
         final sp = (_m('randomEvents')['spacingKm'] as List).map(toD).toList();
         var gap = (sp[0] + (sp[1] - sp[0]) * rng.nextFloat()) * 1000.0;
+        // V5-53: на длинных северных главах случайные чаще (множитель промежутка по главе).
+        final chMult = (_m('randomEvents')['chapterSpacingMult'] as Map?)?['${w.chapterAt(s.pos)}'];
+        if (chMult != null) gap *= toD(chMult);
         if (inBonus()) gap /= toD(_m('bonus')['eventMultiplier']);
         var nxt = s.pos + gap;
         // не ставим случайное вплотную к авторскому

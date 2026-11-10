@@ -378,6 +378,9 @@ EV = [
             delay='short', warmth='medium')])]),
 ]
 
+from more_north import RANDOM  # noqa: E402  V5-53
+EV.extend(RANDOM)
+
 
 def main():
     p = C_DIR / 'events_random.json'

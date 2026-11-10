@@ -16,6 +16,7 @@ import '../widgets/spirit_card.dart';
 import 'chapter_end_flow.dart';
 import 'finale_flow.dart';
 import 'overflow_screens.dart';
+import 'paywall_screen.dart';
 
 /// Показывает экран текущей остановки. Сам переключается, если остановка сменилась.
 class StopScreen extends ConsumerStatefulWidget {
@@ -472,6 +473,14 @@ class _PlaceScreen extends ConsumerWidget {
     final place = m.content!.world.placeById['${st['place']}'] ?? const <String, dynamic>{};
     final offers = eng.market();
     final sells = eng.sellOffers();
+    final locked = c.paywallAt(st);
+    // Рынок по разделам: еда и питьё, снаряжение, прочее (спички, газ, грелки) — снаряжение не теряется в конце списка.
+    String group(String id) => switch (eng.w.itemType(id)) {
+          'food' || 'drink' => 'food',
+          'gear' => 'gear',
+          _ => 'other',
+        };
+    final groups = <(String, String)>[('food', l.marketFood), ('gear', l.marketGear), ('other', l.marketOther)];
     final art = switch (place['kind']) {
       'city' => 'town',
       'town' => 'town',
@@ -514,20 +523,27 @@ class _PlaceScreen extends ConsumerWidget {
                 ]),
                 const SizedBox(height: Gap.s),
                 if (offers.isEmpty) Text(l.marketEmpty, style: const TextStyle(color: Palette.parchmentDim)),
-                for (final o in offers) ...[
-                  _OfferRow(
-                    id: o.item,
-                    type: eng.w.itemType(o.item),
-                    name: c.content.itemName(o.item),
-                    desc: '${c.content.items[o.item]?['desc'] ?? ''}',
-                    effect: perksLine(l, eng.w, o.item),
-                    price: o.price,
-                    have: m.hero!.gear.contains(o.item) ? 1 : (m.hero!.inv[o.item] ?? 0),
-                    blocker: eng.buyBlocker(o.item),
-                    onBuy: () => c.buy(o.item),
-                  ),
-                  const SizedBox(height: Gap.s),
-                ],
+                for (final (gid, gname) in groups)
+                  if (offers.any((o) => group(o.item) == gid)) ...[
+                    const SizedBox(height: Gap.s),
+                    Text(gname.toUpperCase(),
+                        style: const TextStyle(color: Palette.parchmentDim, fontSize: 12, letterSpacing: 1.2)),
+                    const SizedBox(height: Gap.s),
+                    for (final o in offers.where((o) => group(o.item) == gid)) ...[
+                      _OfferRow(
+                        id: o.item,
+                        type: eng.w.itemType(o.item),
+                        name: c.content.itemName(o.item),
+                        desc: '${c.content.items[o.item]?['desc'] ?? ''}',
+                        effect: perksLine(l, eng.w, o.item),
+                        price: o.price,
+                        have: m.hero!.gear.contains(o.item) ? 1 : (m.hero!.inv[o.item] ?? 0),
+                        blocker: eng.buyBlocker(o.item),
+                        onBuy: () => c.buy(o.item),
+                      ),
+                      const SizedBox(height: Gap.s),
+                    ],
+                  ],
                 if (sells.isNotEmpty) ...[
                   const SizedBox(height: Gap.l),
                   Text(l.gearSellTitle, style: Theme.of(context).textTheme.titleMedium),
@@ -552,13 +568,22 @@ class _PlaceScreen extends ConsumerWidget {
                   Text(l.overflowPending, style: const TextStyle(color: Palette.ember)),
                   const SizedBox(height: Gap.s),
                 ],
+                if (locked) ...[
+                  Text(l.placeLockedHint, style: const TextStyle(color: Palette.accent, height: 1.4)),
+                  const SizedBox(height: Gap.s),
+                ],
                 FilledButton(
                   onPressed: m.hero!.overflow.isNotEmpty
                       ? null
                       : () async {
+                          // Конец бесплатной части пути (V5-52): шаги копятся, герой ждёт подписку.
+                          if (c.paywallAt(st)) {
+                            await openPaywall(context, ref, 'chapter');
+                            return;
+                          }
                           await c.continueJourney(st);
                         },
-                  child: Text(l.goOn),
+                  child: Text(locked ? l.goOnLocked : l.goOn),
                 ),
               ]),
             ),

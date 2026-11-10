@@ -1335,6 +1335,10 @@ class Engine:
             e = self._pick_random(now)
             sp = self.b["randomEvents"]["spacingKm"]
             gap = (sp[0] + (sp[1] - sp[0]) * self.rng.next_float()) * 1000.0
+            # V5-53: на длинных северных главах случайные чаще (множитель промежутка по главе)
+            ch_mult = self.b["randomEvents"].get("chapterSpacingMult", {}).get(str(self.w.chapter_at(self.s["pos"])))
+            if ch_mult is not None:
+                gap *= ch_mult
             if self.in_bonus():
                 gap /= self.b["bonus"]["eventMultiplier"]
             nxt = self.s["pos"] + gap

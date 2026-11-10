@@ -1,6 +1,11 @@
 {
   "version": 1,
   "_comment": "Все числа игры. Тексты — в content/. Правит Геймдизайнер, проверяет симулятор tools/sim.",
+  "access": {
+    "_comment": "Бесплатная версия (V5-52): главы 1..freeChapters и первые freeThoughts утренних мыслей. Дальше — подписка. Пока оплаты нет, в тестовой сборке подписку включает переключатель в настройках.",
+    "freeChapters": 1,
+    "freeThoughts": 14
+  },
   "movement": {
     "stepLengthM": 0.75,
     "gameMultiplier": 5,
@@ -160,6 +165,8 @@
     "firstAfterKm": 3,
     "minGapToAnchoredKm": 3,
     "recentKeep": 36,
+    "chapterSpacingMult": {"3": 0.75, "4": 0.75, "5": 0.75},
+    "_chapterSpacingMult": "Множитель промежутка между случайными событиями по главе точки пути (V5-53): на длинных северных главах случайные чаще. Нет главы — 1.",
     "_comment": "Недавние случайные не повторяются: в зоне — последние min(12, пул_зоны//2) этой зоны; в запасном выборе — последние min(12, всех//2); хранится последних recentKeep."
   },
   "dailyGoals": {
@@ -240,7 +247,11 @@
           "flask",
           "oatmeal",
           "space_blanket",
-          "hand_warmers"
+          "hand_warmers",
+          "trekking_poles",
+          "compass",
+          "sleeping_bag",
+          "gas_stove"
         ]
       },
       "village": {

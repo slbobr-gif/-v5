@@ -21,6 +21,7 @@ class Profile {
     this.stepsSensor = true,
     this.stepsHc = true,
     this.stepMul = 5,
+    this.premiumTest = true,
     List<Map<String, dynamic>>? journeys,
   }) : journeys = journeys ?? [];
 
@@ -42,6 +43,10 @@ class Profile {
   /// Соотношение шагов: сколько игровых шагов за один реальный (1, 3 или 5). Переживает сброс пути.
   int stepMul;
 
+  /// Подписка в тестовой сборке (оплаты ещё нет): переключатель в настройках. По умолчанию включена,
+  /// чтобы тестировщики шли дальше первой главы; выключи — увидишь бесплатную версию.
+  bool premiumTest;
+
   /// Итоги пройденных путей (снимки JourneyStats.toJson + даты): переживают сброс пути, видны в Журнале.
   List<Map<String, dynamic>> journeys;
 
@@ -58,6 +63,7 @@ class Profile {
         'stepsSensor': stepsSensor,
         'stepsHc': stepsHc,
         'stepMul': stepMul,
+        'premiumTest': premiumTest,
         'journeys': journeys,
       };
 
@@ -75,6 +81,7 @@ class Profile {
         stepsSensor: j['stepsSensor'] != false,
         stepsHc: j['stepsHc'] != false,
         stepMul: const [1, 3, 5].contains(j['stepMul']) ? toI(j['stepMul']) : 5,
+        premiumTest: j['premiumTest'] != false,
         journeys: [for (final x in (j['journeys'] as List?) ?? const []) if (x is Map) x.cast<String, dynamic>()],
       );
 }
@@ -92,6 +99,8 @@ class Storage {
   static const _kHeroBroken = 'hero_v1_broken';
   static const _kHeroRev = 'hero_rev_v1';
   static const _kLoadout = 'loadout_v1';
+  static const _kSummaryDay = 'analytics_summary_day_v1';
+  static const _kManualSteps = 'manual_steps_v1';
 
   Profile loadProfile() {
     final raw = _p.getString(_kProfile);
@@ -187,6 +196,23 @@ class Storage {
     await _p.remove(_kLoadout);
   }
 
+  /// Ручной ввод шагов (V5-54): {день yyyy-MM-dd: шагов за день по часам}. Одна поправка на дату.
+  Map<String, int> loadManualSteps() {
+    final raw = _p.getString(_kManualSteps);
+    if (raw == null) return {};
+    try {
+      return (jsonDecode(raw) as Map).map((k, v) => MapEntry(k as String, toI(v)));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> saveManualSteps(Map<String, int> m) => _p.setString(_kManualSteps, jsonEncode(m));
+
+  /// День последней «сводки дня» для статистики (чтобы отправлять её раз в сутки).
+  String? lastSummaryDay() => _p.getString(_kSummaryDay);
+  Future<void> setSummaryDay(String day) => _p.setString(_kSummaryDay, day);
+
   String? lastThoughtSeenDay() => _p.getString(_kThoughtSeen);
   Future<void> setThoughtSeenDay(String day) => _p.setString(_kThoughtSeen, day);
 
@@ -226,6 +252,7 @@ class Storage {
     await _p.remove(_kAnswers);
     await _p.remove(_kThoughtSeen);
     await _p.remove(_kLoadout);
+    await _p.remove(_kManualSteps);
   }
 
   Future<void> resetAll() => _p.clear();

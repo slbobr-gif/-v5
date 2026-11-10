@@ -231,4 +231,7 @@ EV = [
             warmth='large')])], zone_note='калитка — карельский пирожок'),
 ]
 
+from more_north import CH3  # noqa: E402  V5-53
+EV.extend(CH3)
+
 write_anchored('events_ch3.json', EV)

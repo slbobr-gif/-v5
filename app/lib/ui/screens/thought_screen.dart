@@ -10,6 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
 import '../widgets/common.dart';
 import 'home.dart' show weatherName;
+import 'paywall_screen.dart';
 
 class ThoughtScreen extends ConsumerStatefulWidget {
   const ThoughtScreen({super.key, required this.day});
@@ -21,21 +22,37 @@ class ThoughtScreen extends ConsumerStatefulWidget {
 
 class _ThoughtScreenState extends ConsumerState<ThoughtScreen> {
   late final TextEditingController _answer;
+  final ScrollController _scroll = ScrollController();
   bool _saved = false;
+  bool _readFull = false;
+
+  /// Дочитал до конца (до поля ответа) — один раз за открытие; короткая мысль без прокрутки — сразу.
+  void _checkFull() {
+    if (_readFull || !_scroll.hasClients) return;
+    if (_scroll.position.extentAfter < 160) {
+      _readFull = true;
+      ref.read(appProvider.notifier).thoughtReadFull(widget.day);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     final c = ref.read(appProvider.notifier);
     _answer = TextEditingController(text: (c.answers()['${widget.day}']?['text'] as String?) ?? '');
+    if (c.thoughtLocked(widget.day)) return;
+    c.thoughtOpened(widget.day);
     if (widget.day == c.journeyDay()) {
       Future.microtask(() => c.markThoughtSeen(widget.day));
     }
+    _scroll.addListener(_checkFull);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkFull());
   }
 
   @override
   void dispose() {
     _answer.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -61,10 +78,12 @@ class _ThoughtScreenState extends ConsumerState<ThoughtScreen> {
     final l = AppLocalizations.of(context);
     final c = ref.read(appProvider.notifier);
     final t = c.content.thoughtForDay(widget.day);
+    if (c.thoughtLocked(widget.day)) return _Locked(day: widget.day);
     return Scaffold(
       appBar: AppBar(title: Text(l.thoughtDay(widget.day))),
       body: SafeArea(
         child: ListView(
+          controller: _scroll,
           padding: const EdgeInsets.all(Gap.l),
           children: [
             Text('«${t.quote}»',
@@ -105,6 +124,35 @@ class _ThoughtScreenState extends ConsumerState<ThoughtScreen> {
             ),
             const SizedBox(height: Gap.l),
             Text(l.thoughtLicense, style: const TextStyle(color: Palette.parchmentDim, fontSize: 11)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Мысль за пределами бесплатных (V5-52): заголовок, пояснение и путь к подписке.
+class _Locked extends ConsumerWidget {
+  const _Locked({required this.day});
+  final int day;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final c = ref.read(appProvider.notifier);
+    return Scaffold(
+      appBar: AppBar(title: Text(l.thoughtDay(day))),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(Gap.l),
+          children: [
+            const Icon(Icons.lock_outline, color: Palette.accent, size: 36),
+            const SizedBox(height: Gap.m),
+            Text(l.thoughtLockedTitle(c.thoughtNumber(day)), style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: Gap.s),
+            StoryText(l.thoughtLockedBody(c.freeThoughts)),
+            const SizedBox(height: Gap.l),
+            FilledButton(onPressed: () => openPaywall(context, ref, 'thought'), child: Text(l.paywallBuy)),
           ],
         ),
       ),

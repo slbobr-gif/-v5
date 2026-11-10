@@ -205,4 +205,7 @@ EV = [
             warmth='medium')])]),
 ]
 
+from more_north import CH4  # noqa: E402  V5-53
+EV.extend(CH4)
+
 write_anchored('events_ch4.json', EV)

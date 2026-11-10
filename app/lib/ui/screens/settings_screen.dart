@@ -186,6 +186,16 @@ class SettingsScreen extends ConsumerWidget {
             },
           ),
           ]),
+          // Подписка в тестовой сборке (V5-52): оплаты ещё нет, переключатель показывает бесплатную версию.
+          SectionHeader(l.settingsPremiumTest),
+          _Group(children: [
+            SwitchListTile(
+              value: c.premium,
+              title: Text(l.settingsPremiumTest),
+              subtitle: Text(l.settingsPremiumTestSub),
+              onChanged: (bool v) => c.setPremiumTest(v),
+            ),
+          ]),
           SectionHeader(l.settingsAbout),
           SectionCard(
             child: Column(

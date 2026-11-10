@@ -21,6 +21,7 @@ import '../widgets/vessels.dart';
 import 'finished_home.dart';
 import 'hero_tab.dart';
 import 'journal_tab.dart';
+import 'manual_steps_dialog.dart';
 import 'map_tab.dart';
 import 'overflow_screens.dart' show OverflowBanner;
 import 'settings_screen.dart';
@@ -64,6 +65,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       // записи, пришедшие, пока журнал был открыт, тоже прочитаны
       ref.read(uiFlagsProvider.notifier).markJournalRead(last);
     }
+    if (i != _tab) ref.read(appProvider.notifier).screen(const ['path', 'map', 'hero', 'journal'][i]);
     setState(() => _tab = i);
   }
 
@@ -329,6 +331,7 @@ class _PathTabState extends ConsumerState<PathTab> {
   }
 
   void _openSettings() {
+    ref.read(appProvider.notifier).screen('settings');
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen()));
   }
 
@@ -867,6 +870,20 @@ class _TodayCard extends ConsumerWidget {
               style: const TextStyle(color: Palette.parchmentDim, fontSize: 11),
             ),
           ],
+          // Ручной ввод шагов (V5-54): часы насчитали больше — поправить сегодняшний день.
+          if (c.manualSteps().containsKey(today)) ...[
+            const SizedBox(height: Gap.xs),
+            Text(l.manualEditedMark, style: const TextStyle(color: Palette.parchmentDim, fontSize: 11)),
+          ] else if (c.canEditSteps(today))
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                onPressed: () => openManualSteps(context, ref, today),
+                icon: Icon(c.premium ? Icons.edit_outlined : Icons.lock_outline, size: 16),
+                label: Text(l.stepsMismatch, style: const TextStyle(fontSize: 13)),
+              ),
+            ),
         ],
       ),
     );
@@ -897,9 +914,17 @@ class _ThoughtCard extends ConsumerWidget {
             ),
           ]),
           const SizedBox(height: Gap.s),
-          Text('«${t.quote}»', style: const TextStyle(fontStyle: FontStyle.italic, height: 1.4)),
-          const SizedBox(height: Gap.xs),
-          Text('— ${t.author}', style: const TextStyle(color: Palette.parchmentDim, fontSize: 13)),
+          if (c.thoughtLocked(day)) ...[
+            Row(children: [
+              const Icon(Icons.lock_outline, color: Palette.parchmentDim, size: 16),
+              const SizedBox(width: Gap.xs),
+              Expanded(child: Text(l.thoughtLockedTitle(c.thoughtNumber(day)), style: const TextStyle(height: 1.4))),
+            ]),
+          ] else ...[
+            Text('«${t.quote}»', style: const TextStyle(fontStyle: FontStyle.italic, height: 1.4)),
+            const SizedBox(height: Gap.xs),
+            Text('— ${t.author}', style: const TextStyle(color: Palette.parchmentDim, fontSize: 13)),
+          ],
         ],
       ),
     );
