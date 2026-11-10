@@ -53,6 +53,13 @@ class MainActivity : FlutterFragmentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         captureNotification(intent)
+        // Повторный вход в работающее приложение: кадр уже есть, «запуск оборвался» не ставим
+        if (CrashLog.drawn) CrashLog.markStarted(applicationContext)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (CrashLog.drawn) CrashLog.markStarted(applicationContext)
     }
 
     private val healthLauncher = registerForActivityResult(
