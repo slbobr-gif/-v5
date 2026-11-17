@@ -306,6 +306,13 @@ class _BackpackOverflowState extends ConsumerState<_BackpackOverflow> {
       body: ListView(
         padding: EdgeInsets.fromLTRB(Gap.m, Gap.s, Gap.m, safeBottom(context)),
         children: [
+          // V5-59: показатели героя — чтобы решить, что съесть или выпить сейчас, а что оставить.
+          _StatsStrip(
+            values: [for (final k in statKeys) hero.stats[k] ?? 0.0],
+            max: eng.maxStat,
+            labels: [l.statSatiety, l.statWater, l.statWarmth],
+          ),
+          const SizedBox(height: Gap.s),
           SectionCard(
             child: Row(children: [
               ItemIcon(widget.item, size: 56, type: w.itemType(widget.item), hot: hot),
@@ -417,3 +424,46 @@ class _SwapRow extends StatelessWidget {
 
 /// Сколько вещей ждёт решения (для экранов остановок).
 bool hasOverflow(HeroState? hero) => hero != null && hero.overflow.isNotEmpty;
+
+/// Три шкалы — сытость, вода, тепло — с числами: чего сейчас меньше всего.
+class _StatsStrip extends StatelessWidget {
+  const _StatsStrip({required this.values, required this.max, required this.labels});
+  final List<double> values;
+  final double max;
+  final List<String> labels;
+
+  static const _colors = [Palette.satiety, Palette.water, Palette.warmth];
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      for (var i = 0; i < values.length; i++) ...[
+        if (i > 0) const SizedBox(width: Gap.s),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Expanded(
+                child: Text(labels[i],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Palette.parchmentDim, fontSize: 12)),
+              ),
+              Text('${values[i].round()}',
+                  style: TextStyle(color: _colors[i], fontSize: 13, fontWeight: FontWeight.w700)),
+            ]),
+            const SizedBox(height: 4),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: LinearProgressIndicator(
+                value: max <= 0 ? 0 : (values[i] / max).clamp(0.0, 1.0),
+                minHeight: 6,
+                color: _colors[i],
+                backgroundColor: Palette.inkHigh,
+              ),
+            ),
+          ]),
+        ),
+      ],
+    ]);
+  }
+}

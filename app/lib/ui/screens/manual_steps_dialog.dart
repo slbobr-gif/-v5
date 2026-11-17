@@ -104,7 +104,7 @@ class _ManualStepsDialogState extends ConsumerState<_ManualStepsDialog> {
       ),
       actions: [
         TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l.manualCancel)),
-        FilledButton(onPressed: _busy ? null : _save, child: Text(l.manualSave)),
+        TextButton(onPressed: _busy ? null : _save, child: Text(l.manualSave)),
       ],
     );
   }

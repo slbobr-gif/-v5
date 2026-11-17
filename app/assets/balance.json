@@ -1048,7 +1048,17 @@
     "_comment": "Ночёвка (V5-45): остановка в пути каждые movement.dayLengthKm км (на фазе atPhase — начало «ночи» в dayPhase), только на новом пути (pos ≥ maxPos). +warmth тепла, затем утренний бонус — один из morning по весам (тексты — l10n nightMorning_<id>), плюс camp-перки снаряжения (спальник). Герой идёт дальше теми же шагами после «Дальше», ждать следующего дня не нужно. Место-остановка ближе skipNearPlaceKm до ночёвки заменяет её.",
     "atPhase": 0.75,
     "skipNearPlaceKm": 3,
-    "warmth": 40,
+    "warmth": 0,
+    "_kinds": "V5-60: тепло за ночь зависит от ночи — тёплая +30, мягкая +20, прохладная +10, холодная 0. Веса сдвигаются к холоду на севере (coldShift по главе) и в дождь, ветер, туман, снег (coldWeather). Тепло ночи и утра вместе — не больше maxWarmth; камп-перки снаряжения (спальник, уголёк) — сверху.",
+    "kinds": [
+      {"id": "warm", "warmth": 30, "weight": 3},
+      {"id": "mild", "warmth": 20, "weight": 4},
+      {"id": "cool", "warmth": 10, "weight": 3},
+      {"id": "cold", "warmth": 0, "weight": 2}
+    ],
+    "coldShift": {"1": 0, "2": 0, "3": 1, "4": 1, "5": 2, "6": 2},
+    "coldWeather": ["rain", "wind", "fog", "snow"],
+    "maxWarmth": 30,
     "morning": [
       {"id": "quiet", "weight": 3},
       {"id": "stream", "weight": 2, "water": 30},

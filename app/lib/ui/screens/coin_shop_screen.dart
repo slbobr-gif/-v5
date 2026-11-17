@@ -46,14 +46,20 @@ class CoinShopScreen extends ConsumerWidget {
             StoryText(l.coinShopBody),
             const SizedBox(height: Gap.l),
             for (final p in c.coinPacks()) ...[
+              // Кнопки в теме растянуты на всю ширину (minimumSize.fromHeight), поэтому не в Row рядом с текстом.
               SectionCard(
-                child: Row(children: [
-                  const Icon(Icons.toll, color: Palette.accent, size: 28),
-                  const SizedBox(width: Gap.m),
-                  Expanded(
-                    child: Text(l.coinPackLabel(toI(p['coins'])),
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                  ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Row(children: [
+                    const Icon(Icons.toll, color: Palette.accent, size: 24),
+                    const SizedBox(width: Gap.s),
+                    Expanded(
+                      child: Text(l.coinPackLabel(toI(p['coins'])),
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                    ),
+                    Text(l.coinPackPrice(toI(p['rub'])),
+                        style: const TextStyle(fontSize: 17, color: Palette.parchmentDim)),
+                  ]),
+                  const SizedBox(height: Gap.s),
                   FilledButton(
                     onPressed: () {
                       final got = c.buyCoinsTest('${p['id']}');
@@ -61,7 +67,7 @@ class CoinShopScreen extends ConsumerWidget {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.coinTestDone(got))));
                       }
                     },
-                    child: Text('${l.coinBuy} · ${l.coinPackPrice(toI(p['rub']))}'),
+                    child: Text(l.coinBuy),
                   ),
                 ]),
               ),

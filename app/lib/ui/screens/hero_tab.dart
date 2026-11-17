@@ -131,9 +131,12 @@ String _forecast(AppLocalizations l, Engine eng, World w, String id, String heat
 
 /// Что выбрано: ячейка рюкзака [index] с вещью [id] или снаряжение [id].
 class _Pick {
-  const _Pick(this.id, {this.gear = false, this.index = 0});
+  const _Pick(this.id, {this.gear = false, this.index = 0, this.gift = false});
   final String id;
   final bool gear;
+
+  /// Дар духа (V5-59): описание — под списком даров.
+  final bool gift;
   final int index;
 }
 
@@ -172,6 +175,9 @@ class _HeroTabState extends ConsumerState<HeroTab> {
   /// Выбор игрока; null — показываем самую полезную сейчас вещь.
   _Pick? _pick;
 
+  /// Список даров свёрнут (V5-59): даров бывает много, экран не должен тонуть в них.
+  bool _giftsOpen = false;
+
   void _snack(String text) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
@@ -179,6 +185,7 @@ class _HeroTabState extends ConsumerState<HeroTab> {
   _Pick? _resolve(HeroState hero, List<String> units, Engine eng, World w, String heat) {
     final p = _pick;
     if (p != null) {
+      if (p.gift && heldItemIds(hero).contains(p.id)) return p;
       if (p.gear && hero.gear.contains(p.id)) return p;
       if (!p.gear && units.contains(p.id)) {
         final i = (p.index < units.length && units[p.index] == p.id) ? p.index : units.indexOf(p.id);
@@ -415,11 +422,36 @@ class _HeroTabState extends ConsumerState<HeroTab> {
               ),
             ),
             const SizedBox(height: Gap.s),
-
-            // ---------------- дары духов: отдельная строка под снаряжением
-            for (final id in gifts) ...[
-              _giftLine(l, eng, w, content.itemName(id), id, now, clewStatus, clewItem),
+            // V5-59: описание выбранного снаряжения — сразу под его блоком, а не внизу экрана.
+            if (pick != null && pick.gear) ...[
+              _gearPanel(l, eng, w, content.itemName(pick.id), pick.id, heat, now),
               const SizedBox(height: Gap.s),
+            ],
+
+            // ---------------- дары духов: сворачиваемый список под снаряжением (V5-59)
+            if (gifts.isNotEmpty) ...[
+              _GiftsHeader(
+                title: l.heroGiftsTitle,
+                count: gifts.length,
+                open: _giftsOpen,
+                ids: gifts,
+                types: [for (final id in gifts) w.itemType(id)],
+                onToggle: () => setState(() => _giftsOpen = !_giftsOpen),
+              ),
+              const SizedBox(height: Gap.s),
+              if (_giftsOpen)
+                for (final id in gifts) ...[
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => _pick = _Pick(id, gift: true)),
+                    child: _giftLine(l, eng, w, content.itemName(id), id, now, clewStatus, clewItem),
+                  ),
+                  const SizedBox(height: Gap.s),
+                ],
+              if (pick != null && pick.gift) ...[
+                _giftPanel(l, w, content.itemName(pick.id), pick.id),
+                const SizedBox(height: Gap.s),
+              ],
             ],
 
             // ---------------- рюкзак
@@ -451,19 +483,14 @@ class _HeroTabState extends ConsumerState<HeroTab> {
             ),
             const SizedBox(height: Gap.s),
 
-            // ---------------- строка действий выбранной вещи
-            AnimatedSize(
-              duration: const Duration(milliseconds: 180),
-              alignment: Alignment.topCenter,
-              child: pick == null
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: Gap.xs, vertical: Gap.s),
-                      child: Text(l.backpackEmpty, style: const TextStyle(color: Palette.parchmentDim, fontSize: 13)),
-                    )
-                  : pick.gear
-                      ? _gearPanel(l, eng, w, content.itemName(pick.id), pick.id, heat, now)
-                      : _packPanel(l, eng, w, content.itemName(pick.id), pick.id, heat, hot, stove),
-            ),
+            // ---------------- строка действий выбранной вещи рюкзака — под рюкзаком
+            if (units.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Gap.xs, vertical: Gap.s),
+                child: Text(l.backpackEmpty, style: const TextStyle(color: Palette.parchmentDim, fontSize: 13)),
+              )
+            else if (pick != null && !pick.gear && !pick.gift)
+              _packPanel(l, eng, w, content.itemName(pick.id), pick.id, heat, hot, stove),
           ],
         ),
       ),
@@ -538,6 +565,22 @@ class _HeroTabState extends ConsumerState<HeroTab> {
       status: charges == null ? status : '$charges · $status',
       label: label,
       onTap: onTap,
+    );
+  }
+
+  /// Описание дара (V5-59): что это и как работает — как у обычных вещей.
+  Widget _giftPanel(AppLocalizations l, World w, String name, String id) {
+    final how = perksLine(l, w, id);
+    return _ActionPanel(
+      key: ValueKey<String>('gift:$id'),
+      id: id,
+      type: w.itemType(id),
+      hot: false,
+      title: name,
+      subtitle: ref.read(appProvider.notifier).content.itemDesc(id),
+      subtitleLines: 4,
+      actions: const [],
+      note: how.isEmpty ? '' : l.heroGiftHow(how),
     );
   }
 
@@ -1490,4 +1533,58 @@ class _DashedRRectPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Заголовок списка даров: название, число, значки даров в свёрнутом виде, стрелка.
+class _GiftsHeader extends StatelessWidget {
+  const _GiftsHeader({
+    required this.title,
+    required this.count,
+    required this.open,
+    required this.ids,
+    required this.types,
+    required this.onToggle,
+  });
+
+  final String title;
+  final int count;
+  final bool open;
+  final List<String> ids;
+  final List<String> types;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onToggle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Palette.inkRaised,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Palette.zoneWild),
+        ),
+        child: Row(children: [
+          Text('$title · $count',
+              style: const TextStyle(color: Palette.parchment, fontSize: 13, fontWeight: FontWeight.w700)),
+          const SizedBox(width: Gap.s),
+          Expanded(
+            child: open
+                ? const SizedBox.shrink()
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(children: [
+                      for (var i = 0; i < ids.length; i++) ...[
+                        if (i > 0) const SizedBox(width: 4),
+                        ItemIcon(ids[i], size: 22, type: types[i]),
+                      ],
+                    ]),
+                  ),
+          ),
+          Icon(open ? Icons.expand_less : Icons.expand_more, color: Palette.parchmentDim),
+        ]),
+      ),
+    );
+  }
 }

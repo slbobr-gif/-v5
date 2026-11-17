@@ -143,7 +143,10 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
     final clew = c.clewStatus();
     // Чей голос подскажет: клубок, нитка или дар духа «своих» мест (§13.5).
     final clewItem = eng.clewItem(DateTime.now().millisecondsSinceEpoch);
-    final firstRisky = choices.indexWhere((ch) => ((ch['risk'] as String?) ?? 'none') != 'none');
+    // V5-59: в случайных событиях и встречах с духами риск не подсказываем — игрок решает сам.
+    final hideRisk = ev['kind'] == 'creature' || ev['kind'] == 'random' || '${ev['id']}'.startsWith('rnd_');
+    final firstRisky =
+        hideRisk ? -1 : choices.indexWhere((ch) => ((ch['risk'] as String?) ?? 'none') != 'none');
     final tips = <CoachStep>[
       if (firstRisky >= 0) CoachStep(id: 'risk', anchor: 'risk', title: l.tourStep6Title, body: l.tourStep6Body),
     ];
@@ -191,7 +194,7 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
                     _ChoiceButton(
                       choice: choices[i],
                       available: eng.choiceAvailable(choices[i]),
-                      risk: eng.choiceRisk(choices[i]),
+                      risk: hideRisk ? 'none' : eng.choiceRisk(choices[i]),
                       riskAnchor: i == firstRisky,
                       tone: tones?['${choices[i]['id']}'],
                       requirement: _requirementText(l, c, eng, choices[i]),
@@ -726,11 +729,19 @@ class _NightScreen extends ConsumerWidget {
       'nuts' => l.nightMorning_nuts,
       _ => '',
     };
+    // V5-60: какая выдалась ночь — от неё тепло.
+    final kind = switch ('${st['kind'] ?? ''}') {
+      'warm' => l.nightKind_warm,
+      'mild' => l.nightKind_mild,
+      'cool' => l.nightKind_cool,
+      'cold' => l.nightKind_cold,
+      _ => l.nightText,
+    };
     return _OutcomeScreen(
       title: l.nightTitle,
       art: 'night',
       outcome: OutcomeView(
-        text: morning.isEmpty ? l.nightText : '${l.nightText}\n\n$morning',
+        text: morning.isEmpty ? kind : '$kind\n\n$morning',
         coins: 0,
         stats: gain,
         itemsGained: const {},

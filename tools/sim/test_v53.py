@@ -925,7 +925,10 @@ class Night(unittest.TestCase):
         self.assertIsNotNone(st)
         self.assertAlmostEqual(s["pos"], self.at, places=3)
         mo = next(m for m in BAL["night"]["morning"] if m["id"] == st["morning"])
-        self.assertEqual(st["gain"]["warmth"], BAL["night"]["warmth"] + int(mo.get("warmth", 0)))
+        # V5-60: тепло ночи по виду ночи (+утро), не больше maxWarmth
+        kind = next(k for k in BAL["night"]["kinds"] if k["id"] == st["kind"])
+        self.assertEqual(st["gain"]["warmth"],
+                         min(BAL["night"]["maxWarmth"], kind["warmth"] + int(mo.get("warmth", 0))))
         self.assertGreater(s["stats"]["warmth"], 30.0)
         self.assertEqual(s["journal"][-1]["kind"] if s["journal"][-1]["kind"] != "camp" else s["journal"][-2]["kind"],
                          "night")

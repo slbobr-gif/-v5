@@ -1141,18 +1141,34 @@ class Engine {
     final mo = morning.isEmpty
         ? const <String, dynamic>{}
         : morning[rng.pickWeighted(morning.map((m) => toI(m['weight'])).toList())];
-    final gain = <String, int>{'warmth': toI(nb['warmth'])};
+    // V5-60: какая выдалась ночь — тёплая, мягкая, прохладная или холодная (север и непогода холоднее).
+    final kinds = ((nb['kinds'] as List?) ?? const []).map((m) => (m as Map).cast<String, dynamic>()).toList();
+    var kindId = '';
+    var nightWarmth = toI(nb['warmth']);
+    if (kinds.isNotEmpty) {
+      final shift = toI(((nb['coldShift'] as Map?) ?? const {})['${w.chapterAt(s.pos)}'] ?? 0) +
+          (((nb['coldWeather'] as List?) ?? const []).contains(w.weatherAt(s.seed, s.pos)) ? 2 : 0);
+      final weights = [
+        for (var i = 0; i < kinds.length; i++)
+          math.max(1, toI(kinds[i]['weight']) + (i >= kinds.length - 2 ? shift : -shift)),
+      ];
+      final k = kinds[rng.pickWeighted(weights)];
+      kindId = '${k['id']}';
+      nightWarmth = toI(k['warmth']);
+    }
+    final gain = <String, int>{'warmth': nightWarmth};
     for (final k in statKeys) {
       if (truthy(mo[k])) gain[k] = (gain[k] ?? 0) + toI(mo[k]);
     }
+    if (nb['maxWarmth'] != null) gain['warmth'] = math.min(gain['warmth']!, toI(nb['maxWarmth']));
     gain.forEach((k, v) {
       s.stats[k] = s.stats[k]! + v;
     });
     _clampStats();
     final mid = (mo['id'] as String?) ?? '';
-    _log(now, 'night', {'morning': mid, 'gain': Map<String, int>.of(gain)});
+    _log(now, 'night', {'morning': mid, 'nightKind': kindId, 'gain': Map<String, int>.of(gain)});
     _camp(const <String, dynamic>{'id': ''}, now);
-    s.stop = {'type': 'night', 'morning': mid, 'gain': gain};
+    s.stop = {'type': 'night', 'morning': mid, 'kind': kindId, 'gain': gain};
     s.nextNightAt = firstNightAfter(b, s.pos);
   }
 

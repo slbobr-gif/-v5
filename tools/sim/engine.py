@@ -1385,17 +1385,31 @@ class Engine:
         nb = self.b["night"]
         morning = nb.get("morning") or []
         mo = morning[self.rng.pick_weighted([int(m["weight"]) for m in morning])] if morning else {}
-        gain = {"warmth": int(nb.get("warmth", 0))}
+        # V5-60: какая выдалась ночь (север и непогода холоднее)
+        kinds = nb.get("kinds") or []
+        kind_id = ""
+        night_warmth = int(nb.get("warmth", 0))
+        if kinds:
+            shift = int(nb.get("coldShift", {}).get(str(self.w.chapter_at(self.s["pos"])), 0)) + \
+                (2 if self.w.weather_at(self.s["seed"], self.s["pos"]) in nb.get("coldWeather", []) else 0)
+            weights = [max(1, int(k["weight"]) + (shift if i >= len(kinds) - 2 else -shift))
+                       for i, k in enumerate(kinds)]
+            kk = kinds[self.rng.pick_weighted(weights)]
+            kind_id = kk["id"]
+            night_warmth = int(kk["warmth"])
+        gain = {"warmth": night_warmth}
         for k in STATS:
             if mo.get(k):
                 gain[k] = gain.get(k, 0) + int(mo[k])
+        if nb.get("maxWarmth") is not None:
+            gain["warmth"] = min(gain["warmth"], int(nb["maxWarmth"]))
         for k, v in gain.items():
             self.s["stats"][k] += v
         self._clamp_stats()
         mid = mo.get("id", "")
-        self._log(now, "night", "Сергей заночевал в пути", morning=mid, gain=dict(gain))
+        self._log(now, "night", "Сергей заночевал в пути", morning=mid, nightKind=kind_id, gain=dict(gain))
         self._camp({"id": ""}, now)
-        self.s["stop"] = {"type": "night", "morning": mid, "gain": gain}
+        self.s["stop"] = {"type": "night", "morning": mid, "kind": kind_id, "gain": gain}
         self.s["nextNightAt"] = first_night_after(self.b, self.s["pos"])
 
     def _pick_random(self, now: int):
