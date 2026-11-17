@@ -387,6 +387,9 @@ def main():
     cur = json.loads(p.read_text(encoding='utf-8'))
     cur = [e for e in cur if '_north_' not in e['id']]
     cur.extend(EV)
+    from postpatch import one_coin  # V5-61
+    for e in cur:
+        one_coin(e)
     p.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print('random events', len(cur), '+north', len(EV))
 

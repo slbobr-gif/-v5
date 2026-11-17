@@ -116,10 +116,10 @@
    "expected": {
     "pos": 3000.0,
     "buffer": 19500.0,
-    "coins": 55,
+    "coins": 50,
     "stats": {
-     "satiety": 74.223,
-     "water": 82.86,
+     "satiety": 73.878,
+     "water": 82.963,
      "warmth": 100.0
     },
     "inv": {
@@ -259,10 +259,10 @@
    "expected": {
     "pos": 16000.0,
     "buffer": 40250.0,
-    "coins": 74,
+    "coins": 52,
     "stats": {
-     "satiety": 76.861,
-     "water": 91.308,
+     "satiety": 75.319,
+     "water": 91.292,
      "warmth": 95.381
     },
     "inv": {
@@ -296,7 +296,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 3,
-    "journal": 13,
+    "journal": 12,
     "journalTail": [
      "login",
      "event",
@@ -584,10 +584,10 @@
    "expected": {
     "pos": 62250.0,
     "buffer": 0.0,
-    "coins": 79,
+    "coins": 57,
     "stats": {
-     "satiety": 88.825,
-     "water": 62.008,
+     "satiety": 82.712,
+     "water": 65.676,
      "warmth": 100.0
     },
     "inv": {
@@ -623,16 +623,16 @@
     "stop": null,
     "deaths": 0,
     "seen": 10,
-    "journal": 33,
+    "journal": 32,
     "journalTail": [
-     "event",
-     "event",
      "eat",
+     "event",
+     "event",
      "event"
     ],
     "journalPos": [
+     54618,
      55118,
-     58118,
      58118,
      61118
     ],
@@ -696,10 +696,10 @@
    "expected": {
     "pos": 62898.8,
     "buffer": 44351.2,
-    "coins": 125,
+    "coins": 80,
     "stats": {
-     "satiety": 82.258,
-     "water": 54.092,
+     "satiety": 76.085,
+     "water": 57.778,
      "warmth": 95.968
     },
     "inv": {
@@ -735,7 +735,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 11,
-    "journal": 40,
+    "journal": 38,
     "journalTail": [
      "goal",
      "login",
@@ -997,11 +997,11 @@
    "expected": {
     "pos": 104250.0,
     "buffer": 0.0,
-    "coins": 130,
+    "coins": 85,
     "stats": {
-     "satiety": 75.676,
-     "water": 72.301,
-     "warmth": 78.783
+     "satiety": 65.552,
+     "water": 76.319,
+     "warmth": 78.863
     },
     "inv": {
      "ball_yaga": 1,
@@ -1036,7 +1036,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 20,
-    "journal": 56,
+    "journal": 54,
     "journalTail": [
      "place",
      "event",
@@ -1242,10 +1242,10 @@
    "expected": {
     "pos": 130500.0,
     "buffer": 0.0,
-    "coins": 148,
+    "coins": 94,
     "stats": {
-     "satiety": 66.733,
-     "water": 57.433,
+     "satiety": 54.194,
+     "water": 62.526,
      "warmth": 98.495
     },
     "inv": {
@@ -1282,7 +1282,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 24,
-    "journal": 69,
+    "journal": 66,
     "journalTail": [
      "place",
      "event",
@@ -1386,10 +1386,10 @@
    "expected": {
     "pos": 140168.4,
     "buffer": 19331.6,
-    "coins": 171,
+    "coins": 108,
     "stats": {
-     "satiety": 81.409,
-     "water": 38.455,
+     "satiety": 100.0,
+     "water": 42.746,
      "warmth": 100.0
     },
     "inv": {
@@ -1397,7 +1397,7 @@
      "bead_kikimora": 1,
      "hook_vodyanoy": 1,
      "pearl_rusalka": 1,
-     "pie": 4,
+     "pie": 3,
      "thermos": 1,
      "water": 1
     },
@@ -1431,16 +1431,16 @@
     "stop": null,
     "deaths": 0,
     "seen": 25,
-    "journal": 76,
+    "journal": 74,
     "journalTail": [
-     "event",
      "detour",
+     "eat",
      "event",
      "heat"
     ],
     "journalPos": [
      132598,
-     132598,
+     134848,
      137168,
      140168
     ],
@@ -1708,7 +1708,7 @@
      "op": "buy",
      "item": "bread",
      "now": 1778263200000,
-     "ret": false
+     "ret": true
     },
     {
      "op": "buy",
@@ -1725,12 +1725,6 @@
      "op": "advance",
      "now": 1778263200000,
      "ret": 0
-    },
-    {
-     "op": "buy",
-     "item": "bread",
-     "now": 1778263200000,
-     "ret": false
     },
     {
      "op": "continueJourney",
@@ -1760,19 +1754,19 @@
    "expected": {
     "pos": 184628.89,
     "buffer": 29121.11,
-    "coins": 242,
+    "coins": 144,
     "stats": {
-     "satiety": 52.126,
-     "water": 95.708,
-     "warmth": 99.605
+     "satiety": 61.176,
+     "water": 94.008,
+     "warmth": 99.586
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 1,
+     "bread": 2,
      "fish": 1,
      "hook_vodyanoy": 1,
-     "pie": 4,
+     "pie": 3,
      "thermos": 1
     },
     "gear": [
@@ -1809,15 +1803,15 @@
     "stop": null,
     "deaths": 0,
     "seen": 33,
-    "journal": 108,
+    "journal": 107,
     "journalTail": [
-     "event",
      "place",
+     "buy",
      "buy",
      "event"
     ],
     "journalPos": [
-     175899,
+     183922,
      183922,
      183922,
      184629
@@ -2062,19 +2056,19 @@
    "expected": {
     "pos": 225000.0,
     "buffer": 0.0,
-    "coins": 237,
+    "coins": 139,
     "stats": {
      "satiety": 100.0,
-     "water": 64.1,
-     "warmth": 58.694
+     "water": 58.96,
+     "warmth": 57.309
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 1,
+     "bread": 2,
      "fish": 2,
      "hook_vodyanoy": 1,
-     "pie": 2,
+     "pie": 1,
      "sheaf_ovinnik": 1,
      "stone_bannik": 1,
      "thermos": 1
@@ -2118,7 +2112,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 38,
-    "journal": 125,
+    "journal": 124,
     "journalTail": [
      "gift",
      "event",
@@ -2234,7 +2228,7 @@
     {
      "op": "dropItem",
      "item": "bread",
-     "ret": "no_item"
+     "ret": null
     },
     {
      "op": "dropItem",
@@ -2245,18 +2239,18 @@
    "expected": {
     "pos": 229340.51,
     "buffer": 21909.49,
-    "coins": 260,
+    "coins": 149,
     "stats": {
-     "satiety": 90.206,
-     "water": 32.439,
-     "warmth": 83.9
+     "satiety": 89.807,
+     "water": 47.626,
+     "warmth": 82.372
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
      "fish": 2,
      "hook_vodyanoy": 1,
-     "pie": 2,
+     "pie": 1,
      "sheaf_ovinnik": 1,
      "stone_bannik": 1,
      "thermos": 1
@@ -2281,7 +2275,7 @@
     "overflow": [],
     "aidLock": false,
     "portionsLeft": {
-     "thermos": 3
+     "thermos": 2
     },
     "abilityReady": {
      "ball_yaga": 20585,
@@ -2299,16 +2293,16 @@
     "stop": null,
     "deaths": 0,
     "seen": 39,
-    "journal": 134,
+    "journal": 133,
     "journalTail": [
-     "event",
      "gift",
+     "eat",
      "night",
      "event"
     ],
     "journalPos": [
      225004,
-     225004,
+     226754,
      227500,
      229341
     ],
@@ -2516,7 +2510,7 @@
     },
     {
      "op": "useItem",
-     "item": "pie",
+     "item": "thermos",
      "now": 1778522400000,
      "ret": true
     },
@@ -2532,10 +2526,10 @@
    "expected": {
     "pos": 260300.9,
     "buffer": 24699.1,
-    "coins": 287,
+    "coins": 159,
     "stats": {
-     "satiety": 87.147,
-     "water": 50.148,
+     "satiety": 43.899,
+     "water": 63.647,
      "warmth": 100.0
     },
     "inv": {
@@ -2545,8 +2539,7 @@
      "bread": 1,
      "fish": 2,
      "hook_vodyanoy": 1,
-     "stone_bannik": 1,
-     "thermos": 1
+     "stone_bannik": 1
     },
     "gear": [
      "gas_stove",
@@ -2567,9 +2560,7 @@
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
-    "portionsLeft": {
-     "thermos": 1
-    },
+    "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20585,
      "bead_kikimora": 20587,
@@ -2588,7 +2579,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 45,
-    "journal": 156,
+    "journal": 153,
     "journalTail": [
      "event",
      "event",
@@ -2869,17 +2860,17 @@
    "expected": {
     "pos": 308482.4,
     "buffer": 8416.08,
-    "coins": 318,
+    "coins": 167,
     "stats": {
-     "satiety": 60.863,
-     "water": 61.205,
-     "warmth": 87.504
+     "satiety": 59.322,
+     "water": 48.899,
+     "warmth": 87.379
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "berries": 2,
-     "fish": 4,
+     "berries": 1,
+     "fish": 3,
      "hook_vodyanoy": 1,
      "stone_bannik": 1
     },
@@ -2921,7 +2912,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 52,
-    "journal": 184,
+    "journal": 181,
     "journalTail": [
      "event",
      "event",
@@ -3037,16 +3028,16 @@
    "expected": {
     "pos": 324398.48,
     "buffer": 0.0,
-    "coins": 323,
+    "coins": 172,
     "stats": {
-     "satiety": 52.952,
-     "water": 21.864,
-     "warmth": 82.92
+     "satiety": 37.947,
+     "water": 3.828,
+     "warmth": 82.18
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "fish": 4,
+     "fish": 3,
      "hook_vodyanoy": 1,
      "stone_bannik": 1
     },
@@ -3088,7 +3079,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 54,
-    "journal": 194,
+    "journal": 190,
     "journalTail": [
      "gift",
      "quest",
@@ -3220,7 +3211,7 @@
     },
     {
      "op": "choose",
-     "choice": "water",
+     "choice": "no",
      "now": 1778781600000,
      "ret": {
       "ok": true,
@@ -3323,17 +3314,17 @@
    "expected": {
     "pos": 353647.48,
     "buffer": 0.0,
-    "coins": 327,
+    "coins": 163,
     "stats": {
-     "satiety": 44.01,
-     "water": 29.212,
-     "warmth": 99.087
+     "satiety": 61.59,
+     "water": 51.022,
+     "warmth": 99.041
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
      "bread": 1,
-     "fish": 5,
+     "fish": 4,
      "hook_vodyanoy": 1,
      "stone_bannik": 1
     },
@@ -3348,7 +3339,7 @@
     "gearUses": {
      "first_aid": 2,
      "gas_stove": 25,
-     "hook_vodyanoy": 5,
+     "hook_vodyanoy": 2,
      "stone_bannik": 2
     },
     "heated": false,
@@ -3372,7 +3363,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 59,
-    "journal": 218,
+    "journal": 215,
     "journalTail": [
      "place",
      "buy",
@@ -3516,16 +3507,17 @@
    "expected": {
     "pos": 367360.49,
     "buffer": 12536.98,
-    "coins": 350,
+    "coins": 173,
     "stats": {
-     "satiety": 68.025,
-     "water": 17.886,
+     "satiety": 72.343,
+     "water": 30.641,
      "warmth": 100.0
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "fish": 5,
+     "berries": 1,
+     "fish": 4,
      "hook_vodyanoy": 1,
      "stone_bannik": 1,
      "thread_yaga": 1
@@ -3542,7 +3534,7 @@
     "gearUses": {
      "first_aid": 2,
      "gas_stove": 25,
-     "hook_vodyanoy": 5,
+     "hook_vodyanoy": 2,
      "stone_bannik": 2,
      "thread_yaga": 2
     },
@@ -3567,15 +3559,15 @@
     "stop": null,
     "deaths": 0,
     "seen": 60,
-    "journal": 230,
+    "journal": 225,
     "journalTail": [
      "event",
+     "event",
      "gift",
-     "eat",
      "event"
     ],
     "journalPos": [
-     359799,
+     358500,
      359799,
      359799,
      367360
@@ -3976,11 +3968,11 @@
    "expected": {
     "pos": 426715.2,
     "buffer": 0.0,
-    "coins": 352,
+    "coins": 160,
     "stats": {
-     "satiety": 87.63,
-     "water": 95.953,
-     "warmth": 97.648
+     "satiety": 85.576,
+     "water": 96.055,
+     "warmth": 97.53
     },
     "inv": {
      "ball_yaga": 1,
@@ -4003,7 +3995,7 @@
     "gearUses": {
      "first_aid": 2,
      "gas_stove": 25,
-     "hook_vodyanoy": 4,
+     "hook_vodyanoy": 1,
      "stone_bannik": 2
     },
     "heated": false,
@@ -4030,7 +4022,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 71,
-    "journal": 268,
+    "journal": 263,
     "journalTail": [
      "camp",
      "buy",
@@ -4084,11 +4076,11 @@
    "expected": {
     "pos": 426715.2,
     "buffer": 0.0,
-    "coins": 357,
+    "coins": 165,
     "stats": {
-     "satiety": 81.63,
-     "water": 88.753,
-     "warmth": 95.38
+     "satiety": 79.576,
+     "water": 88.855,
+     "warmth": 95.262
     },
     "inv": {
      "ball_yaga": 1,
@@ -4111,7 +4103,7 @@
     "gearUses": {
      "first_aid": 2,
      "gas_stove": 25,
-     "hook_vodyanoy": 4,
+     "hook_vodyanoy": 1,
      "stone_bannik": 2
     },
     "heated": false,
@@ -4138,7 +4130,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 71,
-    "journal": 270,
+    "journal": 265,
     "journalTail": [
      "gift",
      "event",
@@ -4377,11 +4369,11 @@
    "expected": {
     "pos": 456397.48,
     "buffer": 0.0,
-    "coins": 378,
+    "coins": 169,
     "stats": {
-     "satiety": 74.589,
-     "water": 60.974,
-     "warmth": 97.243
+     "satiety": 69.645,
+     "water": 58.658,
+     "warmth": 97.105
     },
     "inv": {
      "ball_yaga": 1,
@@ -4406,7 +4398,7 @@
     "gearUses": {
      "first_aid": 2,
      "gas_stove": 25,
-     "hook_vodyanoy": 4,
+     "hook_vodyanoy": 1,
      "stone_bannik": 2
     },
     "heated": false,
@@ -4433,7 +4425,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 76,
-    "journal": 293,
+    "journal": 287,
     "journalTail": [
      "place",
      "buy",
@@ -4625,11 +4617,11 @@
    "expected": {
     "pos": 486397.48,
     "buffer": 0.0,
-    "coins": 375,
+    "coins": 161,
     "stats": {
-     "satiety": 74.369,
-     "water": 33.048,
-     "warmth": 98.899
+     "satiety": 66.665,
+     "water": 23.519,
+     "warmth": 98.844
     },
     "inv": {
      "ball_yaga": 1,
@@ -4654,7 +4646,7 @@
     "gearUses": {
      "first_aid": 2,
      "gas_stove": 25,
-     "hook_vodyanoy": 4,
+     "hook_vodyanoy": 1,
      "stone_bannik": 2
     },
     "heated": false,
@@ -4681,7 +4673,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 82,
-    "journal": 309,
+    "journal": 303,
     "journalTail": [
      "place",
      "buy",
@@ -4844,11 +4836,11 @@
    "expected": {
     "pos": 505496.8,
     "buffer": 18400.68,
-    "coins": 401,
+    "coins": 174,
     "stats": {
-     "satiety": 68.676,
-     "water": 31.1,
-     "warmth": 72.261
+     "satiety": 59.215,
+     "water": 25.779,
+     "warmth": 71.579
     },
     "inv": {
      "ball_yaga": 1,
@@ -4872,7 +4864,7 @@
     "gearUses": {
      "first_aid": 2,
      "gas_stove": 25,
-     "hook_vodyanoy": 4,
+     "hook_vodyanoy": 1,
      "stone_bannik": 2
     },
     "heated": false,
@@ -4899,7 +4891,7 @@
     "stop": null,
     "deaths": 0,
     "seen": 85,
-    "journal": 325,
+    "journal": 319,
     "journalTail": [
      "event",
      "event",

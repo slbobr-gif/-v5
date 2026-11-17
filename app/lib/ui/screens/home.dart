@@ -850,6 +850,15 @@ class _TodayCard extends ConsumerWidget {
             const SizedBox(height: Gap.s),
             Text(l.allGoalsDone, style: const TextStyle(color: Palette.accent, fontSize: 13)),
           ],
+          // Тестовая сборка (V5-61): быстро дойти до следующей остановки, чтобы прокликать события и духов.
+          if (AppController.testBuild && eng.s.stop == null && !eng.s.finished) ...[
+            const SizedBox(height: Gap.s),
+            OutlinedButton.icon(
+              onPressed: () => c.debugSkipToNext(),
+              icon: const Icon(Icons.fast_forward),
+              label: Text(l.debugSkipNext),
+            ),
+          ],
           if (canClaim) ...[
             const SizedBox(height: Gap.s),
             FilledButton.icon(

@@ -43,5 +43,8 @@ def R(eid, zone, tags, art, title, text, choices, creature=None, mood=None):
 
 
 def write_anchored(name, events):
+    from postpatch import one_coin  # V5-61: «одна монета» — 1, а не 5
+    for e in events:
+        one_coin(e)
     (C_DIR / name).write_text(json.dumps(events, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(name, len(events), [(e['id'], e['zone']) for e in events])

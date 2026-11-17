@@ -806,6 +806,25 @@ class AppController extends Notifier<AppModel> {
     _trackJournal(hero, last0);
   }
 
+  /// Тестовая сборка: кнопка «Дальше» на вкладке «Путь» (V5-61).
+  static const testBuild = true;
+
+  /// Перенести героя к следующей остановке (событие, дух, место, ночлег): добавляем путь по 300 м,
+  /// пока он не остановится. Показатели тратятся за путь как обычно; шаги дня не меняются.
+  Future<void> debugSkipToNext() async {
+    final eng = engine;
+    final hero = state.hero;
+    if (!testBuild || eng == null || hero == null || hero.stop != null || hero.finished) return;
+    if (hero.overflow.isNotEmpty) return;
+    for (var i = 0; i < 4000 && hero.stop == null && !hero.finished && hero.overflow.isEmpty; i++) {
+      hero.buffer += 300;
+      _advance(eng);
+    }
+    hero.buffer = 0;
+    _a.event('debug_skip', {'chapter': content.world.chapterAt(hero.pos)});
+    _commit();
+  }
+
   /// После экрана исхода — герой идёт дальше на остаток шагов.
   Future<void> afterEvent() async {
     final eng = engine;
