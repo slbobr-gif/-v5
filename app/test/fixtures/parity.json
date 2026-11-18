@@ -116,7 +116,7 @@
    "expected": {
     "pos": 3000.0,
     "buffer": 19500.0,
-    "coins": 50,
+    "coins": 55,
     "stats": {
      "satiety": 73.878,
      "water": 82.963,
@@ -259,7 +259,7 @@
    "expected": {
     "pos": 16000.0,
     "buffer": 40250.0,
-    "coins": 52,
+    "coins": 62,
     "stats": {
      "satiety": 75.319,
      "water": 91.292,
@@ -584,7 +584,7 @@
    "expected": {
     "pos": 62250.0,
     "buffer": 0.0,
-    "coins": 57,
+    "coins": 67,
     "stats": {
      "satiety": 82.712,
      "water": 65.676,
@@ -696,7 +696,7 @@
    "expected": {
     "pos": 62898.8,
     "buffer": 44351.2,
-    "coins": 80,
+    "coins": 95,
     "stats": {
      "satiety": 76.085,
      "water": 57.778,
@@ -997,7 +997,7 @@
    "expected": {
     "pos": 104250.0,
     "buffer": 0.0,
-    "coins": 85,
+    "coins": 100,
     "stats": {
      "satiety": 65.552,
      "water": 76.319,
@@ -1242,7 +1242,7 @@
    "expected": {
     "pos": 130500.0,
     "buffer": 0.0,
-    "coins": 94,
+    "coins": 114,
     "stats": {
      "satiety": 54.194,
      "water": 62.526,
@@ -1386,7 +1386,7 @@
    "expected": {
     "pos": 140168.4,
     "buffer": 19331.6,
-    "coins": 108,
+    "coins": 133,
     "stats": {
      "satiety": 100.0,
      "water": 42.746,
@@ -1754,7 +1754,7 @@
    "expected": {
     "pos": 184628.89,
     "buffer": 29121.11,
-    "coins": 144,
+    "coins": 174,
     "stats": {
      "satiety": 61.176,
      "water": 94.008,
@@ -2056,7 +2056,7 @@
    "expected": {
     "pos": 225000.0,
     "buffer": 0.0,
-    "coins": 139,
+    "coins": 169,
     "stats": {
      "satiety": 100.0,
      "water": 58.96,
@@ -2239,7 +2239,7 @@
    "expected": {
     "pos": 229340.51,
     "buffer": 21909.49,
-    "coins": 149,
+    "coins": 184,
     "stats": {
      "satiety": 89.807,
      "water": 47.626,
@@ -2526,7 +2526,7 @@
    "expected": {
     "pos": 260300.9,
     "buffer": 24699.1,
-    "coins": 159,
+    "coins": 199,
     "stats": {
      "satiety": 43.899,
      "water": 63.647,
@@ -2860,7 +2860,7 @@
    "expected": {
     "pos": 308482.4,
     "buffer": 8416.08,
-    "coins": 167,
+    "coins": 212,
     "stats": {
      "satiety": 59.322,
      "water": 48.899,
@@ -3028,7 +3028,7 @@
    "expected": {
     "pos": 324398.48,
     "buffer": 0.0,
-    "coins": 172,
+    "coins": 217,
     "stats": {
      "satiety": 37.947,
      "water": 3.828,
@@ -3314,7 +3314,7 @@
    "expected": {
     "pos": 353647.48,
     "buffer": 0.0,
-    "coins": 163,
+    "coins": 213,
     "stats": {
      "satiety": 61.59,
      "water": 51.022,
@@ -3507,7 +3507,7 @@
    "expected": {
     "pos": 367360.49,
     "buffer": 12536.98,
-    "coins": 173,
+    "coins": 228,
     "stats": {
      "satiety": 72.343,
      "water": 30.641,
@@ -3968,7 +3968,7 @@
    "expected": {
     "pos": 426715.2,
     "buffer": 0.0,
-    "coins": 160,
+    "coins": 220,
     "stats": {
      "satiety": 85.576,
      "water": 96.055,
@@ -4076,7 +4076,7 @@
    "expected": {
     "pos": 426715.2,
     "buffer": 0.0,
-    "coins": 165,
+    "coins": 225,
     "stats": {
      "satiety": 79.576,
      "water": 88.855,
@@ -4369,7 +4369,7 @@
    "expected": {
     "pos": 456397.48,
     "buffer": 0.0,
-    "coins": 169,
+    "coins": 234,
     "stats": {
      "satiety": 69.645,
      "water": 58.658,
@@ -4617,7 +4617,7 @@
    "expected": {
     "pos": 486397.48,
     "buffer": 0.0,
-    "coins": 161,
+    "coins": 231,
     "stats": {
      "satiety": 66.665,
      "water": 23.519,
@@ -4836,7 +4836,7 @@
    "expected": {
     "pos": 505496.8,
     "buffer": 18400.68,
-    "coins": 174,
+    "coins": 249,
     "stats": {
      "satiety": 59.215,
      "water": 25.779,
