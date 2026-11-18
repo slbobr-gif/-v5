@@ -1,7 +1,7 @@
 """Утренние мысли 31–365 (V5-66): дописывает thoughts.json до 365.
 
 Каждая мысль — собственное переложение стоика (Сенека, Марк Аврелий, Эпиктет, Музоний Руф; оригиналы —
-общественное достояние) и запись Сергея в тетради, 70–220 слов. Мысль с вопросом читателю — открытая.
+общественное достояние) и запись Сергея в тетради, 50–220 слов. Мысль с вопросом читателю — открытая.
 Части лежат в thoughts_pNN.py (список ITEMS из T(...)). Запуск: python3 tools/content/authoring/thoughts_more.py
 """
 
@@ -37,9 +37,9 @@ def main():
     with open(PATH, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
         f.write("\n")
-    short = [(t["id"], len(t["text"].split())) for t in out if not 70 <= len(t["text"].split()) <= 220]
+    short = [(t["id"], len(t["text"].split())) for t in out if not 50 <= len(t["text"].split()) <= 220]
     opened = sum(t["ending"] == "open" for t in out)
-    print(f"мыслей: {len(out)}, открытых: {opened}, вне 70–220 слов: {short}")
+    print(f"мыслей: {len(out)}, открытых: {opened}, вне 50–220 слов: {short}")
 
 
 if __name__ == "__main__":

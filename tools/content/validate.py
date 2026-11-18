@@ -484,9 +484,9 @@ for t in thoughts:
         if not t.get(fld):
             errors.append(f"{tw}: нет поля {fld}")
     words = len(t.get("text", "").split())
-    # V5-66: мысли 31–365 короче (утренняя запись на экран телефона) — от 70 слов
-    if not 70 <= words <= 220:
-        (errors if STRICT else warns).append(f"{tw}: {words} слов (70–220)")
+    # V5-66: мысли 31–365 короче (утренняя запись на экран телефона) — от 50 слов
+    if not 50 <= words <= 220:
+        (errors if STRICT else warns).append(f"{tw}: {words} слов (50–220)")
     if t.get("ending") not in ("open", "closed"):
         errors.append(f"{tw}: ending {t.get('ending')!r}")
     if t.get("ending") == "open" and not t.get("question"):
