@@ -23,7 +23,9 @@ class Profile {
     this.stepMul = 5,
     this.premiumTest = true,
     List<Map<String, dynamic>>? journeys,
-  }) : journeys = journeys ?? [];
+    List<String>? wildSeen,
+  })  : journeys = journeys ?? [],
+        wildSeen = wildSeen ?? [];
 
   String name;
   String email;
@@ -50,6 +52,9 @@ class Profile {
   /// Итоги пройденных путей (снимки JourneyStats.toJson + даты): переживают сброс пути, видны в Журнале.
   List<Map<String, dynamic>> journeys;
 
+  /// Дикие звери, встреченные во всех путях (V5-64): в новом пути сначала выпадают остальные.
+  List<String> wildSeen;
+
   Json toJson() => {
         'name': name,
         'email': email,
@@ -65,6 +70,7 @@ class Profile {
         'stepMul': stepMul,
         'premiumTest': premiumTest,
         'journeys': journeys,
+        'wildSeen': wildSeen,
       };
 
   static Profile fromJson(Json j) => Profile(
@@ -83,6 +89,7 @@ class Profile {
         stepMul: const [1, 3, 5].contains(j['stepMul']) ? toI(j['stepMul']) : 5,
         premiumTest: j['premiumTest'] != false,
         journeys: [for (final x in (j['journeys'] as List?) ?? const []) if (x is Map) x.cast<String, dynamic>()],
+        wildSeen: [for (final x in (j['wildSeen'] as List?) ?? const []) if (x is String) x],
       );
 }
 

@@ -975,13 +975,15 @@ class Engine {
         if (qPos < best.$1) best = (qPos, 'quest', qid);
       }
     });
-    if (s.nextRandomAt > pos + 1e-6 && s.nextRandomAt < best.$1 && s.pos >= s.maxPos - 1e-6) {
-      best = (s.nextRandomAt, 'random', null);
-    }
-    final nn = s.nextNightAt;
-    if (_nightOn && nn > pos + 1e-6 && nn < best.$1 && s.pos >= s.maxPos - 1e-6) {
-      best = (nn, 'night', null);
-    }
+    // V5-64: случайное или ночёвка, совпавшие с другой остановкой, не пропадают навсегда — переносятся
+    // на метр вперёд (раньше точка оставалась позади героя, и случайных событий больше не было).
+    final onNew = s.pos >= s.maxPos - 1e-6;
+    var nr = s.nextRandomAt;
+    if (nr <= pos + 1e-6) nr = pos + 1.0;
+    if (onNew && nr < best.$1) best = (nr, 'random', null);
+    var nn = s.nextNightAt;
+    if (nn <= pos + 1e-6) nn = pos + 1.0;
+    if (_nightOn && onNew && nn < best.$1) best = (nn, 'night', null);
     return best;
   }
 
@@ -1174,7 +1176,31 @@ class Engine {
 
   List<String> _tags(Json e) => ((e['tags'] as List?) ?? const []).map((t) => '$t').toList();
 
+  /// Встреча с диким зверем (V5-64): вне города, не больше perChapter за главу, каждый зверь — раз за путь;
+  /// сначала те, кого не видели в прошлых путях (wildBefore). Нет кандидатов — rng не трогаем.
+  Json? _pickWild(int now) {
+    final wb = (_m('randomEvents')['wild'] as Map?)?.cast<String, dynamic>();
+    if (wb == null || w.zoneAt(s.pos) == 'city') return null;
+    final chn = w.chapterAt(s.pos);
+    final ch = 'ch$chn';
+    if ((s.wildByChapter['$chn'] ?? 0) >= toI(wb['perChapter'])) return null;
+    var cands = w.randoms.where((e) {
+      final tags = _tags(e);
+      return e['wild'] == true && !s.wildSeen.contains(e['id']) && (tags.contains(ch) || tags.contains('any'));
+    }).toList();
+    if (cands.isEmpty) return null;
+    final fresh = cands.where((e) => !s.wildBefore.contains(e['id'])).toList();
+    if (fresh.isNotEmpty) cands = fresh;
+    if (rng.nextFloat() >= toD(wb['chance'])) return null;
+    final e = cands[rng.nextU32() % cands.length];
+    s.wildSeen.add(e['id'] as String);
+    s.wildByChapter['$chn'] = (s.wildByChapter['$chn'] ?? 0) + 1;
+    return e;
+  }
+
   Json? _pickRandom(int now) {
+    final wild = _pickWild(now);
+    if (wild != null) return wild;
     final ch = 'ch${w.chapterAt(s.pos)}';
     final recent = s.recentRandom;
     final zone = w.zoneAt(s.pos);
@@ -1186,7 +1212,7 @@ class Engine {
     final recentAll = recent.sublist(math.max(0, recent.length - keepAll));
     final inCh = w.randoms.where((e) {
       final tags = _tags(e);
-      return tags.contains(ch) || tags.contains('any');
+      return e['wild'] != true && (tags.contains(ch) || tags.contains('any'));
     }).toList();
     var pool = inCh.where((e) => e['zone'] == zone && !recentZ.contains(e['id'])).toList();
     final base = inCh.where((e) => !recentAll.contains(e['id'])).toList();

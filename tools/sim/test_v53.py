@@ -1094,5 +1094,48 @@ class Packs(unittest.TestCase):
         self.assertIn("pack_expedition", s["gear"])
 
 
+class Wild(unittest.TestCase):
+    """V5-64: дикие звери — вне города, не больше perChapter за главу, раз за путь, сначала невиденные;
+    случайное, совпавшее с другой остановкой, переносится вперёд, а не теряется."""
+
+    def _world(self, chance=1.0):
+        b = copy.deepcopy(BAL)
+        b["randomEvents"]["wild"] = {"chance": chance, "perChapter": 2}
+        rs = [ev("r_sub", "suburb"), ev("r_wild", "wild")] + [ev(f"w{i}", "wild", wild=True) for i in range(4)]
+        return make_world(balance=b, randoms=rs)
+
+    def test_cap_and_no_repeat(self):
+        w, s, e = fresh(world=self._world())
+        s["pos"] = s["maxPos"] = 100000.0
+        got = [(e._pick_random(T0) or {}).get("id", "") for _ in range(6)]
+        wild = [g for g in got if g.startswith("w")]
+        self.assertEqual(len(wild), 2)
+        self.assertEqual(len(set(wild)), 2)
+        self.assertEqual(s["wildByChapter"], {"1": 2})
+
+    def test_prefers_unseen_before(self):
+        w, s, e = fresh(world=self._world())
+        s["pos"] = s["maxPos"] = 100000.0
+        s["wildBefore"] = ["w0", "w1", "w2"]
+        self.assertEqual(e._pick_random(T0)["id"], "w3")
+
+    def test_city_has_no_wild(self):
+        w, s, e = fresh(world=self._world())
+        s["pos"] = s["maxPos"] = 0.0
+        for _ in range(5):
+            r = e._pick_random(T0)
+            self.assertFalse(r is not None and r.get("wild"))
+        self.assertEqual(s["wildSeen"], [])
+
+    def test_random_point_not_lost(self):
+        w, s, e = fresh()
+        s["pos"] = s["maxPos"] = 40000.0
+        s["nextRandomAt"] = 40000.0
+        s["nextNightAt"] = 10 ** 9
+        pos, kind, _ = e._next_stop()
+        self.assertEqual(kind, "random")
+        self.assertAlmostEqual(pos, 40001.0)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

@@ -341,6 +341,10 @@ class AppController extends Notifier<AppModel> {
     final now = _now;
     final hero = HeroState.create(content.world, seed, now, today, todaySteps: baseline);
     hero.stepMul = state.profile?.stepMul ?? 5;
+    // Звери прошлых путей (V5-64); все уже встречены — начинаем круг заново.
+    final wildAll = content.world.randoms.where((e) => e['wild'] == true).map((e) => e['id']).toSet();
+    final before = state.profile?.wildSeen ?? const <String>[];
+    hero.wildBefore = wildAll.every(before.contains) ? [] : [...before];
     final def = defaultLoadout;
     final chosen = _chosenLoadout;
     var useGear = gear ?? chosen?.gear ?? def.gear;
@@ -650,6 +654,25 @@ class AppController extends Notifier<AppModel> {
   /// Раздел приложения открыт: вкладка или экран.
   void screen(String name) => _a.event('screen_view', {'name': name});
 
+  /// Дикий зверь встречен (V5-64): в профиль, чтобы в следующем пути сначала выпадали другие.
+  void _wildMet(String id, HeroState hero) {
+    final p = state.profile;
+    if (p == null) return;
+    final all = content.world.randoms.where((e) => e['wild'] == true).length;
+    if (!p.wildSeen.contains(id)) {
+      // Весь круг пройден — начинаем новый, чтобы предпочтение «невиденных» снова работало.
+      if (p.wildSeen.length >= all) p.wildSeen.clear();
+      p.wildSeen.add(id);
+      updateProfile((_) {});
+    }
+    _a.event('wild_met', {
+      'id': id,
+      'chapter': content.world.chapterAt(hero.pos),
+      'n_journey': hero.wildSeen.length,
+      'n_ever': p.wildSeen.length,
+    });
+  }
+
   void _trackStop(EngineEvent e, HeroState hero) {
     if (e.type == 'death') {
       _a.event('death', {'cause': hero.stop?['cause'] ?? 'stats', 'chapter': content.world.chapterAt(hero.pos)});
@@ -660,6 +683,7 @@ class AppController extends Notifier<AppModel> {
     switch (st['type']) {
       case 'event':
         final ev = content.world.eventsById[st['event']];
+        if (ev?['wild'] == true) _wildMet('${ev!['id']}', hero);
         _a.event('event_shown', {
           'id': '${st['event']}',
           'kind': '${ev?['kind'] ?? 'quest'}',

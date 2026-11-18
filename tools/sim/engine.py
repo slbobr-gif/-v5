@@ -376,6 +376,9 @@ def new_state(world: World, seed: int, now_ms: int, today: str, today_steps: int
         "flags": [],
         "seen": [],
         "recentRandom": [],
+        "wildSeen": [],
+        "wildByChapter": {},
+        "wildBefore": [],
         "quests": {},
         "nextRandomAt": b["randomEvents"]["firstAfterKm"] * 1000.0,
         "nextNightAt": first_night_after(b, -1.0),
@@ -1244,10 +1247,18 @@ class Engine:
                     q_pos = pos + 1.0
                 if q_pos < best[0]:
                     best = (q_pos, "quest", {"quest": qid})
-        if self.s["nextRandomAt"] > pos + 1e-6 and self.s["nextRandomAt"] < best[0] and self.s["pos"] >= self.s["maxPos"] - 1e-6:
-            best = (self.s["nextRandomAt"], "random", None)
+        # V5-64: случайное или ночёвка, совпавшие с другой остановкой, не пропадают навсегда — переносятся
+        # на метр вперёд (раньше точка оставалась позади героя, и случайных событий больше не было).
+        on_new = self.s["pos"] >= self.s["maxPos"] - 1e-6
+        nr = self.s["nextRandomAt"]
+        if nr <= pos + 1e-6:
+            nr = pos + 1.0
+        if on_new and nr < best[0]:
+            best = (nr, "random", None)
         nn = self.s["nextNightAt"]
-        if self.b.get("night") and nn > pos + 1e-6 and nn < best[0] and self.s["pos"] >= self.s["maxPos"] - 1e-6:
+        if nn <= pos + 1e-6:
+            nn = pos + 1.0
+        if self.b.get("night") and on_new and nn < best[0]:
             best = (nn, "night", None)
         return best
 
@@ -1412,7 +1423,37 @@ class Engine:
         self.s["stop"] = {"type": "night", "morning": mid, "kind": kind_id, "gain": gain}
         self.s["nextNightAt"] = first_night_after(self.b, self.s["pos"])
 
+    def _pick_wild(self, now: int):
+        """Встреча с диким зверем (V5-64): вне города, не больше perChapter за главу, каждый зверь — раз за путь;
+        сначала те, кого не видели в прошлых путях (wildBefore). Нет кандидатов — rng не трогаем."""
+        wb = self.b["randomEvents"].get("wild")
+        if not wb or self.w.zone_at(self.s["pos"]) == "city":
+            return None
+        chn = self.w.chapter_at(self.s["pos"])
+        ch = f"ch{chn}"
+        by = self.s.setdefault("wildByChapter", {})
+        seen = self.s.setdefault("wildSeen", [])
+        if by.get(str(chn), 0) >= int(wb["perChapter"]):
+            return None
+        cands = [e for e in self.w.randoms if e.get("wild") and e["id"] not in seen
+                 and (ch in e.get("tags", []) or "any" in e.get("tags", []))]
+        if not cands:
+            return None
+        before = self.s.get("wildBefore", [])
+        fresh = [e for e in cands if e["id"] not in before]
+        if fresh:
+            cands = fresh
+        if self.rng.next_float() >= float(wb["chance"]):
+            return None
+        e = cands[self.rng.next_u32() % len(cands)]
+        seen.append(e["id"])
+        by[str(chn)] = by.get(str(chn), 0) + 1
+        return e
+
     def _pick_random(self, now: int):
+        w = self._pick_wild(now)
+        if w is not None:
+            return w
         ch = f"ch{self.w.chapter_at(self.s['pos'])}"
         recent = self.s["recentRandom"]
         zone = self.w.zone_at(self.s["pos"])
@@ -1420,7 +1461,8 @@ class Engine:
         keep_z = max(1, min(12, self.w.zone_pool_size(zone) // 2))
         recent_z = [r for r in recent if self.w.event_zone(r) == zone][-keep_z:]
         recent_all = recent[-max(1, min(12, len(self.w.randoms) // 2)):]
-        in_ch = [e for e in self.w.randoms if ch in e.get("tags", []) or "any" in e.get("tags", [])]
+        in_ch = [e for e in self.w.randoms if not e.get("wild")
+                 and (ch in e.get("tags", []) or "any" in e.get("tags", []))]
         pool = [e for e in in_ch if e.get("zone") == zone and e["id"] not in recent_z]
         base = [e for e in in_ch if e["id"] not in recent_all]
         if not pool:
