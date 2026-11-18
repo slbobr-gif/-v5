@@ -7,7 +7,8 @@ quest_var favor и смотрит, какая ветка финала выигр
 Печатает долю каждого исхода (kind / cunning / angry) двумя способами:
   * по комбинациям — каждая комбинация вариантов и исходов равновесна;
   * по вероятности — варианты выбираются поровну, исходы — по weight (исходы со смертью не считаются).
-Ошибка, если: ветка недостижима или < 20 % хотя бы одним способом; финал не из трёх веток
+Ошибка, если: ветка недостижима или её доля ниже порога хотя бы одним способом (kind — 5 %: с V5-65
+добрый исход — награда за внимательность, наугад он выпадает редко; cunning и angry — 20 %); финал не из трёх веток
 kind/cunning/angry (mood) с запасной последней; у шага нет creature/mood или creature чужая;
 mood шага не neutral; в стартовом (не квестовом) событии стоит quest_var favor — движок применил бы
 его ко всем активным квестам сразу; дар (give в финале, кроме обычных предметов каталога) не описан в docs/v5/folklore-gifts.md.
@@ -22,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[2]
 C = ROOT / 'app' / 'assets' / 'content'
 DOC = ROOT / 'docs' / 'v5' / 'folklore-gifts.md'
 MIN_SHARE = 0.2
+MIN_SHARE_BY = {'kind': 0.05}  # V5-65: квесты духов сложнее, добрый финал — не для игры наугад
 load = lambda n: json.loads((C / n).read_text(encoding='utf-8'))
 errors = []
 
@@ -96,8 +98,9 @@ for q in load('quests.json'):
     print(f"{'':13} по комбинациям " + ' '.join(f"{m} {cnt[m] * 100:3.0f}%" for m in cnt) +
           " | по вероятности " + ' '.join(f"{m} {prob[m] * 100:3.0f}%" for m in prob))
     for m in cnt:
-        if cnt[m] < MIN_SHARE or prob[m] < MIN_SHARE:
-            errors.append(f"{qid}: исход {m} — {cnt[m] * 100:.0f}% комбинаций / {prob[m] * 100:.0f}% вероятности (< {MIN_SHARE * 100:.0f}%)")
+        lim = MIN_SHARE_BY.get(m, MIN_SHARE)
+        if cnt[m] < lim or prob[m] < lim:
+            errors.append(f"{qid}: исход {m} — {cnt[m] * 100:.0f}% комбинаций / {prob[m] * 100:.0f}% вероятности (< {lim * 100:.0f}%)")
 
 for e in errors:
     print('ОШИБКА:', e)

@@ -183,8 +183,10 @@ def check_event(where, e, anchored_ok=True, need_anchor=False):
     ch = e.get("choices", [])
     if ch and all(c.get("requires") for c in ch):
         errors.append(f"{w}: у всех вариантов есть requires — игрок может застрять; нужен хотя бы один без требований")
-    if not 2 <= len(ch) <= 3:
-        errors.append(f"{w}: вариантов {len(ch)}, нужно 2–3")
+    # V5-65: у шагов квестов с духами четыре варианта (один — «чужой», по вкусу другого духа)
+    max_ch = 4 if e.get("kind") == "creature" else 3
+    if not 2 <= len(ch) <= max_ch:
+        errors.append(f"{w}: вариантов {len(ch)}, нужно 2–{max_ch}")
     cids = set()
     for c in ch:
         cw = f"{w}/{c.get('id')}"
@@ -482,8 +484,9 @@ for t in thoughts:
         if not t.get(fld):
             errors.append(f"{tw}: нет поля {fld}")
     words = len(t.get("text", "").split())
-    if not 90 <= words <= 220:
-        (errors if STRICT else warns).append(f"{tw}: {words} слов (100–200)")
+    # V5-66: мысли 31–365 короче (утренняя запись на экран телефона) — от 70 слов
+    if not 70 <= words <= 220:
+        (errors if STRICT else warns).append(f"{tw}: {words} слов (70–220)")
     if t.get("ending") not in ("open", "closed"):
         errors.append(f"{tw}: ending {t.get('ending')!r}")
     if t.get("ending") == "open" and not t.get("question"):
