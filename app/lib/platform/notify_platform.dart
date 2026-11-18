@@ -30,6 +30,15 @@ class NotifyPlatform {
     }
   }
 
+  /// Открыть внешнюю ссылку (диплинк RuStore или страницу в браузере). false — нечем открыть.
+  Future<bool> openUri(String uri) async {
+    try {
+      return (await _ch.invokeMethod<bool>('openUri', {'uri': uri})) ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> hasPermission() async {
     try {
       return (await _ch.invokeMethod<bool>('hasPermission')) ?? false;

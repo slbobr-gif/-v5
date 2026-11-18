@@ -554,6 +554,32 @@ class AppController extends Notifier<AppModel> {
 
   void coinShopShown(String from) => _a.event('coin_shop_shown', {'from': from});
 
+  // ------------------------------------------------ управление подпиской (V5-63)
+  static const rustoreSubscriptions = 'rustore://profile/subscriptions';
+  static const rustorePayments = 'rustore://profile/paymenthistory';
+  static const rustoreHelp = 'https://www.rustore.ru/help/users/purchases-and-returns/subscription-management';
+
+  /// Открыть экран RuStore: [target] — subscriptions | payments | help.
+  /// Нет RuStore на телефоне — открываем справку RuStore в браузере. Возвращает 'app' | 'web' | 'none'.
+  Future<String> openStore(String target) async {
+    final uri = switch (target) {
+      'subscriptions' => rustoreSubscriptions,
+      'payments' => rustorePayments,
+      _ => rustoreHelp,
+    };
+    var how = 'none';
+    if (await _notify.openUri(uri)) {
+      how = uri == rustoreHelp ? 'web' : 'app';
+    } else if (uri != rustoreHelp && await _notify.openUri(rustoreHelp)) {
+      how = 'web';
+    }
+    _a.event('subscription_manage', {'target': target, 'opened': how, 'premium': premium});
+    return how;
+  }
+
+  /// Восстановить покупки. Пока оплаты нет — только событие; с RuStore Pay SDK — запрос покупок и проверка на сервере.
+  void restorePurchases() => _a.event('purchases_restore', {'premium': premium});
+
   /// Тестовая покупка: +монеты герою. Возвращает, сколько начислено (0 — нет героя или набора).
   int buyCoinsTest(String packId) {
     final hero = state.hero;

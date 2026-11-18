@@ -131,6 +131,17 @@ class MainActivity : FlutterFragmentActivity() {
                     result.success(openedNotification)
                     openedNotification = null
                 }
+                // Внешняя ссылка (RuStore: подписки, история платежей; справка в браузере). false — нечем открыть.
+                "openUri" -> {
+                    val uri = call.argument<String>("uri") ?: ""
+                    val ok = try {
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        true
+                    } catch (e: Exception) {
+                        false
+                    }
+                    result.success(ok)
+                }
                 "hasPermission" -> result.success(Notifications.hasPermission(this))
                 "requestPermission" -> requestNotifyPermission(result)
                 "replaceAll" -> {

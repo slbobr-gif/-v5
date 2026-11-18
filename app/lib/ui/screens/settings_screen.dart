@@ -12,6 +12,7 @@ import '../theme/tokens.dart';
 import '../widgets/common.dart';
 import 'intro_screens.dart' show IntroReplayScreen;
 import 'onboarding.dart' show PermissionTile, PrologueReplayScreen;
+import 'subscription_screen.dart';
 import 'watch_help_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -186,14 +187,15 @@ class SettingsScreen extends ConsumerWidget {
             },
           ),
           ]),
-          // Подписка в тестовой сборке (V5-52): оплаты ещё нет, переключатель показывает бесплатную версию.
-          SectionHeader(l.settingsPremiumTest),
+          // Подписка (V5-63): статус и управление в RuStore; тестовый переключатель — внутри экрана.
+          SectionHeader(l.subTitle),
           _Group(children: [
-            SwitchListTile(
-              value: c.premium,
-              title: Text(l.settingsPremiumTest),
-              subtitle: Text(l.settingsPremiumTestSub),
-              onChanged: (bool v) => c.setPremiumTest(v),
+            ListTile(
+              leading: Icon(c.premium ? Icons.verified_outlined : Icons.lock_outline, color: Palette.accent),
+              title: Text(l.subTitle),
+              subtitle: Text(c.premium ? l.subStatusActive : l.subStatusFree),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => openSubscription(context, ref),
             ),
           ]),
           SectionHeader(l.settingsAbout),
