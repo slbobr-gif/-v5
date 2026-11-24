@@ -34,7 +34,11 @@ class OutcomeView {
     required this.detourKm,
     required this.shortcutKm,
     this.itemsPending = const {},
+    this.matches = 0,
   });
+
+  /// Сколько спичек прибавилось/сгорело (24.11): коробки в чипах вещей не показываются — только спички.
+  final int matches;
 
   final String text;
   final int coins;
@@ -419,7 +423,9 @@ class AppController extends Notifier<AppModel> {
       final bonusBefore = eng.inBonus();
       final noticedBefore = eng.noticed();
       final last0 = hero.journal.isEmpty ? null : hero.journal.last;
-      final evs = eng.advance(_now);
+      // Открыт экран исхода с кнопкой дара (undo): фоновое обновление героя не двигает — иначе кнопка
+      // «Еловая лапка»/«Бусина» пропадала через минуту сама (24.11). Шаги копятся, герой пойдёт после «Дальше».
+      final evs = hero.undo != null ? const <EngineEvent>[] : eng.advance(_now);
       _trackJournal(hero, last0);
       if (!bonusBefore && eng.inBonus()) _a.event('bonus_started');
       if (!noticedBefore && eng.noticed()) _a.event('bonus_noticed', {'km': hero.bonusKm.round()});
@@ -604,7 +610,8 @@ class AppController extends Notifier<AppModel> {
   }
 
   // ------------------------------------------------ ручной ввод шагов (V5-54)
-  static const manualStepsMax = 30000;
+  /// Тестовая сборка — до 100 000 шагов в сутки вручную (24.11), в релизе 30 000.
+  static const manualStepsMax = testBuild ? 100000 : 30000;
 
   String get yesterday => dayKey(DateTime.now().subtract(const Duration(days: 1)));
 
@@ -748,6 +755,7 @@ class AppController extends Notifier<AppModel> {
     final delay0 = hero.delayUntil;
     final detour0 = hero.detour?.remaining ?? 0;
     final pos0 = hero.pos;
+    final match0 = eng.matchesLeft();
     final res = eng.choose(choiceId, _now);
     if (!res.ok) return null;
     final eff = (res.outcome?['effects'] as Map?)?.cast<String, dynamic>() ?? const {};
@@ -755,6 +763,7 @@ class AppController extends Notifier<AppModel> {
     final lost = <String, int>{};
     final keys = {...inv0.keys, ...hero.inv.keys};
     for (final k in keys) {
+      if (k == 'matches') continue; // спички — отдельным чипом по штукам
       final d = (hero.inv[k] ?? 0) - (inv0[k] ?? 0);
       if (d > 0) gained[k] = d;
       if (d < 0 && !res.died) lost[k] = -d;
@@ -785,6 +794,7 @@ class AppController extends Notifier<AppModel> {
       detourKm: (hero.detour?.remaining ?? 0) > detour0 ? hero.detour!.remaining / 1000 : 0,
       shortcutKm: (!res.died && eff['shortcut'] != null) ? (hero.pos - pos0) / 1000 : 0,
       itemsPending: pending,
+      matches: res.died ? 0 : eng.matchesLeft() - match0,
     );
     final chapterNow = content.world.chapterAt(hero.pos);
     final creature = ev['creature'];
@@ -866,11 +876,16 @@ class AppController extends Notifier<AppModel> {
     final hero = state.hero;
     if (!testBuild || eng == null || hero == null || hero.stop != null || hero.finished) return;
     if (hero.overflow.isNotEmpty) return;
+    // Настоящие шаги не трогаем: откладываем их и возвращаем после прыжка (раньше «Дальше» обнулял запас —
+    // накопленные за дни шаги пропадали). Задержку «отдыха» тестовая кнопка тоже снимает.
+    final real = hero.buffer;
+    hero.buffer = 0;
+    hero.delayUntil = 0;
     for (var i = 0; i < 4000 && hero.stop == null && !hero.finished && hero.overflow.isEmpty; i++) {
       hero.buffer += 300;
       _advance(eng);
     }
-    hero.buffer = 0;
+    hero.buffer = real;
     _a.event('debug_skip', {'chapter': content.world.chapterAt(hero.pos)});
     _commit();
   }

@@ -32,7 +32,7 @@ class CoinShopScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(right: Gap.m),
             child: Row(children: [
-              const Icon(Icons.toll, color: Palette.accent, size: 18),
+              const Icon(Icons.toll, color: Palette.coin, size: 18),
               const SizedBox(width: 4),
               Text('$coins', style: const TextStyle(fontWeight: FontWeight.w600)),
             ]),
@@ -50,7 +50,7 @@ class CoinShopScreen extends ConsumerWidget {
               SectionCard(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   Row(children: [
-                    const Icon(Icons.toll, color: Palette.accent, size: 24),
+                    const Icon(Icons.toll, color: Palette.coin, size: 24),
                     const SizedBox(width: Gap.s),
                     Expanded(
                       child: Text(l.coinPackLabel(toI(p['coins'])),

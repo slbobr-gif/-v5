@@ -78,6 +78,8 @@ class _StopScreenState extends ConsumerState<StopScreen> {
         return const FinaleFlow();
       case 'night':
         return const _NightScreen();
+      case 'cold':
+        return const _ColdScreen();
     }
     return const Scaffold(body: SizedBox.shrink());
   }
@@ -174,6 +176,8 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
                   if (clew == 'ready' || clew == 'cooldown' || clew == 'not_here') ...[
                     _ClewRow(
                       item: clewItem ?? 'ball_yaga',
+                      name: c.content.itemName(clewItem ?? 'ball_yaga'),
+                      desc: c.content.itemDesc(clewItem ?? 'ball_yaga'),
                       label: clewAskLabel(l, clewItem),
                       notHere: clew == 'not_here',
                       ready: clew == 'ready' && tones == null,
@@ -218,6 +222,11 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
     final req = (ch['requires'] as Map?)?.cast<String, dynamic>();
     if (req == null) return null;
     if (req['item'] != null) return l.needItem(c.content.itemName('${req['item']}'));
+    if (req['offer'] != null) {
+      // 24.11: угостить «чем есть» — видно, что именно уйдёт из рюкзака.
+      final it = eng.offerItem(ch);
+      return it == null ? l.needFood : l.offerWill(c.content.itemName(it));
+    }
     if (req['coins'] != null) {
       final n = toI((eng.b['levels']['coins'] as Map)[req['coins']]);
       return l.needCoins(n);
@@ -231,6 +240,8 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
 class _ClewRow extends StatelessWidget {
   const _ClewRow({
     required this.item,
+    required this.name,
+    required this.desc,
     required this.label,
     required this.notHere,
     required this.ready,
@@ -239,6 +250,8 @@ class _ClewRow extends StatelessWidget {
   });
 
   final String item;
+  final String name;
+  final String desc;
   final String label;
   final bool notHere;
   final bool ready;
@@ -248,8 +261,12 @@ class _ClewRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    // 24.11: тап по значку дара — напомнить, что он даёт.
+    void remind() => ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(duration: const Duration(seconds: 6), content: Text('$name. $desc')));
     return Row(children: [
-      ItemIcon(item, size: 36),
+      GestureDetector(onTap: remind, child: ItemIcon(item, size: 36)),
       const SizedBox(width: Gap.s + 4),
       Expanded(
         child: ready
@@ -406,7 +423,7 @@ class _OutcomeScreen extends ConsumerWidget {
           side: const BorderSide(color: Palette.chipLine),
         );
     String signed(int v) => v > 0 ? '+$v' : '$v';
-    if (o.coins != 0) chips.add(chip(Icons.toll, l.fxCoins(signed(o.coins)), Palette.accent));
+    if (o.coins != 0) chips.add(chip(Icons.toll, l.fxCoins(signed(o.coins)), Palette.coin));
     final statNames = {'satiety': l.statSatiety, 'water': l.statWater, 'warmth': l.statWarmth};
     o.stats.forEach((k, v) {
       if (v != 0) {
@@ -414,6 +431,10 @@ class _OutcomeScreen extends ConsumerWidget {
             v > 0 ? Palette.accent : Palette.danger));
       }
     });
+    if (o.matches != 0) {
+      chips.add(chip(Icons.local_fire_department_outlined, l.fxMatches(signed(o.matches)),
+          o.matches > 0 ? Palette.accent : Palette.ember));
+    }
     if (o.delayHours > 0) chips.add(chip(Icons.hourglass_bottom, l.fxDelay(o.delayHours.ceil()), Palette.ember));
     if (o.detourKm > 0) chips.add(chip(Icons.alt_route, l.fxDetour(o.detourKm.toStringAsFixed(0)), Palette.ember));
     if (o.shortcutKm > 0) chips.add(chip(Icons.fast_forward, l.fxShortcut(o.shortcutKm.toStringAsFixed(1)), Palette.accent));
@@ -513,7 +534,7 @@ class _PlaceScreen extends ConsumerWidget {
                 const SizedBox(height: Gap.l),
                 Row(children: [
                   Expanded(child: Text(l.market, style: Theme.of(context).textTheme.titleMedium)),
-                  const Icon(Icons.toll, color: Palette.accent, size: 18),
+                  const Icon(Icons.toll, color: Palette.coin, size: 18),
                   const SizedBox(width: 4),
                   Text('${m.hero!.coins}'),
                   // Купить монеты (V5-58)
@@ -727,8 +748,16 @@ class _NightScreen extends ConsumerWidget {
       'sun' => l.nightMorning_sun,
       'dew' => l.nightMorning_dew,
       'nuts' => l.nightMorning_nuts,
+      'fishermen' => l.nightMorning_fishermen,
+      'tourists' => l.nightMorning_tourists,
+      'trucker' => l.nightMorning_trucker,
+      'grandma' => l.nightMorning_grandma,
+      'spring_people' => l.nightMorning_spring_people,
       _ => '',
     };
+    // 24.11: костёр на ночёвке — спички; без спичек ночь холоднее.
+    final burnt = toI(st['matches']);
+    final fire = st['nofire'] == true ? l.nightNoFire : (burnt > 0 ? l.nightFire(burnt) : '');
     // V5-60: какая выдалась ночь — от неё тепло.
     final kind = switch ('${st['kind'] ?? ''}') {
       'warm' => l.nightKind_warm,
@@ -741,7 +770,7 @@ class _NightScreen extends ConsumerWidget {
       title: l.nightTitle,
       art: 'night',
       outcome: OutcomeView(
-        text: morning.isEmpty ? kind : '$kind\n\n$morning',
+        text: [kind, if (fire.isNotEmpty) fire, if (morning.isNotEmpty) morning].join('\n\n'),
         coins: 0,
         stats: gain,
         itemsGained: const {},
@@ -750,6 +779,51 @@ class _NightScreen extends ConsumerWidget {
         delayHours: 0,
         detourKm: 0,
         shortcutKm: 0,
+        matches: -burnt,
+      ),
+      onNext: () => c.continueJourney(st),
+    );
+  }
+}
+
+// ---------------------------------------------------------------- экстренный привал (24.11)
+
+/// Тепло упало до 5: Сергей стоит 2 часа и разжигает огонь. Текст объясняет, почему ушло столько спичек.
+class _ColdScreen extends ConsumerWidget {
+  const _ColdScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final m = ref.watch(appProvider);
+    final c = ref.read(appProvider.notifier);
+    final st = m.hero!.stop!;
+    final burnt = toI(st['matches']);
+    final want = toI(st['want']);
+    final hours = toD(((m.content!.world.balance['fire'] as Map?)?['coldStop'] as Map?)?['hours'] ?? 2);
+    final why = burnt == 0
+        ? l.coldNoMatches
+        : burnt < want
+            ? l.coldRanOut(burnt)
+            : burnt <= 2
+                ? l.coldEasy(burnt)
+                : burnt <= 5
+                    ? l.coldWind(burnt)
+                    : l.coldHard(burnt);
+    return _OutcomeScreen(
+      title: l.coldTitle,
+      art: 'night',
+      outcome: OutcomeView(
+        text: '${l.coldIntro}\n\n$why',
+        coins: 0,
+        stats: {'warmth': toI(st['gain'])},
+        itemsGained: const {},
+        itemsLost: const {},
+        died: false,
+        delayHours: hours,
+        detourKm: 0,
+        shortcutKm: 0,
+        matches: -burnt,
       ),
       onNext: () => c.continueJourney(st),
     );

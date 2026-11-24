@@ -308,6 +308,22 @@ String perkText(AppLocalizations l, ItemPerk p, {String item = ''}) {
       return l.gearPerkPortions(v);
     case 'ability_clew':
       return l.gearPerkAbility_clew(v);
+    case 'fireFreeNight':
+      return l.gearPerkFireFreeNight;
+    case 'fireFreeCold':
+      return l.gearPerkFireFreeCold;
+    case 'fireFreeWet':
+      return l.gearPerkFireFreeWet;
+    case 'coldHours':
+      return l.gearPerkColdHours(v);
+    case 'matchSave':
+      return l.gearPerkMatchSave(v);
+    case 'noItemLoss':
+      return l.gearPerkNoItemLoss;
+    case 'rescueCooldown':
+      return l.gearPerkRescueCooldown(v);
+    case 'actionSatiety':
+      return l.gearPerkActionSatiety(v);
   }
   return '';
 }

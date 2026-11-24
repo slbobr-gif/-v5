@@ -54,7 +54,7 @@ ARTS = {"forest", "field", "river", "lake", "village", "town", "road", "night", 
         "bathhouse", "hut", "campfire", "station"}
 RISKS = {"none", "low", "high", "fatal"}
 EFFECT_KEYS = {"coins", "satiety", "water", "warmth", "give", "remove", "delay", "detour", "detour_end",
-               "shortcut", "flag", "quest_start", "quest_var", "death", "bonus_reset"}
+               "shortcut", "flag", "quest_start", "quest_var", "death", "bonus_reset", "burnMatches"}
 TAGS = {"ch1", "ch2", "ch3", "ch4", "ch5", "ch6", "forest", "road", "village", "water", "night", "rain", "fog", "heat",
         "field", "town", "swamp", "any", "risk"}
 all_event_ids = {}
@@ -118,7 +118,7 @@ def check_effects(where, eff, risk):
                 errors.append(f"{where}: {k} должен быть объектом")
             else:
                 for it, n in v.items():
-                    if it not in items:
+                    if it not in items and it != "$offer":
                         errors.append(f"{where}: нет предмета {it}")
                     if not isinstance(n, int) or not 1 <= n <= 5:
                         errors.append(f"{where}: {k}.{it} = {n}, нужно 1..5")
@@ -139,6 +139,8 @@ def check_effects(where, eff, risk):
         elif k == "quest_var":
             if not isinstance(v, dict) or not all(isinstance(x, int) for x in v.values()):
                 errors.append(f"{where}: quest_var должен быть {{имя: целое}}")
+        elif k == "burnMatches" and (not isinstance(v, int) or not 1 <= v <= 10):
+            errors.append(f"{where}: burnMatches = {v!r}, нужно 1..10 спичек")
         elif k in ("death", "bonus_reset") and v is not True:
             errors.append(f"{where}: {k} допускает только true")
     if eff.get("death") and risk != "fatal":
@@ -160,6 +162,8 @@ def check_event(where, e, anchored_ok=True, need_anchor=False):
     if "zone_note" in e and not (isinstance(e["zone_note"], str) and e["zone_note"].strip()):
         errors.append(f"{w}: zone_note должен быть непустой строкой")
     zoned_events.append((w, e))
+    if "whenHas" in e and e["whenHas"] not in items:
+        errors.append(f"{w}: whenHas — нет предмета {e['whenHas']!r}")
     if "mood" in e and e["mood"] not in ("neutral", "kind", "cunning", "angry"):
         errors.append(f"{w}: mood {e['mood']!r} (neutral/kind/cunning/angry)")
     if e.get("kind") not in KINDS:
@@ -206,7 +210,9 @@ def check_event(where, e, anchored_ok=True, need_anchor=False):
                     errors.append(f"{cw}: requires coins {v!r}")
                 elif k == "flag":
                     flags_needed.append((cw, v))
-                elif k not in ("item", "coins", "flag"):
+                elif k == "offer" and (not isinstance(v, list) or not v or any(x not in items for x in v)):
+                    errors.append(f"{cw}: requires offer — непустой список предметов")
+                elif k not in ("item", "coins", "flag", "offer"):
                     errors.append(f"{cw}: requires {k}")
         outs = c.get("outcomes", [])
         if not outs:
@@ -399,8 +405,8 @@ for k, v in BI.items():
                 or not (h.get("art") or h.get("zone")) or any(a not in ARTS for a in h.get("art", []))
                 or any(z not in Z.ZONES for z in h.get("zone", []))):
             errors.append(f"{bw}: hint {{cooldownDays ≥ 1, art: [{'|'.join(sorted(ARTS))}] и/или zone}}")
-    if "portions" in v and (t not in ("food", "drink") or not isinstance(v["portions"], int) or v["portions"] < 1):
-        errors.append(f"{bw}: portions — только у еды/питья, целое ≥ 1")
+    if "portions" in v and (t not in ("food", "drink", "tool") or not isinstance(v["portions"], int) or v["portions"] < 1):
+        errors.append(f"{bw}: portions — только у еды/питья/спичек, целое ≥ 1")
     if "ability" in v:
         ab = v["ability"]
         if (not isinstance(ab, dict) or not isinstance(ab.get("kind"), str) or not isinstance(ab.get("cooldownDays"), int)

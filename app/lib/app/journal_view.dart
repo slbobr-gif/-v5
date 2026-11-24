@@ -176,7 +176,9 @@ List<JEffect> effectsOf(Json eff, World w) {
   }
   final remove = eff['remove'];
   if (remove is Map) {
-    remove.forEach((k, v) => out.add(JEffect('remove', key: '$k', value: v is num ? v.toInt() : 1)));
+    remove.forEach((k, v) {
+      if (k != r'$offer') out.add(JEffect('remove', key: '$k', value: v is num ? v.toInt() : 1));
+    });
   }
   if (eff['delay'] != null) out.add(JEffect('delay', value: lvl('delayHours', eff['delay'])));
   if (eff['detour'] != null) out.add(JEffect('detour', value: lvl('detourKm', eff['detour'])));

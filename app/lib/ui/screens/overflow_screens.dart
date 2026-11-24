@@ -349,9 +349,11 @@ class _BackpackOverflowState extends ConsumerState<_BackpackOverflow> {
                 child: _SwapRow(
                   id: e.key,
                   type: w.itemType(e.key),
-                  name: w.portionsOf(e.key) > 1
-                      ? l.gearPortions(content.itemName(e.key), eng.portionsTotal(e.key))
-                      : (e.value > 1 ? l.gearPortions(content.itemName(e.key), e.value) : content.itemName(e.key)),
+                  name: e.value > 1 ? l.gearPortions(content.itemName(e.key), e.value) : content.itemName(e.key),
+                  // 24.11: сколько осталось — у термоса и других многоразовых видно порции начатого.
+                  detail: w.portionsOf(e.key) > 1
+                      ? l.swapPortionsLeft(eng.portionsOpen(e.key), w.portionsOf(e.key))
+                      : null,
                   hot: c.isHeated() && w.heatable(e.key),
                   useBlocked: w.portionsOf(e.key) > 1 && eng.portionsOpen(e.key) > 1,
                   onUse: () => _act('stash', swapAction: 'use', swapItem: e.key),
@@ -370,6 +372,7 @@ class _SwapRow extends StatelessWidget {
     required this.id,
     required this.type,
     required this.name,
+    this.detail,
     required this.hot,
     required this.useBlocked,
     required this.onUse,
@@ -379,6 +382,7 @@ class _SwapRow extends StatelessWidget {
   final String id;
   final String type;
   final String name;
+  final String? detail;
   final bool hot;
   final bool useBlocked;
   final VoidCallback onUse;
@@ -395,7 +399,13 @@ class _SwapRow extends StatelessWidget {
           Row(children: [
             ItemIcon(id, size: 40, type: type, hot: hot),
             const SizedBox(width: Gap.s + 4),
-            Expanded(child: Text(name)),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(name),
+                if (detail != null)
+                  Text(detail!, style: const TextStyle(color: Palette.parchmentDim, fontSize: 12)),
+              ]),
+            ),
           ]),
           const SizedBox(height: Gap.xs),
           Wrap(

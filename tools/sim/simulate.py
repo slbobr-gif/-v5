@@ -207,7 +207,7 @@ class Player:
                 self.resolve_overflow(eng, now)
                 self.shop(eng, now)
                 eng.continue_journey(now)
-            elif t == "night":
+            elif t in ("night", "cold"):
                 eng.continue_journey(now)  # ночёвка (V5-45): «Дальше» — и тем же буфером в путь
             elif t == "death":
                 eng.s["stop"] = None
@@ -239,6 +239,9 @@ class Player:
                     break
                 if not eng.buy(item, now):
                     break
+        # 24.11: спички — коробок, когда осталось меньше 4
+        if "matches" in prices and eng.matches_left() < 4 and eng.s["coins"] >= prices["matches"] + 10:
+            eng.buy("matches", now)
         if "gas" in prices and "gas_stove" in eng.s["gear"] and eng.gear_uses("gas_stove") <= 3 \
                 and eng.s["coins"] >= prices["gas"] + 20:
             eng.buy("gas", now)

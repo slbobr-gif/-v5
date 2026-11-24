@@ -19,7 +19,12 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "tools" / "content"))
 from engine import MS_DAY, MS_HOUR, STATS, Engine, World, load_world, migrate_state, new_state, py_round  # noqa: E402
 
-BAL = json.loads((ROOT / "app" / "assets" / "balance.json").read_text(encoding="utf-8"))
+BAL_REAL = json.loads((ROOT / "app" / "assets" / "balance.json").read_text(encoding="utf-8"))
+# Тесты механик движка (upkeep, idleWarmthMult, cond, action…) написаны на прежних дарах. 24.11 дары переделаны
+# (аудит), но механики остались: здесь — прежние характеристики этих даров; новые проверяет класс NewGifts.
+LEGACY_GIFTS = json.loads(r'''{"amulet_leshy": {"gift": true, "type": "gear", "riskReduce": 0.2, "price": 0}, "ember_domovoy": {"gift": true, "type": "gear", "idleWarmthMult": 0.5, "price": 0, "camp": {"warmth": 10}, "hint": {"cooldownDays": 2, "art": ["village", "hut", "town"]}}, "lapot_domovoy": {"gift": true, "type": "gear", "idleWarmthMult": 0.7, "warmthDrainMult": 0.9, "price": 0, "upkeep": ["bread", "pie", "chocolate"]}, "venik_bannik": {"gift": true, "type": "tool", "price": 0, "ability": {"kind": "action", "cooldownDays": 3, "at": "place", "zones": ["suburb", "city"], "effect": {"warmth": 30}}, "hint": {"cooldownDays": 2, "art": ["bathhouse", "campfire", "rain", "night"]}}, "stone_bannik": {"gift": true, "type": "tool", "uses": 2, "price": 0, "ability": {"kind": "action", "cooldownDays": 0, "at": "any", "effect": {"warmth": 20}}}, "key_ovinnik": {"gift": true, "type": "tool", "price": 0, "ability": {"kind": "action", "cooldownDays": 5, "at": "place", "zones": ["suburb"], "effect": {"warmthToMax": true}}}, "sheaf_ovinnik": {"gift": true, "type": "tool", "uses": 1, "price": 0, "ability": {"kind": "action", "cooldownDays": 0, "at": "place", "effect": {"warmth": 35}}}, "wreath_poludnitsa": {"gift": true, "type": "gear", "expiresDays": 3, "price": 0, "cond": {"any": ["midday", "heat"], "waterDrainMult": 0.7}}, "shell_vodyanoy": {"gift": true, "type": "gear", "price": 0, "cond": {"any": ["water"], "noCoinLoss": true}, "camp": {"water": 10, "waterPlace": true, "cooldownDays": 1}, "hint": {"cooldownDays": 2, "art": ["river", "lake"]}}}''')
+BAL = copy.deepcopy(BAL_REAL)
+BAL["items"].update(copy.deepcopy(LEGACY_GIFTS))
 T0 = 1777622400000  # 2026-05-01 08:00 UTC = 11:00 МСК
 
 
@@ -115,7 +120,8 @@ class Loadout(unittest.TestCase):
         s = new_state(w, 1, T0, "2026-05-01")
         d = BAL["loadout"]["default"]
         self.assertEqual(s["gear"], d["gear"])
-        self.assertEqual(s["inv"], d["pack"])
+        free = BAL["loadout"].get("freeItems", {})
+        self.assertEqual(s["inv"], {k: d["pack"].get(k, 0) + free.get(k, 0) for k in {**d["pack"], **free}})
         self.assertEqual(s["gearUses"], {g: BAL["items"][g]["uses"] for g in d["gear"] if "uses" in BAL["items"][g]})
         self.assertFalse(s["loadoutDone"])
         e = Engine(w, s)
@@ -129,7 +135,7 @@ class Loadout(unittest.TestCase):
         self.assertIsNone(e.start_loadout(["first_aid", "flask"], {"bread": 3, "water": 2}, T0))
         self.assertEqual(s["gear"], ["first_aid", "flask"])
         self.assertEqual(s["gearUses"], {"first_aid": 2})
-        self.assertEqual(s["inv"], {"bread": 3, "water": 2})
+        self.assertEqual(s["inv"], {"bread": 3, "water": 2, "matches": 1})
         self.assertEqual(s["journal"][-1]["kind"], "loadout")
         self.assertEqual(e.start_loadout([], {}, T0), "already_done")
 
@@ -283,10 +289,10 @@ class ChargesAndHeat(unittest.TestCase):
     def test_auto_consume_prefers_hot_drink_for_warmth(self):
         _, s, e = fresh(gear=["gas_stove"], pack={"water": 1})
         e.heat(T0)
-        s["stats"] = {"satiety": 80.0, "water": 50.0, "warmth": 20.0}
+        s["stats"] = {"satiety": 80.0, "water": 50.0, "warmth": 4.0}
         e._auto_consume(T0)
         self.assertEqual(s["inv"].get("water", 0), 0)
-        self.assertEqual(s["stats"]["warmth"], 20.0 + BAL["items"]["water"]["heat"])
+        self.assertEqual(s["stats"]["warmth"], 4.0 + BAL["items"]["water"]["heat"])
         self.assertFalse(s["heated"])
 
     def test_gas_refill_buy_and_find(self):
@@ -330,7 +336,7 @@ class FirstAid(unittest.TestCase):
         # второй ноль до следующей остановки — смерть, заряд не тратится
         s["stats"]["satiety"] = 0.5
         ok = e._walk(1000.0, T0, on_route=True)
-        self.assertFalse(ok)
+        self.assertEqual(ok, -1)
         self.assertEqual(s["deaths"], 1)
         self.assertEqual(s["gearUses"]["first_aid"], BAL["items"]["first_aid"]["uses"] - 1)
         self.assertFalse(s["aidLock"])  # смерть снимает блокировку
@@ -450,8 +456,8 @@ class Overflow(unittest.TestCase):
         self.assertNotIn("gas_stove", s["gearUses"])
         self.assertIsNone(e.drop_item("bread"))
         self.assertEqual(s["inv"]["bread"], 1)
-        self.assertIsNone(e.drop_item("matches"))
-        self.assertNotIn("matches", s["inv"])
+        self.assertIsNone(e.drop_item("matches"))  # стартовый коробок + подаренный → остался один
+        self.assertEqual(s["inv"]["matches"], 1)
         self.assertEqual(e.drop_item("compass"), "no_item")
 
     def test_duplicates_and_remove(self):
@@ -1135,6 +1141,139 @@ class Wild(unittest.TestCase):
         pos, kind, _ = e._next_stop()
         self.assertEqual(kind, "random")
         self.assertAlmostEqual(pos, 40001.0)
+
+
+class Fire(unittest.TestCase):
+    """24.11: спички, экстренный привал, задержки не подряд, угощение «чем есть», события про вещи."""
+
+    def test_matches_box_and_night(self):
+        _, s, e = fresh(pack={"bread": 1})
+        self.assertEqual(e.matches_left(), BAL["items"]["matches"]["portions"])
+        self.assertEqual(e._burn_matches(3), 3)
+        self.assertEqual(e.matches_left(), 7)
+        self.assertEqual(e._burn_matches(20), 7)
+        self.assertNotIn("matches", s["inv"])
+
+    def test_cold_stop(self):
+        w = make_world(randoms=[])
+        _, s, e = fresh(w, pack={})
+        s["nextRandomAt"] = 1e12
+        s["stats"] = {"satiety": 90.0, "water": 90.0, "warmth": 5.5}
+        walked = e._walk(5000.0, T0, on_route=True)
+        self.assertGreater(walked, 0)
+        self.assertLess(walked, 5000.0)
+        st = s["stop"]
+        self.assertEqual(st["type"], "cold")
+        c = BAL["fire"]["coldStop"]
+        self.assertTrue(c["burnMin"] <= st["want"] <= c["burnMax"])
+        self.assertEqual(st["matches"], min(st["want"], 10))
+        self.assertEqual(s["delayUntil"], T0 + c["hours"] * MS_HOUR)
+        self.assertTrue(e.continue_journey(T0))
+
+    def test_cold_without_matches(self):
+        w = make_world(randoms=[])
+        _, s, e = fresh(w, pack={})
+        s["inv"].pop("matches", None)
+        s["stats"] = {"satiety": 90.0, "water": 90.0, "warmth": 5.0}
+        e._walk(300.0, T0, on_route=True)
+        self.assertEqual(s["stop"]["matches"], 0)
+        self.assertLess(s["stats"]["warmth"], 5.0 + BAL["fire"]["coldStop"]["warmthNoFire"] + 0.01)
+        self.assertGreater(s["stats"]["warmth"], BAL["fire"]["coldStop"]["warmthNoFire"])
+
+    def test_no_delay_events_same_day(self):
+        delay = [{"id": "d", "text": "ждать", "risk": "none",
+                  "outcomes": [{"weight": 1, "text": "x", "effects": {"delay": "short"}}]}]
+        w = make_world(randoms=[ev("r_d", "city", delay, tags=("any",)), ev("r_plain", "city", tags=("any",))])
+        _, s, e = fresh(w)
+        s["lastDelayDay"] = e.game_day(T0)
+        for _ in range(10):
+            s["recentRandom"] = []
+            self.assertEqual(e._pick_random(T0)["id"], "r_plain")
+        s["lastDelayDay"] = e.game_day(T0) - 1
+        got = set()
+        for _ in range(30):
+            s["recentRandom"] = []
+            got.add(e._pick_random(T0)["id"])
+        self.assertIn("r_d", got)
+
+    def test_offer_any_food(self):
+        _, s, e = fresh(pack={"stew": 1})
+        c = {"id": "c", "requires": {"offer": ["bread", "stew"]}}
+        self.assertEqual(e.offer_item(c), "stew")
+        self.assertTrue(e.choice_available(c))
+        s["inv"].pop("stew")
+        self.assertFalse(e.choice_available(c))
+
+    def test_when_has(self):
+        w = make_world(randoms=[ev("r_m", "city", tags=("any",), whenHas="compass"), ev("r_p", "city", tags=("any",))])
+        _, s, e = fresh(w)
+        for _ in range(10):
+            s["recentRandom"] = []
+            self.assertEqual(e._pick_random(T0)["id"], "r_p")
+
+
+class NewGifts(unittest.TestCase):
+    """24.11: дары после аудита — огонь без спичек, сбережение спичек, лапоть, веник с перезарядкой."""
+
+    def world(self, **kw):
+        b = copy.deepcopy(BAL)
+        b["items"].update(copy.deepcopy({k: BAL_REAL["items"][k] for k in LEGACY_GIFTS}))
+        return make_world(b, **kw)
+
+    def test_ember_night_free(self):
+        w = self.world(randoms=[])
+        _, s, e = fresh(w)
+        e.give_items({"ember_domovoy": 1}, "t")
+        m0 = e.matches_left()
+        e._night(T0)
+        self.assertEqual(e.matches_left(), m0)
+        self.assertTrue(s["stop"].get("free"))
+        self.assertFalse(s["stop"]["nofire"])
+
+    def test_ognivo_cold(self):
+        w = self.world(randoms=[])
+        _, s, e = fresh(w, pack={})
+        e.give_items({"key_ovinnik": 1}, "t")
+        s["stats"] = {"satiety": 90.0, "water": 90.0, "warmth": 5.0}
+        e._walk(300.0, T0, on_route=True)
+        self.assertEqual(s["stop"]["type"], "cold")
+        self.assertEqual(s["stop"]["matches"], 0)
+        self.assertTrue(s["stop"]["free"])
+        self.assertEqual(s["delayUntil"], T0 + 1 * MS_HOUR)
+
+    def test_stone_saves_matches(self):
+        w = self.world(randoms=[])
+        _, s, e = fresh(w)
+        e.give_items({"stone_bannik": 1}, "t")
+        n = sum(e._match_cost(10) for _ in range(20))
+        self.assertTrue(60 < n < 140, n)
+
+    def test_lapot_keeps_food(self):
+        w = self.world(randoms=[ev("lose", "city", choices=[
+            {"id": "a", "text": "а", "risk": "none", "outcomes": [{"weight": 1, "text": "x", "effects": {"remove": {"bread": 1}}}]},
+            {"id": "b", "text": "б", "risk": "none", "requires": {"item": "bread"},
+             "outcomes": [{"weight": 1, "text": "x", "effects": {"remove": {"bread": 1}}}]}], tags=("any",))])
+        _, s, e = fresh(w, pack={"bread": 2})
+        e.give_items({"lapot_domovoy": 1}, "t")
+        s["stop"] = {"type": "event", "event": "lose", "random": True}
+        e.choose("a", T0)
+        self.assertEqual(s["inv"]["bread"], 2)
+        s["stop"] = {"type": "event", "event": "lose", "random": True}
+        e.choose("b", T0)
+        self.assertEqual(s["inv"]["bread"], 1)  # плату, отданную самим, лапоть не бережёт
+
+    def test_venik_rescue_cooldown(self):
+        w = self.world(randoms=[])
+        _, s, e = fresh(w, pack={})
+        e.give_items({"venik_bannik": 1}, "t")
+        s["stats"]["satiety"] = 0.0
+        self.assertTrue(e._try_rescue(T0))
+        self.assertEqual(s["stats"]["satiety"], 30.0)
+        s["aidLock"] = False
+        s["stats"]["satiety"] = 0.0
+        self.assertFalse(e._try_rescue(T0 + MS_DAY))
+        s["aidLock"] = False
+        self.assertTrue(e._try_rescue(T0 + 6 * MS_DAY))
 
 
 if __name__ == "__main__":

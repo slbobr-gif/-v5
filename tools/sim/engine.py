@@ -269,6 +269,19 @@ class World:
             out.append({"key": "packSlots", "value": int(pk["slots"])})
             if int(pk.get("gear", 0)) > 0:
                 out.append({"key": "packGear", "value": int(pk["gear"])})
+        # 24.11: огонь и спички, сбережённые припасы, спасение с перезарядкой
+        fire = it.get("fire")
+        if isinstance(fire, dict):
+            for wh in fire.get("free", []):
+                out.append({"key": "fireFree" + str(wh).capitalize(), "value": 0})
+            if "coldHours" in fire:
+                out.append({"key": "coldHours", "value": int(fire["coldHours"])})
+        if "matchSave" in it:
+            out.append({"key": "matchSave", "value": py_round(float(it["matchSave"]) * 100.0)})
+        if it.get("noItemLoss"):
+            out.append({"key": "noItemLoss", "value": 0})
+        if "rescueCooldownDays" in it:
+            out.append({"key": "rescueCooldown", "value": int(it["rescueCooldownDays"])})
         return out
 
     def pack_spec(self, item: str):
@@ -331,6 +344,9 @@ def _loadout_into(world: World, s: dict, gear: list[str], pack: dict[str, int]):
     s["gear"] = list(gear)
     s["gearUses"] = {g: int(world.items[g]["uses"]) for g in gear if "uses" in world.items[g]}
     s["inv"] = {k: int(n) for k, n in pack.items() if n > 0}
+    for k, n in (world.b.get("loadout", {}).get("freeItems") or {}).items():
+        if int(n) > 0:
+            s["inv"][k] = s["inv"].get(k, 0) + int(n)
     s["heated"] = False
     s["heatedDay"] = 0
     s["overflow"] = []
@@ -373,6 +389,7 @@ def new_state(world: World, seed: int, now_ms: int, today: str, today_steps: int
         "dayMark": (now_ms + int(b["gameDay"]["utcOffsetHours"] * MS_HOUR)) // MS_DAY,
         "stop": None,
         "delayUntil": 0,
+        "lastDelayDay": 0,
         "flags": [],
         "seen": [],
         "recentRandom": [],
@@ -752,6 +769,82 @@ class Engine:
         if n <= 0:
             return 0
         return (n - 1) * self.portions(item) + self.portions_open(item)
+
+    # ------------------------------------------------ спички (24.11)
+    @property
+    def _fire(self) -> dict:
+        return self.b.get("fire") or {}
+
+    def matches_left(self) -> int:
+        return self.portions_total(self._fire.get("item", "matches"))
+
+    def _burn_matches(self, want: int) -> int:
+        item = self._fire.get("item", "matches")
+        burnt = 0
+        while burnt < want and self.s["inv"].get(item, 0) > 0:
+            self._spend_portion(item)
+            burnt += 1
+        return burnt
+
+    def _held(self) -> list:
+        """Дары, что держит герой: снаряжение (с действующим перком) и инструменты рюкзака (по алфавиту)."""
+        return [g for g in self.s["gear"] if self.perk_on(g)] + \
+            sorted(k for k, n in self.s["inv"].items() if n > 0 and k not in self.s["gear"])
+
+    def _fire_free(self, where: str, wet: bool) -> bool:
+        for g in self._held():
+            f = self.w.items.get(g, {}).get("fire")
+            free = (f or {}).get("free", []) if isinstance(f, dict) else []
+            if where in free or (wet and "wet" in free):
+                return True
+        return False
+
+    def _match_cost(self, want: int) -> int:
+        p = 0.0
+        for g in self._held():
+            v = self.w.items.get(g, {}).get("matchSave")
+            if isinstance(v, (int, float)):
+                p = max(p, float(v))
+        if p <= 0 or self.s["inv"].get(self._fire.get("item", "matches"), 0) <= 0:
+            return want
+        n = 0
+        for _ in range(want):
+            if self.rng.next_float() >= p:
+                n += 1
+        return n
+
+    def _cold_stop(self, now: int):
+        """Экстренный привал: тепло упало до coldStop.at — стоянка hours часов, спичек случайно burnMin..burnMax."""
+        c = self._fire["coldStop"]
+        lo, hi = int(c["burnMin"]), int(c["burnMax"])
+        free = self._fire_free("cold", False)
+        want = 0 if free else lo + self.rng.next_u32() % (hi - lo + 1)
+        burnt = 0 if free else self._burn_matches(want)
+        g = int(c["warmthFire"] if burnt > 0 or free else c["warmthNoFire"])
+        self.s["stats"]["warmth"] += g
+        self._clamp_stats()
+        hours = float(c["hours"])
+        for it in self._held():
+            f = self.w.items.get(it, {}).get("fire")
+            if isinstance(f, dict) and isinstance(f.get("coldHours"), (int, float)):
+                hours = min(hours, float(f["coldHours"]))
+        self.s["delayUntil"] = now + int(hours * MS_HOUR)
+        self._log(now, "cold", "Сергей замёрз и остановился погреться", want=want, matches=burnt, gain=g, free=free)
+        self.s["stop"] = {"type": "cold", "want": want, "matches": burnt, "gain": g, "free": free, "hours": hours}
+        self.s["aidLock"] = False
+
+    def _delayed_today(self, now: int) -> bool:
+        d = self.s.get("lastDelayDay", 0)
+        return d != 0 and d == self.game_day(now)
+
+    @staticmethod
+    def _has_delay(e: dict) -> bool:
+        for c in e.get("choices", []) or []:
+            for o in c.get("outcomes", []) or []:
+                eff = o.get("effects")
+                if isinstance(eff, dict) and eff.get("delay") is not None:
+                    return True
+        return False
 
     def _use_one(self, item: str, now: int) -> bool:
         """Съесть/выпить ОДНУ порцию из рюкзака: многоразовый предмет теряет порцию, на 0 — исчезает ячейка."""
@@ -1182,7 +1275,19 @@ class Engine:
         if self.s["aidLock"]:
             return False
         zero = [k for k in STATS if self.s["stats"][k] <= 0]
+        for g in self._held():  # берёзовый веник: спасение с перезарядкой, раньше аптечки
+            spec = self.w.items.get(g, {})
+            cd, to = spec.get("rescueCooldownDays"), spec.get("rescueTo")
+            if cd is not None and to and self.ability_cooldown_days(f"{g}:rescue", now) == 0:
+                for k in zero:
+                    self.s["stats"][k] = float(to)
+                self.s["abilityReady"][f"{g}:rescue"] = self.game_day(now) + int(cd)
+                self.s["aidLock"] = True
+                self._log(now, "first_aid", "Веник спас Сергея", item=g, stats=zero, left=-1)
+                return True
         for g in self.s["gear"]:
+            if self.w.items.get(g, {}).get("rescueCooldownDays") is not None:
+                continue
             to = self.w.items.get(g, {}).get("rescueTo")
             allowed = self.w.items.get(g, {}).get("rescueStats") or STATS
             if to and self.gear_uses(g) > 0 and all(k in allowed for k in zero):
@@ -1277,12 +1382,16 @@ class Engine:
                 break
             if self.s["detour"]:
                 d = self.s["detour"]
-                step = min(self.s["buffer"], d["remaining"])
-                if not self._walk(step, now, on_route=False):
+                want = min(self.s["buffer"], d["remaining"])
+                step = self._walk(want, now, on_route=False)
+                if step < 0:
                     out.append({"type": "death"})
                     break
                 d["remaining"] -= step
                 self.s["buffer"] -= step
+                if self.s["stop"]:
+                    out.append({"type": "stop", "stop": self.s["stop"]})
+                    break
                 if d["remaining"] <= 0.5:
                     end = d.get("end")
                     self.s["detour"] = None
@@ -1293,12 +1402,16 @@ class Engine:
                         out.append({"type": "stop", "stop": self.s["stop"]})
                 continue
             target, kind, data = self._next_stop()
-            step = min(self.s["buffer"], target - self.s["pos"])
-            if step > 0:
-                if not self._walk(step, now, on_route=True):
+            want = min(self.s["buffer"], target - self.s["pos"])
+            if want > 0:
+                step = self._walk(want, now, on_route=True)
+                if step < 0:
                     out.append({"type": "death"})
                     break
                 self.s["buffer"] -= step
+                if self.s["stop"]:
+                    out.append({"type": "stop", "stop": self.s["stop"]})
+                    break
             if self.s["pos"] >= target - 0.5:
                 self.s["pos"] = max(self.s["pos"], target)
                 self.s["maxPos"] = max(self.s["maxPos"], self.s["pos"])
@@ -1308,9 +1421,12 @@ class Engine:
         self._save_rng()
         return out
 
-    def _walk(self, dist: float, now: int, on_route: bool) -> bool:
-        """Идёт кусками по 250 м. Возвращает False, если герой погиб."""
+    def _walk(self, dist: float, now: int, on_route: bool) -> float:
+        """Идёт кусками по 250 м. Возвращает пройденные метры; -1 — герой погиб.
+        Экстренный привал из-за холода (fire.coldStop) прерывает путь."""
         left = dist
+        walked = 0.0
+        cold = self._fire.get("coldStop") if self._fire else None
         while left > 1e-6:
             chunk = min(250.0, left)
             self._drain_walk(chunk / 1000.0, now)
@@ -1320,12 +1436,16 @@ class Engine:
                 self.s["pos"] += chunk
                 self.s["maxPos"] = max(self.s["maxPos"], self.s["pos"])
             left -= chunk
+            walked += chunk
             if min(self.s["stats"].values()) <= 0:
                 if self._try_rescue(now):
                     continue
                 self._die(now, "stats")
-                return False
-        return True
+                return -1
+            if cold is not None and self.s["stats"]["warmth"] <= float(cold["at"]):
+                self._cold_stop(now)
+                return walked
+        return walked
 
     def _arrive(self, kind: str, data, now: int):
         self.s["aidLock"] = False  # новая остановка — аптечка снова может сработать
@@ -1408,6 +1528,16 @@ class Engine:
             kk = kinds[self.rng.pick_weighted(weights)]
             kind_id = kk["id"]
             night_warmth = int(kk["warmth"])
+        burnt = 0
+        free = False
+        fire = self._fire
+        if fire:
+            bad = self.w.weather_at(self.s["seed"], self.s["pos"]) in nb.get("coldWeather", [])
+            want = int(fire["nightBurn"]) + (int(fire["badWeatherBurn"]) if bad else 0)
+            free = self._fire_free("night", bad)
+            burnt = 0 if free else self._burn_matches(self._match_cost(want))
+            if burnt == 0 and not free:
+                night_warmth = int(py_round(night_warmth * float(fire["noFireNightMult"])))
         gain = {"warmth": night_warmth}
         for k in STATS:
             if mo.get(k):
@@ -1421,6 +1551,11 @@ class Engine:
         self._log(now, "night", "Сергей заночевал в пути", morning=mid, nightKind=kind_id, gain=dict(gain))
         self._camp({"id": ""}, now)
         self.s["stop"] = {"type": "night", "morning": mid, "kind": kind_id, "gain": gain}
+        if fire:
+            self.s["stop"]["matches"] = burnt
+            self.s["stop"]["nofire"] = burnt == 0 and not free
+            if free:
+                self.s["stop"]["free"] = True
         self.s["nextNightAt"] = first_night_after(self.b, self.s["pos"])
 
     def _pick_wild(self, now: int):
@@ -1437,6 +1572,8 @@ class Engine:
             return None
         cands = [e for e in self.w.randoms if e.get("wild") and e["id"] not in seen
                  and (ch in e.get("tags", []) or "any" in e.get("tags", []))]
+        if self._delayed_today(now):
+            cands = [e for e in cands if not self._has_delay(e)]
         if not cands:
             return None
         before = self.s.get("wildBefore", [])
@@ -1455,6 +1592,7 @@ class Engine:
         if w is not None:
             return w
         ch = f"ch{self.w.chapter_at(self.s['pos'])}"
+        late = self._delayed_today(now)  # сегодня уже была задержка — событий с задержкой до завтра нет
         recent = self.s["recentRandom"]
         zone = self.w.zone_at(self.s["pos"])
         # недавние — отдельно по зоне: последние keep_z событий этой зоны, keep_z = min(12, пул_зоны // 2)
@@ -1462,7 +1600,9 @@ class Engine:
         recent_z = [r for r in recent if self.w.event_zone(r) == zone][-keep_z:]
         recent_all = recent[-max(1, min(12, len(self.w.randoms) // 2)):]
         in_ch = [e for e in self.w.randoms if not e.get("wild")
-                 and (ch in e.get("tags", []) or "any" in e.get("tags", []))]
+                 and (ch in e.get("tags", []) or "any" in e.get("tags", []))
+                 and not (late and self._has_delay(e))
+                 and (e.get("whenHas") is None or self.has_item(e["whenHas"]))]
         pool = [e for e in in_ch if e.get("zone") == zone and e["id"] not in recent_z]
         base = [e for e in in_ch if e["id"] not in recent_all]
         if not pool:
@@ -1501,9 +1641,18 @@ class Engine:
             return self._quest_event(st["quest"])
         return self.w.events_by_id.get(st["event"])
 
+    def offer_item(self, choice: dict):
+        """requires.offer: первая вещь из списка, что есть в рюкзаке; remove {"$offer": n} — она."""
+        for it in (choice.get("requires") or {}).get("offer", []):
+            if self.has_item(it):
+                return it
+        return None
+
     def choice_available(self, choice: dict) -> bool:
         req = choice.get("requires") or {}
         if "item" in req and not self.has_item(req["item"]):
+            return False
+        if "offer" in req and self.offer_item(choice) is None:
             return False
         if "coins" in req and self.s["coins"] < self.b["levels"]["coins"][req["coins"]]:
             return False
@@ -1560,7 +1709,29 @@ class Engine:
         qid0 = st.get("quest")
         step0 = self.s["quests"][qid0]["step"] if qid0 in self.s["quests"] else None
         self.s["undo"] = None
-        died = self._apply_effects(o.get("effects", {}), now, st, source=ev["id"], ctx=ctx)
+        eff = o.get("effects", {})
+        rm = eff.get("remove") or {}
+        if rm and not choice.get("requires"):  # лапоть: в исходах без платы припасы не пропадают
+            keep = set()
+            for g in self._held():
+                nl = self.w.items.get(g, {}).get("noItemLoss")
+                if isinstance(nl, list):
+                    keep.update(nl)
+            if keep:
+                nrm = {k: v for k, v in rm.items() if k not in keep and self.w.item_type(k) not in keep}
+                if len(nrm) != len(rm):
+                    eff = dict(eff, remove=nrm)
+                    if not nrm:
+                        eff.pop("remove")
+                    self._log(now, "kept", "Домовой сберёг припасы", items=[k for k in rm if k not in nrm])
+        rm = eff.get("remove") or {}
+        if "$offer" in rm:
+            it = self.offer_item(choice)
+            nrm = {k: v for k, v in rm.items() if k != "$offer"}
+            if it is not None:
+                nrm[it] = nrm.get(it, 0) + rm["$offer"]
+            eff = dict(eff, remove=nrm)
+        died = self._apply_effects(eff, now, st, source=ev["id"], ctx=ctx)
         if not died and self._harm:
             self.s["undo"] = dict(self._harm, event=ev["id"])
         if ev.get("once", True) and not st.get("random"):
@@ -1781,6 +1952,9 @@ class Engine:
             if m != 1.0:
                 h = max(1, py_round(h * m))
             self.s["delayUntil"] = now + int(h * MS_HOUR)
+            self.s["lastDelayDay"] = self.game_day(now)
+        if eff.get("burnMatches") is not None and self._fire:
+            self._burn_matches(self._match_cost(int(eff["burnMatches"])))
         if "detour" in eff:
             km = L["detourKm"][eff["detour"]]
             m = self.gear_mult("detourMult")

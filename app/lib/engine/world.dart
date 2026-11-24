@@ -438,6 +438,17 @@ class World {
       out.add(ItemPerk('packSlots', toI(pk['slots'])));
       if (toI(pk['gear'] ?? 0) > 0) out.add(ItemPerk('packGear', toI(pk['gear'])));
     }
+    // 24.11: огонь и спички, сбережённые припасы, спасение с перезарядкой
+    final fire = it['fire'];
+    if (fire is Map) {
+      for (final wh in (fire['free'] as List?) ?? const []) {
+        out.add(ItemPerk('fireFree${pyCapitalize('$wh')}', 0));
+      }
+      if (fire.containsKey('coldHours')) out.add(ItemPerk('coldHours', toI(fire['coldHours'])));
+    }
+    if (it.containsKey('matchSave')) out.add(ItemPerk('matchSave', pyRound(toD(it['matchSave']) * 100.0).toInt()));
+    if (_truthy(it['noItemLoss'])) out.add(const ItemPerk('noItemLoss', 0));
+    if (it.containsKey('rescueCooldownDays')) out.add(ItemPerk('rescueCooldown', toI(it['rescueCooldownDays'])));
     return out;
   }
 

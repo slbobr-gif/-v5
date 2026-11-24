@@ -764,6 +764,7 @@ class _StopBanner extends ConsumerWidget {
       'death' => (Icons.nightlight_outlined, l.stopDeath, content.placeName('${st['place']}')),
       'finish' => (Icons.waves, l.stopFinish, content.placeName('teriberka')),
       'night' => (Icons.bedtime_outlined, l.stopNight, l.nightTitle),
+      'cold' => (Icons.local_fire_department_outlined, l.stopCold, l.coldTitle),
       _ => (Icons.place_outlined, l.stopEvent, ''),
     };
     return SectionCard(
@@ -834,7 +835,7 @@ class _TodayCard extends ConsumerWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Icon(Icons.toll, color: Palette.accent, size: 18),
+            const Icon(Icons.toll, color: Palette.coin, size: 18),
             const SizedBox(width: Gap.xs),
             Text('${eng.s.coins}', style: const TextStyle(fontWeight: FontWeight.w600)),
           ]),
@@ -868,7 +869,7 @@ class _TodayCard extends ConsumerWidget {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.loginClaimed(got))));
                 }
               },
-              icon: const Icon(Icons.toll),
+              icon: const Icon(Icons.toll, color: Palette.coin),
               label: Text(l.loginClaim(toI(eng.b['dailyGoals']['loginCoins']))),
             ),
           ],

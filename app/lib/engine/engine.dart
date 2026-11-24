@@ -414,6 +414,91 @@ class Engine {
     return (n - 1) * w.portionsOf(item) + portionsOpen(item);
   }
 
+  // ------------------------------------------------ спички (24.11)
+  /// Предмет-спички и правила огня (balance.fire). Нет секции — огонь не нужен (старые сохранения/тесты).
+  Json get _fire => ((b['fire'] as Map?) ?? const {}).cast<String, dynamic>();
+  bool get _fireOn => _fire.isNotEmpty;
+  String get _matchItem => (_fire['item'] as String?) ?? 'matches';
+
+  /// Сколько спичек всего: коробки × спичек в коробке, у начатого — остаток.
+  int matchesLeft() => portionsTotal(_matchItem);
+
+  /// Сжечь до [want] спичек. Возвращает, сколько сгорело (0 — спичек не было).
+  int _burnMatches(int want) {
+    var burnt = 0;
+    while (burnt < want && (s.inv[_matchItem] ?? 0) > 0) {
+      _spendPortion(_matchItem);
+      burnt++;
+    }
+    return burnt;
+  }
+
+  /// Дары, что держит герой (снаряжение и инструменты рюкзака), в постоянном порядке — для огненных перков.
+  List<String> _held() => [
+        ...s.gear.where(perkOn),
+        ...(s.inv.keys.where((k) => (s.inv[k] ?? 0) > 0 && !s.gear.contains(k)).toList()..sort()),
+      ];
+
+  /// Огонь без спичек (дары): fire.free — 'night' (ночёвка), 'cold' (экстренный привал), 'wet' (в непогоду).
+  bool _fireFree(String where, bool wet) {
+    for (final g in _held()) {
+      final f = w.itemSpec(g)['fire'];
+      final free = f is Map ? ((f['free'] as List?) ?? const []) : const [];
+      if (free.contains(where) || (wet && free.contains('wet'))) return true;
+    }
+    return false;
+  }
+
+  /// Сколько спичек на самом деле уйдёт: камешек с каменки (matchSave p) бережёт каждую с вероятностью p.
+  int _matchCost(int want) {
+    var p = 0.0;
+    for (final g in _held()) {
+      final v = w.itemSpec(g)['matchSave'];
+      if (v is num) p = math.max(p, v.toDouble());
+    }
+    if (p <= 0 || (s.inv[_matchItem] ?? 0) <= 0) return want;
+    var n = 0;
+    for (var i = 0; i < want; i++) {
+      if (rng.nextFloat() >= p) n++;
+    }
+    return n;
+  }
+
+  /// Экстренный привал (24.11): тепло упало до coldStop.at — Сергей останавливается на hours часов и
+  /// разжигает огонь; спичек уходит случайно от burnMin до burnMax (ветер, сырость, окоченевшие руки).
+  void _coldStop(int now) {
+    final c = (_fire['coldStop'] as Map).cast<String, dynamic>();
+    final lo = toI(c['burnMin']), hi = toI(c['burnMax']);
+    final free = _fireFree('cold', false);
+    final want = free ? 0 : lo + rng.nextU32() % (hi - lo + 1);
+    final burnt = free ? 0 : _burnMatches(want);
+    final g = toI(burnt > 0 || free ? c['warmthFire'] : c['warmthNoFire']);
+    s.stats['warmth'] = s.stats['warmth']! + g;
+    _clampStats();
+    var hours = toD(c['hours']);
+    for (final it in _held()) {
+      final f = w.itemSpec(it)['fire'];
+      if (f is Map && f['coldHours'] is num) hours = math.min(hours, toD(f['coldHours']));
+    }
+    s.delayUntil = now + (hours * msHour).toInt();
+    _log(now, 'cold', {'want': want, 'matches': burnt, 'gain': g, 'free': free});
+    s.stop = {'type': 'cold', 'want': want, 'matches': burnt, 'gain': g, 'free': free, 'hours': hours};
+    s.aidLock = false;
+  }
+
+  /// Задержка была сегодня (игровая дата) — случайные события с задержкой не выпадают до завтра (24.11).
+  bool _delayedToday(int now) => s.lastDelayDay != 0 && s.lastDelayDay == gameDay(now);
+
+  bool _hasDelay(Json e) {
+    for (final c in (e['choices'] as List? ?? const [])) {
+      for (final o in ((c as Map)['outcomes'] as List? ?? const [])) {
+        final eff = (o as Map)['effects'];
+        if (eff is Map && eff['delay'] != null) return true;
+      }
+    }
+    return false;
+  }
+
   /// Съесть/выпить ОДНУ порцию из рюкзака. Возвращает true, если сработал бонус горелки.
   bool _useOne(String item, int now) {
     _spendPortion(item);
@@ -898,7 +983,23 @@ class Engine {
   bool _tryRescue(int now) {
     if (s.aidLock) return false;
     final zero = statKeys.where((k) => s.stats[k]! <= 0).toList();
+    // Берёзовый веник (24.11): спасение от нуля с перезарядкой rescueCooldownDays, без зарядов; раньше аптечки.
+    for (final g in _held()) {
+      final spec = w.itemSpec(g);
+      final cd = spec['rescueCooldownDays'];
+      final to = spec['rescueTo'];
+      if (cd is num && to is num && abilityCooldownDays('$g:rescue', now) == 0) {
+        for (final k in zero) {
+          s.stats[k] = to.toDouble();
+        }
+        s.abilityReady['$g:rescue'] = gameDay(now) + cd.toInt();
+        s.aidLock = true;
+        _log(now, 'first_aid', {'item': g, 'stats': zero, 'left': -1});
+        return true;
+      }
+    }
     for (final g in s.gear) {
+      if (w.itemSpec(g)['rescueCooldownDays'] != null) continue;
       final to = w.itemSpec(g)['rescueTo'];
       final rs = w.itemSpec(g)['rescueStats'];
       final allowed = (rs is List && rs.isNotEmpty) ? rs.map((e) => '$e').toList() : statKeys;
@@ -999,13 +1100,18 @@ class Engine {
       if (s.delayUntil > now) break;
       final d = s.detour;
       if (d != null) {
-        final step = math.min(s.buffer, d.remaining);
-        if (!_walk(step, now, onRoute: false)) {
+        final want = math.min(s.buffer, d.remaining);
+        final step = _walk(want, now, onRoute: false);
+        if (step < 0) {
           out.add(const EngineEvent('death'));
           break;
         }
         d.remaining -= step;
         s.buffer -= step;
+        if (s.stop != null) {
+          out.add(EngineEvent('stop', s.stop));
+          break;
+        }
         if (d.remaining <= 0.5) {
           final end = d.end;
           s.detour = null;
@@ -1019,13 +1125,18 @@ class Engine {
         continue;
       }
       final (target, kind, data) = nextStop();
-      final step = math.min(s.buffer, target - s.pos);
-      if (step > 0) {
-        if (!_walk(step, now, onRoute: true)) {
+      final want = math.min(s.buffer, target - s.pos);
+      if (want > 0) {
+        final step = _walk(want, now, onRoute: true);
+        if (step < 0) {
           out.add(const EngineEvent('death'));
           break;
         }
         s.buffer -= step;
+        if (s.stop != null) {
+          out.add(EngineEvent('stop', s.stop));
+          break;
+        }
       }
       if (s.pos >= target - 0.5) {
         s.pos = math.max(s.pos, target);
@@ -1038,9 +1149,12 @@ class Engine {
     return out;
   }
 
-  /// Идёт кусками по 250 м. Возвращает false, если герой погиб.
-  bool _walk(double dist, int now, {required bool onRoute}) {
+  /// Идёт кусками по 250 м. Возвращает пройденные метры; −1 — герой погиб.
+  /// Экстренный привал из-за холода (balance.fire.coldStop) прерывает путь — остаток ждёт в буфере.
+  double _walk(double dist, int now, {required bool onRoute}) {
     var left = dist;
+    var walked = 0.0;
+    final cold = _fireOn ? (_fire['coldStop'] as Map?) : null;
     while (left > 1e-6) {
       final chunk = math.min(250.0, left);
       _drainWalk(chunk / 1000.0, now);
@@ -1051,13 +1165,18 @@ class Engine {
         s.maxPos = math.max(s.maxPos, s.pos);
       }
       left -= chunk;
+      walked += chunk;
       if (_minStat() <= 0) {
         if (_tryRescue(now)) continue;
         _die(now, 'stats');
-        return false;
+        return -1;
+      }
+      if (cold != null && s.stats['warmth']! <= toD(cold['at'])) {
+        _coldStop(now);
+        return walked;
       }
     }
-    return true;
+    return walked;
   }
 
   void _arrive(String kind, Object? data, int now) {
@@ -1158,6 +1277,17 @@ class Engine {
       kindId = '${k['id']}';
       nightWarmth = toI(k['warmth']);
     }
+    // Костёр на ночёвке (24.11): спички; в непогоду уходит больше. Нет спичек — тепла ночи меньше.
+    var burnt = 0;
+    var want = 0;
+    var free = false;
+    if (_fireOn) {
+      final bad = ((nb['coldWeather'] as List?) ?? const []).contains(w.weatherAt(s.seed, s.pos));
+      want = toI(_fire['nightBurn']) + (bad ? toI(_fire['badWeatherBurn']) : 0);
+      free = _fireFree('night', bad);
+      burnt = free ? 0 : _burnMatches(_matchCost(want));
+      if (burnt == 0 && !free) nightWarmth = pyRound(nightWarmth * toD(_fire['noFireNightMult'])).toInt();
+    }
     final gain = <String, int>{'warmth': nightWarmth};
     for (final k in statKeys) {
       if (truthy(mo[k])) gain[k] = (gain[k] ?? 0) + toI(mo[k]);
@@ -1170,7 +1300,7 @@ class Engine {
     final mid = (mo['id'] as String?) ?? '';
     _log(now, 'night', {'morning': mid, 'nightKind': kindId, 'gain': Map<String, int>.of(gain)});
     _camp(const <String, dynamic>{'id': ''}, now);
-    s.stop = {'type': 'night', 'morning': mid, 'kind': kindId, 'gain': gain};
+    s.stop = {'type': 'night', 'morning': mid, 'kind': kindId, 'gain': gain, if (_fireOn) 'matches': burnt, if (_fireOn) 'nofire': burnt == 0 && !free, if (free) 'free': true};
     s.nextNightAt = firstNightAfter(b, s.pos);
   }
 
@@ -1188,6 +1318,7 @@ class Engine {
       final tags = _tags(e);
       return e['wild'] == true && !s.wildSeen.contains(e['id']) && (tags.contains(ch) || tags.contains('any'));
     }).toList();
+    if (_delayedToday(now)) cands = cands.where((e) => !_hasDelay(e)).toList();
     if (cands.isEmpty) return null;
     final fresh = cands.where((e) => !s.wildBefore.contains(e['id'])).toList();
     if (fresh.isNotEmpty) cands = fresh;
@@ -1202,6 +1333,7 @@ class Engine {
     final wild = _pickWild(now);
     if (wild != null) return wild;
     final ch = 'ch${w.chapterAt(s.pos)}';
+    final late = _delayedToday(now); // сегодня уже была задержка — событий с задержкой до завтра нет
     final recent = s.recentRandom;
     final zone = w.zoneAt(s.pos);
     // недавние — отдельно по зоне: последние keepZ событий этой зоны
@@ -1212,7 +1344,12 @@ class Engine {
     final recentAll = recent.sublist(math.max(0, recent.length - keepAll));
     final inCh = w.randoms.where((e) {
       final tags = _tags(e);
-      return e['wild'] != true && (tags.contains(ch) || tags.contains('any'));
+      // whenHas (24.11): событие про вещь из рюкзака — только если она есть
+      final need = e['whenHas'] as String?;
+      return e['wild'] != true &&
+          (tags.contains(ch) || tags.contains('any')) &&
+          !(late && _hasDelay(e)) &&
+          (need == null || hasItem(need));
     }).toList();
     var pool = inCh.where((e) => e['zone'] == zone && !recentZ.contains(e['id'])).toList();
     final base = inCh.where((e) => !recentAll.contains(e['id'])).toList();
@@ -1262,9 +1399,21 @@ class Engine {
     return w.eventsById[st['event']];
   }
 
+  /// Угощение «чем-нибудь из рюкзака» (24.11): requires.offer — список подходящей еды в порядке «что не жалко»;
+  /// отдаётся первое, что есть в рюкзаке. В эффектах исхода `remove: {"$offer": 1}` — именно эта вещь.
+  String? offerItem(Json choice) {
+    final req = (choice['requires'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+    final list = (req['offer'] as List?) ?? const [];
+    for (final it in list) {
+      if (hasItem('$it')) return '$it';
+    }
+    return null;
+  }
+
   bool choiceAvailable(Json choice) {
     final req = (choice['requires'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
     if (req['item'] != null && !hasItem('${req['item']}')) return false;
+    if (req['offer'] != null && offerItem(choice) == null) return false;
     if (req['coins'] != null && s.coins < toI(_sub(_m('levels'), 'coins')[req['coins']])) return false;
     if (req['flag'] != null && !s.flags.contains(req['flag'])) return false;
     return true;
@@ -1328,7 +1477,34 @@ class Engine {
     final pos0 = pyRound(s.pos).toInt();
     final questId = st['quest'] as String?;
     final step0 = questId == null ? null : s.quests[questId]?.step;
-    final effects = (o['effects'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    var effects = (o['effects'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    final rm = (effects['remove'] as Map?)?.cast<String, dynamic>();
+    // Лапоть с домовым (24.11): в исходах без платы (нет requires) припасы не пропадают.
+    if (rm != null && ((choice['requires'] as Map?)?.isNotEmpty ?? false) == false) {
+      final keep = <String>{};
+      for (final g in _held()) {
+        final nl = w.itemSpec(g)['noItemLoss'];
+        if (nl is List) keep.addAll(nl.map((e) => '$e'));
+      }
+      if (keep.isNotEmpty) {
+        final nrm = <String, dynamic>{
+          for (final e in rm.entries)
+            if (!keep.contains(e.key) && !keep.contains(w.itemType(e.key))) e.key: e.value,
+        };
+        if (nrm.length != rm.length) {
+          effects = {...effects, 'remove': nrm};
+          if (nrm.isEmpty) effects.remove('remove');
+          _log(now, 'kept', {'items': rm.keys.where((k) => !nrm.containsKey(k)).toList()});
+        }
+      }
+    }
+    final rm2 = (effects['remove'] as Map?)?.cast<String, dynamic>();
+    if (rm2 != null && rm2.containsKey(r'$offer')) {
+      final it = offerItem(choice);
+      final nrm = <String, dynamic>{...rm2}..remove(r'$offer');
+      if (it != null) nrm[it] = toI(nrm[it] ?? 0) + toI(rm2[r'$offer']);
+      effects = {...effects, 'remove': nrm};
+    }
     s.undo = null;
     final died = _applyEffects(effects, now, st, source: '${ev['id']}', ctx: ctx);
     final harm = _harm;
@@ -1599,6 +1775,11 @@ class Engine {
       final m = gearMult('delayMult');
       if (m != 1.0) h = math.max(1.0, pyRound(h * m));
       s.delayUntil = now + (h * msHour).toInt();
+      s.lastDelayDay = gameDay(now);
+    }
+    if (eff['burnMatches'] != null && _fireOn) {
+      // костёр по ходу события: спички тратятся; не хватило — сколько было (24.11)
+      _burnMatches(_matchCost(toI(eff['burnMatches'])));
     }
     if (eff['detour'] != null) {
       var km = toD(_sub(lv, 'detourKm')[eff['detour']]);

@@ -93,7 +93,24 @@ class GiftRow extends ConsumerWidget {
         const SizedBox(width: Gap.s + 4),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(content.itemName(item), style: Theme.of(context).textTheme.titleSmall),
+            // 24.11: тап по названию — напомнить, что даёт дар.
+            InkWell(
+              onTap: () {
+                final how = perksLine(l, w, item);
+                final desc = content.itemDesc(item);
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(
+                    duration: const Duration(seconds: 6),
+                    content: Text(desc.isNotEmpty ? desc : how),
+                  ));
+              },
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Flexible(child: Text(content.itemName(item), style: Theme.of(context).textTheme.titleSmall)),
+                const SizedBox(width: 4),
+                const Icon(Icons.info_outline, size: 15, color: Palette.parchmentDim),
+              ]),
+            ),
             if (max > 0)
               Text(left > 0 ? l.gearUsesLeft(left, max) : l.gearEmptyCharges,
                   style: const TextStyle(color: Palette.parchmentDim, fontSize: 12)),

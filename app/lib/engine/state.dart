@@ -92,6 +92,7 @@ class HeroState {
     this.detour,
     this.stop,
     this.delayUntil = 0,
+    this.lastDelayDay = 0,
     List<String>? flags,
     List<String>? seen,
     List<String>? recentRandom,
@@ -153,6 +154,8 @@ class HeroState {
   Map<String, int> inv;
   Json? stop;
   int delayUntil;
+  /// Игровой день последней задержки: случайные события с задержкой в тот же день не выпадают (24.11).
+  int lastDelayDay;
   List<String> flags;
   List<String> seen;
   List<String> recentRandom;
@@ -274,6 +277,12 @@ class HeroState {
       for (final e in pack.entries)
         if (e.value > 0) e.key: e.value,
     };
+    // Бесплатно в каждый новый путь (24.11): коробок спичек — без него не развести огонь.
+    final free = ((w.balance['loadout'] as Map?)?['freeItems'] as Map?) ?? const {};
+    free.forEach((k, v) {
+      final n = toI(v);
+      if (n > 0) inv['$k'] = (inv['$k'] ?? 0) + n;
+    });
     heated = false;
     heatedDay = 0;
     overflow = [];
@@ -299,6 +308,7 @@ class HeroState {
         'inv': inv,
         'stop': stop,
         'delayUntil': delayUntil,
+        'lastDelayDay': lastDelayDay,
         'flags': flags,
         'seen': seen,
         'recentRandom': recentRandom,
@@ -354,6 +364,7 @@ class HeroState {
       inv: ints(j['inv']),
       stop: (j['stop'] as Map?)?.cast<String, dynamic>(),
       delayUntil: toI(j['delayUntil']),
+      lastDelayDay: toI(j['lastDelayDay']),
       flags: strs(j['flags']),
       seen: strs(j['seen']),
       recentRandom: strs(j['recentRandom']),

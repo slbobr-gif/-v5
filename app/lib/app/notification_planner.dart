@@ -109,6 +109,8 @@ class NotificationPlanner {
           body = l.notifStopPlace(content.placeName('${stop['place']}'));
         case 'death':
           body = l.notifStopDeath;
+        case 'cold':
+          body = l.notifStopCold;
         default:
           body = l.notifStopGeneric;
       }
@@ -136,6 +138,23 @@ class NotificationPlanner {
         _ => l.notifLowWarmth,
       };
       addEvent(PlannedNotification(id: 400, at: at, title: l.notifLowTitle, body: body));
+    }
+
+    // 4б. Критично (24.11): показатель на краю (≤ dangerBelow) — напомнить вскоре, вне дневного лимита.
+    // Пока игра открыта, план пересобирается и срок сдвигается: пуш приходит, когда игрок ушёл из игры.
+    final danger = toD((content.world.balance['stats'] as Map)['dangerBelow'] ?? 25);
+    final crit = statKeys.where((k) => (hero.stats[k] ?? 100) <= danger).toList()
+      ..sort((a, b) => (hero.stats[a] ?? 0).compareTo(hero.stats[b] ?? 0));
+    if (crit.isNotEmpty && hero.stop?['type'] != 'death') {
+      final k = crit.first;
+      final v = (hero.stats[k] ?? 0).round();
+      final at = _outOfQuiet(now.add(const Duration(minutes: 20)));
+      final body = switch (k) {
+        'satiety' => l.notifCritSatiety(v),
+        'water' => l.notifCritWater(v),
+        _ => l.notifCritWarmth(v),
+      };
+      out.add(PlannedNotification(id: 402, at: at, title: l.notifCritTitle, body: body));
     }
 
     // 5. Вечерний зов — на 2 дня вперёд в 19:00

@@ -124,6 +124,8 @@ String? _title(AppLocalizations l, AppController c, JRow r) {
       return l.logLoadout;
     case 'night': // V5-45: ночёвка в пути
       return l.logNight;
+    case 'cold': // 24.11: экстренный привал
+      return l.logCold(toI(d['matches']));
     case 'heat':
       return l.logHeat;
     case 'first_aid':

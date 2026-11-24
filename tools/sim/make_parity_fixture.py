@@ -183,7 +183,7 @@ class Bot:
                     self.r.sell(it, now)
                 self.resolve(now)
                 self.r.continue_journey(now)
-            elif st["type"] == "night":
+            elif st["type"] in ("night", "cold"):
                 self.r.continue_journey(now)  # ночёвка (V5-45)
             elif st["type"] == "death":
                 self.r.dismiss_death()

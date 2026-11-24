@@ -334,6 +334,18 @@ class _HeroTabState extends ConsumerState<HeroTab> {
       appBar: AppBar(
         title: ScreenTitle(kicker: l.heroKicker(w.chapterAt(hero.pos), c.journeyDay()), title: l.heroTitle),
         actions: [
+          // 24.11: спички — рядом с монетами: сколько осталось на костры.
+          Padding(
+            padding: const EdgeInsets.only(right: Gap.s),
+            child: Center(
+              child: GestureDetector(
+                onTap: () => ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(content: Text(l.heroMatchesHint(eng.matchesLeft())))),
+                child: _MatchesChip(n: eng.matchesLeft(), label: l.heroMatchesA11y(eng.matchesLeft())),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: Gap.m),
             child: Center(
@@ -439,16 +451,23 @@ class _HeroTabState extends ConsumerState<HeroTab> {
                 onToggle: () => setState(() => _giftsOpen = !_giftsOpen),
               ),
               const SizedBox(height: Gap.s),
+              // 24.11: описание дара — сразу под ним, выбранный подсвечен; повторный тап сворачивает.
               if (_giftsOpen)
                 for (final id in gifts) ...[
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => setState(() => _pick = _Pick(id, gift: true)),
-                    child: _giftLine(l, eng, w, content.itemName(id), id, now, clewStatus, clewItem),
+                    onTap: () => setState(
+                        () => _pick = (pick != null && pick.gift && pick.id == id) ? null : _Pick(id, gift: true)),
+                    child: _giftLine(l, eng, w, content.itemName(id), id, now, clewStatus, clewItem,
+                        selected: pick != null && pick.gift && pick.id == id),
                   ),
                   const SizedBox(height: Gap.s),
+                  if (pick != null && pick.gift && pick.id == id) ...[
+                    _giftPanel(l, w, content.itemName(id), id),
+                    const SizedBox(height: Gap.s),
+                  ],
                 ],
-              if (pick != null && pick.gift) ...[
+              if (!_giftsOpen && pick != null && pick.gift) ...[
                 _giftPanel(l, w, content.itemName(pick.id), pick.id),
                 const SizedBox(height: Gap.s),
               ],
@@ -519,7 +538,7 @@ class _HeroTabState extends ConsumerState<HeroTab> {
   }
 
   Widget _giftLine(AppLocalizations l, Engine eng, World w, String name, String id, int now, String clewStatus,
-      String? clewItem) {
+      String? clewItem, {bool selected = false}) {
     final kind = giftKind(w, id);
     final isAction = kind == 'guide' || kind == 'mirage' || kind == 'action';
     final askable = _hasHint(w, id) || kind == 'clew';
@@ -565,6 +584,7 @@ class _HeroTabState extends ConsumerState<HeroTab> {
       status: charges == null ? status : '$charges · $status',
       label: label,
       onTap: onTap,
+      selected: selected,
     );
   }
 
@@ -698,6 +718,36 @@ class _ClampText extends StatelessWidget {
   Widget build(BuildContext context) => MediaQuery.withClampedTextScaling(maxScaleFactor: 1.15, child: child);
 }
 
+/// Спички: огонёк и число; мало (≤ 3) — коралловым, нет — красным.
+class _MatchesChip extends StatelessWidget {
+  const _MatchesChip({required this.n, required this.label});
+  final int n;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final col = n == 0 ? Palette.danger : (n <= 3 ? Palette.ember : Palette.parchment);
+    return Semantics(
+      label: label,
+      excludeSemantics: true,
+      child: Container(
+        height: 30,
+        padding: const EdgeInsets.fromLTRB(7, 0, 10, 0),
+        decoration: BoxDecoration(
+          color: Palette.inkRaised,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: n <= 3 ? Palette.ember.withAlpha(140) : Palette.inkHigh),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.local_fire_department, size: 16, color: n == 0 ? Palette.danger : Palette.ember),
+          const SizedBox(width: 4),
+          Text('$n', style: TextStyle(color: col, fontSize: 13, fontWeight: FontWeight.w700)),
+        ]),
+      ),
+    );
+  }
+}
+
 class _CoinsChip extends StatelessWidget {
   const _CoinsChip({required this.coins, required this.label});
   final int coins;
@@ -717,7 +767,7 @@ class _CoinsChip extends StatelessWidget {
           border: Border.all(color: Palette.inkHigh),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.toll, size: 16, color: Palette.accent),
+          const Icon(Icons.toll, size: 16, color: Palette.coin),
           const SizedBox(width: 5),
           Text('$coins',
               style: const TextStyle(color: Palette.parchment, fontSize: 13, fontWeight: FontWeight.w700)),
@@ -1251,6 +1301,7 @@ class _GiftLine extends StatelessWidget {
     required this.status,
     required this.label,
     required this.onTap,
+    this.selected = false,
   });
 
   final String id;
@@ -1260,15 +1311,18 @@ class _GiftLine extends StatelessWidget {
   final String status;
   final String label;
   final VoidCallback? onTap;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(6, 0, 4, 0),
       decoration: BoxDecoration(
-        color: Palette.inkRaised,
+        color: selected ? Palette.inkHigh : Palette.inkRaised,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: onTap != null ? Palette.zoneWild : Palette.inkHigh),
+        border: Border.all(
+            color: selected ? _giftText : (onTap != null ? Palette.zoneWild : Palette.inkHigh),
+            width: selected ? 2 : 1),
       ),
       child: Row(children: [
         ItemIcon(id, size: 28, type: type),

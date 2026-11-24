@@ -21,6 +21,8 @@ class Palette {
 
   /// Мягкий коралловый для предупреждений (раньше был янтарным).
   static const ember = Color(0xFFF0957A);
+  /// Монеты (24.11): жёлтое золото — монету видно сразу, не путается с бирюзой интерфейса.
+  static const coin = Color(0xFFF5C542);
   static const danger = Color(0xFFFF5A5A);
   static const sea = Color(0xFF0B2A3A);
   static const land = Color(0xFF16222F);

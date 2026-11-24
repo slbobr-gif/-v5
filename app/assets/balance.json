@@ -9,9 +9,21 @@
   "shop": {
     "_comment": "Покупка монет за деньги (V5-58): RuStore, разовые покупки. Пока оплаты нет, в тестовой сборке монеты начисляются сразу (тестовая покупка).",
     "coinPacks": [
-      {"id": "coins_100", "coins": 100, "rub": 99},
-      {"id": "coins_300", "coins": 300, "rub": 249},
-      {"id": "coins_800", "coins": 800, "rub": 499}
+      {
+        "id": "coins_100",
+        "coins": 100,
+        "rub": 99
+      },
+      {
+        "id": "coins_300",
+        "coins": 300,
+        "rub": 249
+      },
+      {
+        "id": "coins_800",
+        "coins": 800,
+        "rub": 499
+      }
     ]
   },
   "movement": {
@@ -28,7 +40,8 @@
     },
     "respawn": 60,
     "dangerBelow": 25,
-    "autoConsumeBelow": 30
+    "autoConsumeBelow": 5,
+    "_autoConsume": "24.11: Сергей сам ест и пьёт из рюкзака, только когда показатель дошёл до 5. Тепло до 5 — экстренный привал (fire.coldStop)."
   },
   "drainPerKm": {
     "satiety": 1.05,
@@ -174,15 +187,67 @@
     "firstAfterKm": 3,
     "minGapToAnchoredKm": 3,
     "recentKeep": 36,
-    "chapterSpacingMult": {"3": 0.75, "4": 0.75, "5": 0.75},
-    "wild": {"chance": 0.2, "perChapter": 2},
+    "chapterSpacingMult": {
+      "3": 0.75,
+      "4": 0.75,
+      "5": 0.75
+    },
+    "wild": {
+      "chance": 0.2,
+      "perChapter": 2
+    },
     "_wild": "Встречи с дикими зверями (V5-64): событие с wild: true вместо обычного случайного с шансом chance, вне города, не больше perChapter за главу, каждый зверь раз за путь; сначала те, кого не встречали в прошлых путях (профиль).",
     "_chapterSpacingMult": "Множитель промежутка между случайными событиями по главе точки пути (V5-53): на длинных северных главах случайные чаще. Нет главы — 1.",
     "_comment": "Недавние случайные не повторяются: в зоне — последние min(12, пул_зоны//2) этой зоны; в запасном выборе — последние min(12, всех//2); хранится последних recentKeep."
   },
   "dailyGoals": {
-    "_tiers": "V5-62: за 5 000 шагов 10 монет, дальше каждые 2 500 шагов ещё +4 (7 500 — 14, 10 000 — 18 … 20 000 — 34).",
-    "tiers": [{"steps": 5000, "coins": 10}, {"steps": 7500, "coins": 4}, {"steps": 10000, "coins": 4}, {"steps": 12500, "coins": 4}, {"steps": 15000, "coins": 4}, {"steps": 17500, "coins": 4}, {"steps": 20000, "coins": 4}],
+    "_tiers": "24.11: за 5 000 шагов 10 монет, дальше каждые 2 500 шагов ещё +2 (7 500 — 12, 10 000 — 14 … 30 000 — 30). Монеты ступеней складываются.",
+    "tiers": [
+      {
+        "steps": 5000,
+        "coins": 10
+      },
+      {
+        "steps": 7500,
+        "coins": 2
+      },
+      {
+        "steps": 10000,
+        "coins": 2
+      },
+      {
+        "steps": 12500,
+        "coins": 2
+      },
+      {
+        "steps": 15000,
+        "coins": 2
+      },
+      {
+        "steps": 17500,
+        "coins": 2
+      },
+      {
+        "steps": 20000,
+        "coins": 2
+      },
+      {
+        "steps": 22500,
+        "coins": 2
+      },
+      {
+        "steps": 25000,
+        "coins": 2
+      },
+      {
+        "steps": 27500,
+        "coins": 2
+      },
+      {
+        "steps": 30000,
+        "coins": 2
+      }
+    ],
     "loginCoins": 5
   },
   "economy": {
@@ -293,7 +358,7 @@
         "chudovo": [
           "birch_sap",
           "pack_tourist"
-      ],
+        ],
         "novaya_ladoga": [
           "ryapushka",
           "dried_fish"
@@ -301,14 +366,14 @@
         "lodeynoe": [
           "ryapushka",
           "pack_tourist"
-      ],
+        ],
         "olonets": [
           "kalitka_potato",
           "kalitka_millet",
           "lingon_mors",
           "ryapushka",
           "pack_tourist"
-      ],
+        ],
         "petrozavodsk": [
           "kalitka_potato",
           "kalitka_millet",
@@ -318,37 +383,37 @@
           "ryapushka",
           "pack_tourist",
           "pack_expedition"
-      ],
+        ],
         "kondopoga": [
           "kalitka_potato",
           "kalitka_berry",
           "rybnik",
           "pack_tourist"
-      ],
+        ],
         "medvezhyegorsk": [
           "kalitka_potato",
           "kalitka_millet",
           "lingon_mors",
           "pack_tourist"
-      ],
+        ],
         "segezha": [
           "kalitka_millet",
           "kalitka_berry",
           "lingon_mors",
           "pack_tourist"
-      ],
+        ],
         "belomorsk": [
           "rybnik",
           "kalitka_berry",
           "pack_tourist"
-      ],
+        ],
         "kem": [
           "rybnik",
           "cloudberry",
           "lingon_mors",
           "pack_tourist",
           "pack_expedition"
-      ],
+        ],
         "loukhi": [
           "cloudberry",
           "ivan_chai"
@@ -358,14 +423,14 @@
           "ivan_chai",
           "pack_tourist",
           "pack_expedition"
-      ],
+        ],
         "polyarnye_zori": [
           "ivan_chai"
         ],
         "monchegorsk": [
           "reindeer_tongue",
           "pack_tourist"
-      ],
+        ],
         "olenegorsk": [
           "reindeer_tongue"
         ],
@@ -373,21 +438,21 @@
           "cod",
           "ivan_chai",
           "pack_tourist"
-      ],
+        ],
         "murmansk": [
           "cod",
           "reindeer_tongue",
           "ivan_chai",
           "pack_tourist",
           "pack_expedition"
-      ],
+        ],
         "kirishi": [
-        "pack_tourist"
-      ],
-      "volkhov": [
-        "pack_tourist"
-      ],
-      "teriberka": [
+          "pack_tourist"
+        ],
+        "volkhov": [
+          "pack_tourist"
+        ],
+        "teriberka": [
           "cod"
         ]
       },
@@ -410,6 +475,9 @@
         "water": 2,
         "tea": 1
       }
+    },
+    "freeItems": {
+      "matches": 1
     }
   },
   "gameDay": {
@@ -468,7 +536,8 @@
     },
     "matches": {
       "type": "tool",
-      "price": 4
+      "price": 4,
+      "portions": 10
     },
     "gas": {
       "type": "refill",
@@ -537,7 +606,7 @@
     "amulet_leshy": {
       "gift": true,
       "type": "gear",
-      "riskReduce": 0.2,
+      "riskReduce": 0.35,
       "price": 0
     },
     "ball_yaga": {
@@ -636,13 +705,18 @@
     "pack_tourist": {
       "type": "gear",
       "price": 90,
-      "pack": {"slots": 9},
+      "pack": {
+        "slots": 9
+      },
       "region": "north"
     },
     "pack_expedition": {
       "type": "gear",
       "price": 180,
-      "pack": {"slots": 12, "gear": 1},
+      "pack": {
+        "slots": 12,
+        "gear": 1
+      },
       "region": "north"
     },
     "birch_sap": {
@@ -795,16 +869,9 @@
       "gift": true,
       "type": "gear",
       "price": 0,
-      "cond": {
-        "any": [
-          "water"
-        ],
-        "noCoinLoss": true
-      },
       "camp": {
-        "water": 10,
-        "waterPlace": true,
-        "cooldownDays": 1
+        "water": 20,
+        "waterPlace": true
       },
       "hint": {
         "cooldownDays": 2,
@@ -834,10 +901,11 @@
     "ember_domovoy": {
       "gift": true,
       "type": "gear",
-      "idleWarmthMult": 0.5,
       "price": 0,
-      "camp": {
-        "warmth": 10
+      "fire": {
+        "free": [
+          "night"
+        ]
       },
       "hint": {
         "cooldownDays": 2,
@@ -851,31 +919,19 @@
     "lapot_domovoy": {
       "gift": true,
       "type": "gear",
-      "idleWarmthMult": 0.7,
-      "warmthDrainMult": 0.9,
       "price": 0,
-      "upkeep": [
-        "bread",
-        "pie",
-        "chocolate"
+      "noItemLoss": [
+        "food",
+        "drink",
+        "matches"
       ]
     },
     "venik_bannik": {
       "gift": true,
-      "type": "tool",
+      "type": "gear",
       "price": 0,
-      "ability": {
-        "kind": "action",
-        "cooldownDays": 3,
-        "at": "place",
-        "zones": [
-          "suburb",
-          "city"
-        ],
-        "effect": {
-          "warmth": 30
-        }
-      },
+      "rescueTo": 30,
+      "rescueCooldownDays": 6,
       "hint": {
         "cooldownDays": 2,
         "art": [
@@ -888,17 +944,9 @@
     },
     "stone_bannik": {
       "gift": true,
-      "type": "tool",
-      "uses": 2,
+      "type": "gear",
       "price": 0,
-      "ability": {
-        "kind": "action",
-        "cooldownDays": 0,
-        "at": "any",
-        "effect": {
-          "warmth": 20
-        }
-      }
+      "matchSave": 0.5
     },
     "bead_kikimora": {
       "gift": true,
@@ -937,15 +985,9 @@
     "wreath_poludnitsa": {
       "gift": true,
       "type": "gear",
-      "expiresDays": 3,
+      "expiresDays": 7,
       "price": 0,
-      "cond": {
-        "any": [
-          "midday",
-          "heat"
-        ],
-        "waterDrainMult": 0.7
-      }
+      "waterDrainMult": 0.7
     },
     "ribbon_rusalka": {
       "gift": true,
@@ -970,31 +1012,27 @@
     },
     "key_ovinnik": {
       "gift": true,
-      "type": "tool",
+      "type": "gear",
       "price": 0,
-      "ability": {
-        "kind": "action",
-        "cooldownDays": 5,
-        "at": "place",
-        "zones": [
-          "suburb"
+      "fire": {
+        "free": [
+          "cold",
+          "wet"
         ],
-        "effect": {
-          "warmthToMax": true
-        }
+        "coldHours": 1
       }
     },
     "sheaf_ovinnik": {
       "gift": true,
       "type": "tool",
-      "uses": 1,
+      "uses": 4,
       "price": 0,
       "ability": {
         "kind": "action",
-        "cooldownDays": 0,
+        "cooldownDays": 1,
         "at": "place",
         "effect": {
-          "warmth": 35
+          "satiety": 20
         }
       }
     }
@@ -1034,21 +1072,100 @@
     "warmth": 0,
     "_kinds": "V5-60: тепло за ночь зависит от ночи — тёплая +30, мягкая +20, прохладная +10, холодная 0. Веса сдвигаются к холоду на севере (coldShift по главе) и в дождь, ветер, туман, снег (coldWeather). Тепло ночи и утра вместе — не больше maxWarmth; камп-перки снаряжения (спальник, уголёк) — сверху.",
     "kinds": [
-      {"id": "warm", "warmth": 30, "weight": 3},
-      {"id": "mild", "warmth": 20, "weight": 4},
-      {"id": "cool", "warmth": 10, "weight": 3},
-      {"id": "cold", "warmth": 0, "weight": 2}
+      {
+        "id": "warm",
+        "warmth": 30,
+        "weight": 3
+      },
+      {
+        "id": "mild",
+        "warmth": 20,
+        "weight": 4
+      },
+      {
+        "id": "cool",
+        "warmth": 10,
+        "weight": 3
+      },
+      {
+        "id": "cold",
+        "warmth": 0,
+        "weight": 2
+      }
     ],
-    "coldShift": {"1": 0, "2": 0, "3": 1, "4": 1, "5": 2, "6": 2},
-    "coldWeather": ["rain", "wind", "fog", "snow"],
+    "coldShift": {
+      "1": 0,
+      "2": 0,
+      "3": 1,
+      "4": 1,
+      "5": 2,
+      "6": 2
+    },
+    "coldWeather": [
+      "rain",
+      "wind",
+      "fog",
+      "snow"
+    ],
     "maxWarmth": 30,
     "morning": [
-      {"id": "quiet", "weight": 3},
-      {"id": "stream", "weight": 2, "water": 30},
-      {"id": "berries", "weight": 2, "satiety": 20},
-      {"id": "sun", "weight": 1, "warmth": 15},
-      {"id": "dew", "weight": 1, "water": 15},
-      {"id": "nuts", "weight": 1, "satiety": 10, "water": 5}
+      {
+        "id": "quiet",
+        "weight": 3
+      },
+      {
+        "id": "stream",
+        "weight": 2,
+        "water": 30
+      },
+      {
+        "id": "berries",
+        "weight": 2,
+        "satiety": 20
+      },
+      {
+        "id": "sun",
+        "weight": 1,
+        "warmth": 15
+      },
+      {
+        "id": "dew",
+        "weight": 1,
+        "water": 15
+      },
+      {
+        "id": "nuts",
+        "weight": 1,
+        "satiety": 10,
+        "water": 5
+      },
+      {
+        "id": "fishermen",
+        "weight": 1,
+        "satiety": 15,
+        "water": 10
+      },
+      {
+        "id": "tourists",
+        "weight": 1,
+        "satiety": 20
+      },
+      {
+        "id": "trucker",
+        "weight": 1,
+        "water": 20,
+        "warmth": 5
+      },
+      {
+        "id": "grandma",
+        "weight": 1,
+        "satiety": 25
+      },
+      {
+        "id": "spring_people",
+        "weight": 1,
+        "water": 25
+      }
     ]
   },
   "zones": {
@@ -1119,5 +1236,21 @@
       16
     ],
     "idleWarmthMin": 0.35
-  }
+  },
+  "fire": {
+    "_comment": "24.11: спички. Коробок — 10 спичек (items.matches.portions). На каждой ночёвке костёр — nightBurn спичек, в непогоду (night.coldWeather) ещё badWeatherBurn. Нет спичек — тепло ночи × noFireNightMult. Тепло упало до coldStop.at — Сергей стоит hours часа и экстренно разжигает огонь: спичек уходит случайно от burnMin до burnMax; с огнём +warmthFire тепла, без спичек — +warmthNoFire (греется как может). Эффект события burnMatches: n — костёр по ходу события.",
+    "item": "matches",
+    "nightBurn": 1,
+    "badWeatherBurn": 1,
+    "noFireNightMult": 0.3,
+    "coldStop": {
+      "at": 5,
+      "hours": 2,
+      "burnMin": 1,
+      "burnMax": 10,
+      "warmthFire": 40,
+      "warmthNoFire": 12
+    }
+  },
+  "_gifts24": "24.11 (аудит даров): уголёк — ночной костёр без спичек; лапоть — припасы не пропадают в исходах без платы; веник — спасение от нуля раз в 6 дней; камешек — спички вдвое дольше; ключ овинника стал огнивом — замёрз: огонь без спичек и 1 ч вместо 2, в непогоду ночёвка без спичек; сноп — 4 каши по +20 сытости; венок — неделя −30 % жажды; ракушка — +20 воды на каждом привале у воды; оберег — риск −35 %."
 }

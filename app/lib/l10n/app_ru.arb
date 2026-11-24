@@ -956,12 +956,12 @@
       }
     }
   },
-  "gearTone_reward": "награда",
-  "gearTone_penalty": "наказание",
-  "gearTone_mixed": "и так и так",
-  "gearTone_risk": "как повезёт",
-  "gearTone_death": "смертельно",
-  "gearTone_neutral": "ничего особенного",
+  "gearTone_reward": "Награда",
+  "gearTone_penalty": "Наказание",
+  "gearTone_mixed": "Награда и потеря",
+  "gearTone_risk": "Риск: может и так, и так",
+  "gearTone_death": "Можно погибнуть",
+  "gearTone_neutral": "Без последствий",
   "loadoutErr_gear_too_many": "Столько вещей не унести.",
   "loadoutErr_gear_duplicate": "Одна и та же вещь дважды.",
   "loadoutErr_gear_not_starter": "Эту вещь на старте не взять.",
@@ -1051,7 +1051,7 @@
       }
     }
   },
-  "gearPerkCampWaterAtWater": "раз в день у воды +{value} воды",
+  "gearPerkCampWaterAtWater": "на привале у реки или озера +{value} воды",
   "@gearPerkCampWaterAtWater": {
     "placeholders": {
       "value": {
@@ -1113,7 +1113,7 @@
   "giftAction_stone_bannik": "Согреться",
   "giftAction_hand_warmers": "Грелка",
   "giftAction_key_ovinnik": "Ночлег в овине",
-  "giftAction_sheaf_ovinnik": "Сноп на ночь",
+  "giftAction_sheaf_ovinnik": "Обмолотить",
   "giftAction_hook_vodyanoy": "Закинуть",
   "giftAction_twig_leshy": "Сучок",
   "giftAction_spruce_leshy": "Еловая лапка",
@@ -1575,7 +1575,7 @@
       }
     }
   },
-  "heroStoveOn": "Горелка горит · {n, plural, one{{n} вещь горячая} few{{n} вещи горячие} many{{n} вещей горячие} other{{n} вещи горячие}} · газ {left}/{max}",
+  "heroStoveOn": "Горелка горит · горячей еды и питья: {n} шт. · газ {left}/{max}",
   "@heroStoveOn": {
     "placeholders": {
       "n": {
@@ -1589,7 +1589,7 @@
       }
     }
   },
-  "heroStoveReady": "Горелка · газ {left}/{max} · согреет {n, plural, one{{n} вещь} few{{n} вещи} many{{n} вещей} other{{n} вещи}}",
+  "heroStoveReady": "Горелка · газ {left}/{max} · подогреет еду и воду в рюкзаке: {n} шт.",
   "@heroStoveReady": {
     "placeholders": {
       "left": {
@@ -1971,6 +1971,11 @@
   "nightMorning_sun": "Утро выдалось солнечным: посидел на пригорке, пока не прогрелся до костей.",
   "nightMorning_dew": "Под утро выпала роса, и я собрал воду в котелок с тента.",
   "nightMorning_nuts": "У старой ели нашёл беличью кладовую и честно взял горсть орехов — себе на завтрак.",
+  "nightMorning_fishermen": "На рассвете к реке пришли рыбаки. Позвали к своему костру, налили ухи и чаю из котелка.",
+  "nightMorning_tourists": "Утром мимо шла группа туристов. Узнали, куда я иду, присвистнули и накормили бутербродами со своего привала.",
+  "nightMorning_trucker": "У обочины ночевал дальнобойщик. Утром налил мне горячего из термоса и долил воды во флягу.",
+  "nightMorning_grandma": "Утром мимо шла бабушка с корзинкой. Покачала головой: «Пешком, в такую даль?» — и угостила пирогом с капустой, ещё тёплым.",
+  "nightMorning_spring_people": "Неподалёку оказался родник, к нему с утра шли люди с канистрами. Показали дорогу, я набрал воды впрок.",
   "logNight": "Сергей заночевал в пути",
   "onbExitConfirm": "Выйти из игры? Пролог подождёт — откроется при следующем запуске.",
   "onbExitYes": "Выйти",
@@ -2399,5 +2404,53 @@
   "subHowRefund": "Возврат: RuStore → Профиль → История платежей → нужный платёж → обращение в поддержку с номером покупки.",
   "subHelp": "Справка RuStore о подписках",
   "subNoRustore": "RuStore не найден на телефоне — открыли справку в браузере.",
-  "subCantOpen": "Не получилось открыть RuStore. Открой его сам: Профиль → Подписки."
+  "subCantOpen": "Не получилось открыть RuStore. Открой его сам: Профиль → Подписки.",
+  "fxMatches": "Спички {value}",
+  "@fxMatches": {"placeholders": {"value": {"type": "String"}}},
+  "nightFire": "Развёл костёр — ушло {n, plural, one{{n} спичка} few{{n} спички} many{{n} спичек} other{{n} спички}}.",
+  "@nightFire": {"placeholders": {"n": {"type": "int"}}},
+  "nightNoFire": "Спичек не осталось — костра не было. Грелся только спальником и чаем из термоса, если был. Ночь вышла холоднее, чем могла бы.",
+  "stopCold": "Привал у огня",
+  "coldTitle": "Замёрз — нужен огонь",
+  "coldIntro": "Пальцы перестали слушаться, зубы стучат. Дальше так идти нельзя: сворачиваю с дороги, собираю сушняк и часа два сижу у огня, пока снова не начинаю чувствовать ноги.",
+  "coldNoMatches": "Спичек нет. Развести огонь нечем, так что прыгаю на месте, растираю руки, заворачиваюсь во всё, что есть. Согрелся немного, но совсем не так, как у костра. В ближайшем городе куплю коробок.",
+  "coldRanOut": "Чиркал, пока не кончился коробок — ушло {n, plural, one{{n} спичка} few{{n} спички} many{{n} спичек} other{{n} спички}}. Огонь всё-таки занялся, но спичек больше нет. Надо купить в ближайшем городе.",
+  "@coldRanOut": {"placeholders": {"n": {"type": "int"}}},
+  "coldEasy": "Нашёл сухую бересту под елью — огонь занялся почти сразу. Ушло {n, plural, one{{n} спичка} few{{n} спички} many{{n} спичек} other{{n} спички}}.",
+  "@coldEasy": {"placeholders": {"n": {"type": "int"}}},
+  "coldWind": "Ветер задувал огонёк, а замёрзшие пальцы ломали спички. Ушло {n, plural, one{{n} спичка} few{{n} спички} many{{n} спичек} other{{n} спички}}, пока костёр не разгорелся.",
+  "@coldWind": {"placeholders": {"n": {"type": "int"}}},
+  "coldHard": "Хворост сырой, руки не гнутся, ветер рвёт пламя. Чиркал снова и снова — ушло {n, plural, one{{n} спичка} few{{n} спички} many{{n} спичек} other{{n} спички}}, прежде чем огонь наконец взялся.",
+  "@coldHard": {"placeholders": {"n": {"type": "int"}}},
+  "logCold": "Сергей замёрз и грелся у огня: {n, plural, one{{n} спичка} few{{n} спички} many{{n} спичек} other{{n} спички}}",
+  "@logCold": {"placeholders": {"n": {"type": "int"}}},
+  "swapPortionsLeft": "Осталось {n} из {max}",
+  "@swapPortionsLeft": {"placeholders": {"n": {"type": "int"}, "max": {"type": "int"}}},
+  "heroMatchesHint": "Спичек осталось: {n}. Каждая ночёвка — костёр, 1–2 спички. Замёрзнешь — экстренный костёр съест до 10. Коробок (10 штук) — в любом магазине.",
+  "@heroMatchesHint": {"placeholders": {"n": {"type": "int"}}},
+  "heroMatchesA11y": "Спички: {n}",
+  "@heroMatchesA11y": {"placeholders": {"n": {"type": "int"}}},
+  "notifCritTitle": "Сергей на пределе",
+  "notifCritSatiety": "Сытость — {v} из 100. Еду из рюкзака Сергей достанет сам только на последнем издыхании. Загляни в рюкзак или купи еды на привале.",
+  "@notifCritSatiety": {"placeholders": {"v": {"type": "int"}}},
+  "notifCritWater": "Вода — {v} из 100. Сергей пьёт из запасов, только когда совсем пересохло. Пополни флягу.",
+  "@notifCritWater": {"placeholders": {"v": {"type": "int"}}},
+  "notifCritWarmth": "Тепло — {v} из 100. Ещё немного, и Сергей остановится на два часа греться у огня и потратит спички. Чай, горелка или привал спасут.",
+  "@notifCritWarmth": {"placeholders": {"v": {"type": "int"}}},
+  "notifStopCold": "Сергей замёрз и греется у костра. Загляни — узнаешь, сколько ушло спичек.",
+  "needFood": "Нужна еда в рюкзаке",
+  "offerWill": "Отдашь: {item}",
+  "@offerWill": {"placeholders": {"item": {"type": "String"}}},
+  "gearPerkFireFreeNight": "на ночёвке костёр без спичек",
+  "gearPerkFireFreeCold": "замёрзнешь — огонь без спичек",
+  "gearPerkFireFreeWet": "в непогоду ночёвка без спичек",
+  "gearPerkColdHours": "отогреешься за {value} ч",
+  "@gearPerkColdHours": {"placeholders": {"value": {"type": "int"}}},
+  "gearPerkMatchSave": "спичек уходит на {value}% меньше",
+  "@gearPerkMatchSave": {"placeholders": {"value": {"type": "int"}}},
+  "gearPerkNoItemLoss": "в пути припасы не пропадут",
+  "gearPerkRescueCooldown": "раз в {value} дн.",
+  "@gearPerkRescueCooldown": {"placeholders": {"value": {"type": "int"}}},
+  "gearPerkActionSatiety": "+{value} сытости по кнопке",
+  "@gearPerkActionSatiety": {"placeholders": {"value": {"type": "int"}}}
 }
