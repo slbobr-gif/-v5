@@ -26,10 +26,14 @@ class Profile {
     List<String>? wildSeen,
     List<String>? randomSeen,
     List<String>? nightSeen,
+    Map<String, List<String>>? collected,
+    Map<String, String>? postcards,
   })  : journeys = journeys ?? [],
         wildSeen = wildSeen ?? [],
         randomSeen = randomSeen ?? [],
-        nightSeen = nightSeen ?? [];
+        nightSeen = nightSeen ?? [],
+        collected = collected ?? {},
+        postcards = postcards ?? {};
 
   String name;
   String email;
@@ -63,6 +67,12 @@ class Profile {
   /// Круг ночёвок продолжается и в новом пути (25.11): сначала сцены, которых ещё не было.
   List<String> nightSeen;
 
+  /// Записная книжка путника (25.11): всё, что игрок видел во всех путях — не сбрасывается.
+  /// Разделы: spirits, animals, meetings, nights, places, thoughts.
+  Map<String, List<String>> collected;
+  /// Открытки с маршрута: место → дата, когда Сергей туда впервые пришёл (yyyy-MM-dd).
+  Map<String, String> postcards;
+
   Json toJson() => {
         'name': name,
         'email': email,
@@ -81,6 +91,8 @@ class Profile {
         'wildSeen': wildSeen,
         'randomSeen': randomSeen,
         'nightSeen': nightSeen,
+        'collected': collected,
+        'postcards': postcards,
       };
 
   static Profile fromJson(Json j) => Profile(
@@ -102,6 +114,14 @@ class Profile {
         wildSeen: [for (final x in (j['wildSeen'] as List?) ?? const []) if (x is String) x],
         randomSeen: [for (final x in (j['randomSeen'] as List?) ?? const []) if (x is String) x],
         nightSeen: [for (final x in (j['nightSeen'] as List?) ?? const []) if (x is String) x],
+        collected: {
+          for (final e in ((j['collected'] as Map?) ?? const {}).entries)
+            '${e.key}': [for (final x in (e.value as List?) ?? const []) if (x is String) x],
+        },
+        postcards: {
+          for (final e in ((j['postcards'] as Map?) ?? const {}).entries)
+            if (e.value is String) '${e.key}': e.value as String,
+        },
       );
 }
 

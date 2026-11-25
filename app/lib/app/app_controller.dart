@@ -181,6 +181,7 @@ class AppController extends Notifier<AppModel> {
       _chosenLoadout = _readLoadout(storage.loadLoadout());
       state = state.copyWith(loading: false, content: content, storage: storage, profile: profile, hero: hero);
       _a.event('app_open', {'has_journey': hero != null});
+      _backfillNotebook();
       await refreshPermissions();
       if (hero != null) await refresh();
     } catch (e) {
@@ -666,6 +667,62 @@ class AppController extends Notifier<AppModel> {
   /// Раздел приложения открыт: вкладка или экран.
   void screen(String name) => _a.event('screen_view', {'name': name});
 
+  // ------------------------------------------------ записная книжка путника (25.11)
+
+  /// Записать в книжку: раздел → id. Место с открыткой — ещё и дата открытки. Книжка не сбрасывается.
+  void _collect(String cat, String id) {
+    final p = state.profile;
+    if (p == null || id.isEmpty) return;
+    final list = p.collected.putIfAbsent(cat, () => <String>[]);
+    var changed = false;
+    if (!list.contains(id)) {
+      list.add(id);
+      changed = true;
+      _a.event('notebook_new', {'cat': cat, 'id': id, 'n': list.length});
+    }
+    if (cat == 'places' && content.postcards.containsKey(id) && !p.postcards.containsKey(id)) {
+      p.postcards[id] = today;
+      changed = true;
+    }
+    if (changed) updateProfile((_) {});
+  }
+
+  /// Книжка появилась позже, чем начались пути: заполнить из того, что уже известно (звери, встречи,
+  /// ночёвки прошлых путей; места, духи и события текущего пути). Дата открытки — сегодня.
+  void _backfillNotebook() {
+    final p = state.profile;
+    final h = state.hero;
+    if (p == null || p.collected.isNotEmpty) return;
+    final w = content.world;
+    void add(String cat, Iterable<String> ids) {
+      final list = p.collected.putIfAbsent(cat, () => <String>[]);
+      for (final id in ids) {
+        if (!list.contains(id)) list.add(id);
+      }
+    }
+
+    add('animals', [...p.wildSeen, ...?h?.wildSeen]);
+    add('meetings', [...p.randomSeen, ...?h?.randomSeen]);
+    add('nights', [...p.nightSeen, ...?h?.nightSeen].where(content.nights.containsKey));
+    if (h != null) {
+      final seen = {...h.seen, ...h.randomSeen};
+      add('spirits', [
+        for (final id in seen)
+          if (w.eventsById[id]?['creature'] is String && content.creatures.containsKey(w.eventsById[id]!['creature']))
+            w.eventsById[id]!['creature'] as String,
+      ].toSet());
+      final places = [
+        for (final e in w.posOf.entries)
+          if (e.value <= h.maxPos + 0.5) e.key,
+      ];
+      add('places', places);
+      for (final id in places) {
+        if (content.postcards.containsKey(id)) p.postcards.putIfAbsent(id, () => today);
+      }
+    }
+    if (p.collected.values.any((l) => l.isNotEmpty)) updateProfile((_) {});
+  }
+
   /// Случайное событие показано (25.11): в профиль, чтобы в следующем пути сначала шли невиданные.
   void _randomMet(String id) {
     final p = state.profile;
@@ -707,6 +764,12 @@ class AppController extends Notifier<AppModel> {
         final ev = content.world.eventsById[st['event']];
         if (ev?['wild'] == true) _wildMet('${ev!['id']}', hero);
         if (ev != null && ev['kind'] == 'random' && ev['wild'] != true) _randomMet('${ev['id']}');
+        if (ev != null) {
+          if (ev['wild'] == true) _collect('animals', '${ev['id']}');
+          if (ev['kind'] == 'random' && ev['wild'] != true) _collect('meetings', '${ev['id']}');
+          final cr = ev['creature'];
+          if (cr is String && content.creatures.containsKey(cr)) _collect('spirits', cr);
+        }
         _a.event('event_shown', {
           'id': '${st['event']}',
           'kind': '${ev?['kind'] ?? 'quest'}',
@@ -714,12 +777,15 @@ class AppController extends Notifier<AppModel> {
         });
       case 'place':
         _a.event('place_arrived', {'id': '${st['place']}'});
+        _collect('places', '${st['place']}');
       case 'chapter_end':
         // После смерти с откатом герой снова проходит конец главы — в статистику только первый раз.
         if (hero.pos >= hero.maxPos - 0.5) _a.event('chapter_done', {'chapter': toI(st['chapter'])});
       case 'finish':
         _a.event('journey_finished', {'days': hero.daySteps.length});
       case 'night':
+        final scene = st['scene'];
+        if (scene is String && scene.isNotEmpty) _collect('nights', scene);
         _a.event('night_stop', {'scene': '${st['scene'] ?? st['morning'] ?? ''}', 'km': (hero.pos / 1000).round()});
         final p = state.profile;
         if (p != null) {
@@ -1210,7 +1276,10 @@ class AppController extends Notifier<AppModel> {
   }
 
   /// Мысль открыта (номер — 1..30); дочитана до конца — отдельным событием.
-  void thoughtOpened(int day) => _a.event('thought_opened', {'day': day, 'n': thoughtNumber(day)});
+  void thoughtOpened(int day) {
+    _a.event('thought_opened', {'day': day, 'n': thoughtNumber(day)});
+    _collect('thoughts', '${thoughtNumber(day)}');
+  }
   void thoughtReadFull(int day) => _a.event('thought_read_full', {'day': day, 'n': thoughtNumber(day)});
 
   Map<String, Json> answers() => state.storage?.loadAnswers() ?? {};

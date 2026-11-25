@@ -16,6 +16,7 @@ import '../widgets/spirit_card.dart';
 import 'chapter_end_flow.dart';
 import 'coin_shop_screen.dart';
 import 'finale_flow.dart';
+import 'notebook_screen.dart';
 import 'overflow_screens.dart';
 import 'paywall_screen.dart';
 
@@ -531,6 +532,19 @@ class _PlaceScreen extends ConsumerWidget {
                 StoryText(desc),
                 const SizedBox(height: Gap.s),
                 Text(l.placeRest, style: const TextStyle(color: Palette.accent)),
+                // 25.11: открытка из этого места — посмотреть и отправить
+                if (m.content!.postcards.containsKey('${st['place']}')) ...[
+                  const SizedBox(height: Gap.s),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.local_post_office_outlined),
+                      label: Text(l.postcardHere),
+                      onPressed: () => showPostcard(context, m.content!, '${st['place']}',
+                          m.profile?.postcards['${st['place']}']),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: Gap.l),
                 Row(children: [
                   Expanded(child: Text(l.market, style: Theme.of(context).textTheme.titleMedium)),

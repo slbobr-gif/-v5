@@ -508,6 +508,19 @@ if thoughts:
     if opened * 3 < len(thoughts):
         errors.append(f"thoughts.json: открытых {opened} из {len(thoughts)}, нужно ≥ трети")
 
+# --- открытки (25.11): по одной на каждый город, городок, старт и финиш; текст короткий
+postcards = load("postcards.json", [])
+if postcards:
+    pc_places = [pc.get("place") for pc in postcards]
+    need = {p["id"] for p in load("places.json", []) if p.get("kind") in ("town", "city", "start", "finish")}
+    for pid in set(need) - set(pc_places):
+        errors.append(f"postcards.json: нет открытки для места {pid}")
+    for pc in postcards:
+        if pc.get("place") not in need:
+            errors.append(f"postcards.json: {pc.get('place')!r} — не город, не старт и не финиш")
+        if not 30 <= len(pc.get("text", "")) <= 160:
+            errors.append(f"postcards.json:{pc.get('place')}: текст {len(pc.get('text', ''))} знаков, нужно 30–160")
+
 # --- ночёвки (25.11): сцены по главам, эффекты — только известные ключи
 nights = load("nights.json", [])
 NIGHT_KEYS = {"id", "ch", "title", "text", "satiety", "water", "warmth", "coins", "burn", "giveMatches", "lose"}

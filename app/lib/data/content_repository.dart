@@ -45,6 +45,7 @@ class GameContent {
     required this.thoughts,
     this.chats = const {},
     this.nights = const {},
+    this.postcards = const {},
   });
 
   final World world;
@@ -57,6 +58,8 @@ class GameContent {
   final Map<int, ChapterChat> chats;
   /// Сцены ночёвок (25.11): id → {title, text, эффекты}.
   final Map<String, Json> nights;
+  /// Открытки с маршрута (25.11): место → фраза Сергея.
+  final Map<String, String> postcards;
 
   String itemName(String id) => items[id]?['name'] as String? ?? id;
   String itemDesc(String id) => items[id]?['desc'] as String? ?? '';
@@ -177,6 +180,15 @@ Future<GameContent> loadGameContent() async {
     // без файла — прежние утренние бонусы
   }
 
+  final postcards = <String, String>{};
+  try {
+    for (final p in _list(await _json('$base/postcards.json'))) {
+      postcards['${p['place']}'] = '${p['text']}';
+    }
+  } catch (_) {
+    // без файла — открыток нет
+  }
+
   final distances = (mapJson['placeDistances'] as Map).map((k, v) => MapEntry(k as String, toD(v)));
   final world = World(
     balance: balance,
@@ -208,6 +220,7 @@ Future<GameContent> loadGameContent() async {
     thoughts: thoughtsList.map(Thought.new).toList(),
     chats: chats,
     nights: {for (final n in nightsList) n['id'] as String: n},
+    postcards: postcards,
   );
 }
 

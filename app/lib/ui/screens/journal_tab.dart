@@ -15,6 +15,7 @@ import '../theme/tokens.dart';
 import '../widgets/common.dart';
 import '../widgets/glass_paint.dart';
 import 'journeys_screen.dart';
+import 'notebook_screen.dart';
 import 'manual_steps_dialog.dart';
 import 'thought_screen.dart';
 
@@ -316,6 +317,12 @@ class _JournalTabState extends ConsumerState<JournalTab> {
           title: l.journalTitle,
         ),
         actions: [
+          // 25.11: записная книжка путника — коллекция всех путей
+          IconButton(
+            tooltip: l.nbOpen,
+            icon: const Icon(Icons.menu_book_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const NotebookScreen())),
+          ),
           if ((m.profile?.journeys ?? const []).isNotEmpty)
             IconButton(
               tooltip: l.journalJourneys,
