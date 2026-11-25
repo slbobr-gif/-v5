@@ -349,6 +349,11 @@ class AppController extends Notifier<AppModel> {
     final wildAll = content.world.randoms.where((e) => e['wild'] == true).map((e) => e['id']).toSet();
     final before = state.profile?.wildSeen ?? const <String>[];
     hero.wildBefore = wildAll.every(before.contains) ? [] : [...before];
+    // 25.11: случайные события прошлых путей — в новом пути сначала невиданные; видел все — круг заново
+    final rndAll = content.world.randoms.where((e) => e['wild'] != true).map((e) => e['id']).toSet();
+    final rndBefore = state.profile?.randomSeen ?? const <String>[];
+    hero.randomBefore = rndAll.every(rndBefore.contains) ? [] : [...rndBefore];
+    hero.nightSeen = [...?state.profile?.nightSeen]; // круг ночёвок не сбрасывается с новым путём
     final def = defaultLoadout;
     final chosen = _chosenLoadout;
     var useGear = gear ?? chosen?.gear ?? def.gear;
@@ -661,6 +666,16 @@ class AppController extends Notifier<AppModel> {
   /// Раздел приложения открыт: вкладка или экран.
   void screen(String name) => _a.event('screen_view', {'name': name});
 
+  /// Случайное событие показано (25.11): в профиль, чтобы в следующем пути сначала шли невиданные.
+  void _randomMet(String id) {
+    final p = state.profile;
+    if (p == null || p.randomSeen.contains(id)) return;
+    final all = content.world.randoms.where((e) => e['wild'] != true).length;
+    if (p.randomSeen.length >= all) p.randomSeen.clear();
+    p.randomSeen.add(id);
+    updateProfile((_) {});
+  }
+
   /// Дикий зверь встречен (V5-64): в профиль, чтобы в следующем пути сначала выпадали другие.
   void _wildMet(String id, HeroState hero) {
     final p = state.profile;
@@ -691,6 +706,7 @@ class AppController extends Notifier<AppModel> {
       case 'event':
         final ev = content.world.eventsById[st['event']];
         if (ev?['wild'] == true) _wildMet('${ev!['id']}', hero);
+        if (ev != null && ev['kind'] == 'random' && ev['wild'] != true) _randomMet('${ev['id']}');
         _a.event('event_shown', {
           'id': '${st['event']}',
           'kind': '${ev?['kind'] ?? 'quest'}',
@@ -704,7 +720,12 @@ class AppController extends Notifier<AppModel> {
       case 'finish':
         _a.event('journey_finished', {'days': hero.daySteps.length});
       case 'night':
-        _a.event('night_stop', {'morning': '${st['morning'] ?? ''}', 'km': (hero.pos / 1000).round()});
+        _a.event('night_stop', {'scene': '${st['scene'] ?? st['morning'] ?? ''}', 'km': (hero.pos / 1000).round()});
+        final p = state.profile;
+        if (p != null) {
+          p.nightSeen = [...hero.nightSeen]; // 25.11: круг ночёвок продолжится в следующем пути
+          updateProfile((_) {});
+        }
     }
   }
 

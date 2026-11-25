@@ -1297,6 +1297,16 @@ class NoRepeat(unittest.TestCase):
         self.assertEqual(len(set(ids)), 5)
         self.assertIsNone(got[5])
 
+    def test_unseen_before_first(self):
+        w = make_world(randoms=[ev(f"c{i}", "city", tags=("any",)) for i in range(6)])
+        _, s, e = fresh(w)
+        s["pos"] = 1000.0
+        s["randomBefore"] = ["c0", "c1", "c2", "c3"]
+        first = [e._pick_random(T0)["id"] for _ in range(2)]
+        self.assertEqual(sorted(first), ["c4", "c5"])
+        rest = [e._pick_random(T0)["id"] for _ in range(4)]
+        self.assertEqual(sorted(rest), ["c0", "c1", "c2", "c3"])
+
     def test_night_scenes_cycle(self):
         b = copy.deepcopy(BAL)
         b["night"]["scenes"] = [{"id": f"n{i}", "ch": 1, "title": "t", "text": "x", "satiety": 5} for i in range(3)] + \

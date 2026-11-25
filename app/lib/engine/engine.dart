@@ -1417,6 +1417,9 @@ class Engine {
       if (pool.isNotEmpty) _log(now, 'zone_fallback', {'zone': zone});
     }
     if (pool.isEmpty) return null;
+    // 25.11: сначала события, которых игрок не видел в прошлых путях; все видены — любые (rng не трогаем)
+    final unseen = pool.where((e) => !s.randomBefore.contains(e['id'])).toList();
+    if (unseen.isNotEmpty) pool = unseen;
     if (noticed() && rng.nextFloat() < toD(_m('bonus')['noticeRiskChance'])) {
       final risky = pool.where((e) => _tags(e).contains('risk')).toList();
       if (risky.isNotEmpty) pool = risky;

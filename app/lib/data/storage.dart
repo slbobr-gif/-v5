@@ -24,8 +24,12 @@ class Profile {
     this.premiumTest = true,
     List<Map<String, dynamic>>? journeys,
     List<String>? wildSeen,
+    List<String>? randomSeen,
+    List<String>? nightSeen,
   })  : journeys = journeys ?? [],
-        wildSeen = wildSeen ?? [];
+        wildSeen = wildSeen ?? [],
+        randomSeen = randomSeen ?? [],
+        nightSeen = nightSeen ?? [];
 
   String name;
   String email;
@@ -54,6 +58,10 @@ class Profile {
 
   /// Дикие звери, встреченные во всех путях (V5-64): в новом пути сначала выпадают остальные.
   List<String> wildSeen;
+  /// Случайные события, что игрок уже видел в прошлых путях (25.11): в новом пути сначала остальные.
+  List<String> randomSeen;
+  /// Круг ночёвок продолжается и в новом пути (25.11): сначала сцены, которых ещё не было.
+  List<String> nightSeen;
 
   Json toJson() => {
         'name': name,
@@ -71,6 +79,8 @@ class Profile {
         'premiumTest': premiumTest,
         'journeys': journeys,
         'wildSeen': wildSeen,
+        'randomSeen': randomSeen,
+        'nightSeen': nightSeen,
       };
 
   static Profile fromJson(Json j) => Profile(
@@ -90,6 +100,8 @@ class Profile {
         premiumTest: j['premiumTest'] != false,
         journeys: [for (final x in (j['journeys'] as List?) ?? const []) if (x is Map) x.cast<String, dynamic>()],
         wildSeen: [for (final x in (j['wildSeen'] as List?) ?? const []) if (x is String) x],
+        randomSeen: [for (final x in (j['randomSeen'] as List?) ?? const []) if (x is String) x],
+        nightSeen: [for (final x in (j['nightSeen'] as List?) ?? const []) if (x is String) x],
       );
 }
 

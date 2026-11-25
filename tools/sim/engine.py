@@ -398,6 +398,7 @@ def new_state(world: World, seed: int, now_ms: int, today: str, today_steps: int
         "wildSeen": [],
         "wildByChapter": {},
         "wildBefore": [],
+        "randomBefore": [],
         "quests": {},
         "nextRandomAt": b["randomEvents"]["firstAfterKm"] * 1000.0,
         "nextNightAt": first_night_after(b, -1.0),
@@ -1659,6 +1660,11 @@ class Engine:
                 self._log(now, "zone_fallback", f"Нет случайных событий зоны {zone}", zone=zone)
         if not pool:
             return None
+        # 25.11: сначала события, которых игрок не видел в прошлых путях; все видены — любые
+        before = self.s.get("randomBefore", [])
+        unseen = [e for e in pool if e["id"] not in before]
+        if unseen:
+            pool = unseen
         if self.noticed() and self.rng.next_float() < self.b["bonus"]["noticeRiskChance"]:
             risky = [e for e in pool if "risk" in e.get("tags", [])]
             if risky:

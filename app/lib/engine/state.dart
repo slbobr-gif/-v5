@@ -101,6 +101,7 @@ class HeroState {
     List<String>? wildSeen,
     Map<String, int>? wildByChapter,
     List<String>? wildBefore,
+    List<String>? randomBefore,
     Map<String, QuestProgress>? quests,
     this.bonusKm = 0,
     Map<String, DayClaim>? claimed,
@@ -141,6 +142,7 @@ class HeroState {
         wildSeen = wildSeen ?? [],
         wildByChapter = wildByChapter ?? {},
         wildBefore = wildBefore ?? [],
+        randomBefore = randomBefore ?? [],
         quests = quests ?? {},
         claimed = claimed ?? {},
         journal = journal ?? [];
@@ -171,6 +173,8 @@ class HeroState {
   List<String> wildSeen;
   Map<String, int> wildByChapter;
   List<String> wildBefore;
+  /// Случайные события прошлых путей (25.11): пока есть невиданные — выпадают они.
+  List<String> randomBefore;
   Map<String, QuestProgress> quests;
   double nextRandomAt;
   double bonusKm;
@@ -325,6 +329,7 @@ class HeroState {
         'wildSeen': wildSeen,
         'wildByChapter': wildByChapter,
         'wildBefore': wildBefore,
+        'randomBefore': randomBefore,
         'quests': quests.map((k, v) => MapEntry(k, v.toJson())),
         'nextRandomAt': nextRandomAt,
         'bonusKm': bonusKm,
@@ -383,6 +388,7 @@ class HeroState {
       wildSeen: strs(j['wildSeen']),
       wildByChapter: ints(j['wildByChapter']),
       wildBefore: strs(j['wildBefore']),
+      randomBefore: strs(j['randomBefore']),
       quests: ((j['quests'] as Map?) ?? {})
           .map((k, v) => MapEntry(k as String, QuestProgress.fromJson((v as Map).cast<String, dynamic>()))),
       nextRandomAt: toD(j['nextRandomAt']),
