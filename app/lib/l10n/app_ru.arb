@@ -2491,5 +2491,8 @@
   "@challengeRewardCoins": {"placeholders": {"coins": {"type": "int"}}},
   "challengeClaim": "Забрать награду",
   "challengeClaimed": "Получено. {reward}",
-  "@challengeClaimed": {"placeholders": {"reward": {"type": "String"}}}
+  "@challengeClaimed": {"placeholders": {"reward": {"type": "String"}}},
+  "settingsSound": "Звук",
+  "settingsSoundOn": "Звуки природы",
+  "settingsSoundHint": "Дождь, ручей, ветер, прибой и костёр на ночёвках и в событиях"
 }

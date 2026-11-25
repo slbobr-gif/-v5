@@ -1,7 +1,7 @@
 name: putnik
 description: Путник — пешее путешествие от Кремля до Териберки на твоих шагах.
 publish_to: none
-version: 0.7.4+29
+version: 0.7.5+30
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -17,6 +17,7 @@ dependencies:
   flutter_svg: ^2.0.10
   appmetrica_plugin: ^4.1.0
   share_plus: ^10.1.4
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -40,3 +41,4 @@ flutter:
     - assets/art/zones/
     - assets/art/spirits/
     - assets/art/ui/
+    - assets/audio/

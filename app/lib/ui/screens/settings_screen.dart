@@ -123,6 +123,15 @@ class SettingsScreen extends ConsumerWidget {
           }),
           const SizedBox(height: Gap.m),
           Text(l.batteryHint, style: const TextStyle(color: Palette.parchmentDim, fontSize: 12, height: 1.35)),
+          SectionHeader(l.settingsSound),
+          _Group(children: [
+            SwitchListTile(
+              value: p.sound,
+              title: Text(l.settingsSoundOn),
+              subtitle: Text(l.settingsSoundHint),
+              onChanged: (v) => c.updateProfile((pp) => pp.sound = v),
+            ),
+          ]),
           SectionHeader(l.settingsNotifications),
           _Group(children: [
           SwitchListTile(

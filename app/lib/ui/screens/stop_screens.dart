@@ -9,6 +9,7 @@ import '../../engine/world.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
 import '../widgets/coach_tour.dart';
+import '../widgets/ambient.dart';
 import '../widgets/common.dart';
 import '../widgets/gift_button.dart';
 import '../widgets/item_icon.dart';
@@ -124,8 +125,19 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
   String? _tonesFor;
   Map<String, String>? _tones;
 
+  /// 25.11: звук сцены события — по картинке (вода, дождь, лес…) и главе.
   @override
   Widget build(BuildContext context) {
+    final m = ref.watch(appProvider);
+    final ev = Engine(m.content!.world, m.hero!).currentEvent();
+    final art = (ev?['art'] as String?) ?? 'road';
+    return AmbientScope(
+      sound: ambientForArt(art, chapter: m.content!.world.chapterAt(m.hero!.pos)),
+      child: _body(context),
+    );
+  }
+
+  Widget _body(BuildContext context) {
     final l = AppLocalizations.of(context);
     final m = ref.watch(appProvider);
     final c = ref.read(appProvider.notifier);
@@ -405,10 +417,13 @@ class _ItemChips extends ConsumerWidget {
 }
 
 class _OutcomeScreen extends ConsumerWidget {
-  const _OutcomeScreen({required this.title, required this.art, required this.outcome, required this.onNext});
+  const _OutcomeScreen(
+      {required this.title, required this.art, required this.outcome, required this.onNext, this.sound = ''});
 
   final String title;
   final String art;
+  /// Звук экрана: '' — по картинке, null — тишина (25.11).
+  final String? sound;
   final OutcomeView outcome;
   final Future<void> Function() onNext;
 
@@ -439,7 +454,9 @@ class _OutcomeScreen extends ConsumerWidget {
     if (o.delayHours > 0) chips.add(chip(Icons.hourglass_bottom, l.fxDelay(o.delayHours.ceil()), Palette.ember));
     if (o.detourKm > 0) chips.add(chip(Icons.alt_route, l.fxDetour(o.detourKm.toStringAsFixed(0)), Palette.ember));
     if (o.shortcutKm > 0) chips.add(chip(Icons.fast_forward, l.fxShortcut(o.shortcutKm.toStringAsFixed(1)), Palette.accent));
-    return Scaffold(
+    final m0 = ref.watch(appProvider);
+    final snd = sound == '' ? ambientForArt(art, chapter: m0.content!.world.chapterAt(m0.hero!.pos)) : sound;
+    return AmbientScope(sound: snd, child: Scaffold(
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -480,7 +497,7 @@ class _OutcomeScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -805,6 +822,7 @@ class _NightScreen extends ConsumerWidget {
         shortcutKm: 0,
         matches: got - burnt,
       ),
+      sound: burnt > 0 || st['free'] == true ? 'campfire' : 'wind',
       onNext: () => c.continueJourney(st),
     );
   }
@@ -849,6 +867,7 @@ class _ColdScreen extends ConsumerWidget {
         shortcutKm: 0,
         matches: -burnt,
       ),
+      sound: burnt > 0 || st['free'] == true ? 'campfire' : 'wind',
       onNext: () => c.continueJourney(st),
     );
   }

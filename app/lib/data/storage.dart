@@ -22,6 +22,7 @@ class Profile {
     this.stepsHc = true,
     this.stepMul = 5,
     this.premiumTest = true,
+    this.sound = true,
     List<Map<String, dynamic>>? journeys,
     List<String>? wildSeen,
     List<String>? randomSeen,
@@ -61,6 +62,9 @@ class Profile {
   /// чтобы тестировщики шли дальше первой главы; выключи — увидишь бесплатную версию.
   bool premiumTest;
 
+  /// Звуки природы на ночёвках и в событиях (25.11). По умолчанию включены.
+  bool sound;
+
   /// Итоги пройденных путей (снимки JourneyStats.toJson + даты): переживают сброс пути, видны в Журнале.
   List<Map<String, dynamic>> journeys;
 
@@ -97,6 +101,7 @@ class Profile {
         'stepsHc': stepsHc,
         'stepMul': stepMul,
         'premiumTest': premiumTest,
+        'sound': sound,
         'journeys': journeys,
         'wildSeen': wildSeen,
         'randomSeen': randomSeen,
@@ -123,6 +128,7 @@ class Profile {
         stepsHc: j['stepsHc'] != false,
         stepMul: const [1, 3, 5].contains(j['stepMul']) ? toI(j['stepMul']) : 5,
         premiumTest: j['premiumTest'] != false,
+        sound: j['sound'] != false,
         journeys: [for (final x in (j['journeys'] as List?) ?? const []) if (x is Map) x.cast<String, dynamic>()],
         wildSeen: [for (final x in (j['wildSeen'] as List?) ?? const []) if (x is String) x],
         randomSeen: [for (final x in (j['randomSeen'] as List?) ?? const []) if (x is String) x],
