@@ -390,6 +390,8 @@ def new_state(world: World, seed: int, now_ms: int, today: str, today_steps: int
         "stop": None,
         "delayUntil": 0,
         "lastDelayDay": 0,
+        "randomSeen": [],
+        "nightSeen": [],
         "flags": [],
         "seen": [],
         "recentRandom": [],
@@ -1514,8 +1516,21 @@ class Engine:
         """Ночёвка в пути (V5-45): +тепло, утренний бонус по весам (тратит RNG), camp-перки снаряжения.
         Остановка как привал: «Дальше» — и герой идёт теми же шагами, ждать следующего дня не нужно."""
         nb = self.b["night"]
+        # 25.11: сцены ночёвок главы — по кругу без повторов
+        chn = self.w.chapter_at(self.s["pos"])
+        mine = [x for x in (nb.get("scenes") or []) if int(x["ch"]) == chn]
+        sc = {}
+        seen = self.s.setdefault("nightSeen", [])
+        if mine:
+            pool = [x for x in mine if x["id"] not in seen]
+            if not pool:
+                ids = {x["id"] for x in mine}
+                seen[:] = [i for i in seen if i not in ids]
+                pool = mine
+            sc = pool[self.rng.next_u32() % len(pool)]
+            seen.append(sc["id"])
         morning = nb.get("morning") or []
-        mo = morning[self.rng.pick_weighted([int(m["weight"]) for m in morning])] if morning else {}
+        mo = morning[self.rng.pick_weighted([int(m["weight"]) for m in morning])] if morning and not sc else {}
         # V5-60: какая выдалась ночь (север и непогода холоднее)
         kinds = nb.get("kinds") or []
         kind_id = ""
@@ -1542,13 +1557,37 @@ class Engine:
         for k in STATS:
             if mo.get(k):
                 gain[k] = gain.get(k, 0) + int(mo[k])
+            if sc.get(k):
+                gain[k] = gain.get(k, 0) + int(sc[k])
         if nb.get("maxWarmth") is not None:
             gain["warmth"] = min(gain["warmth"], int(nb["maxWarmth"]))
+        coins_d, got_matches, lost = 0, 0, {}
+        if sc:
+            if sc.get("coins"):
+                before = self.s["coins"]
+                self.s["coins"] = max(0, self.s["coins"] + int(sc["coins"]))
+                coins_d = self.s["coins"] - before
+            if fire and sc.get("burn"):
+                burnt += self._burn_matches(self._match_cost(int(sc["burn"])))
+            if sc.get("giveMatches"):
+                got_matches = int(sc["giveMatches"])
+                self.give_items({fire.get("item", "matches") if fire else "matches": got_matches}, "night")
+            keep = set()
+            for g in self._held():
+                nl = self.w.items.get(g, {}).get("noItemLoss")
+                if isinstance(nl, list):
+                    keep.update(nl)
+            lose = {k: v for k, v in (sc.get("lose") or {}).items()
+                    if self.s["inv"].get(k, 0) > 0 and k not in keep and self.w.item_type(k) not in keep}
+            if lose:
+                l, _ = self._remove_items(lose)
+                lost = {k: int(v["n"]) for k, v in l.items()}
         for k, v in gain.items():
             self.s["stats"][k] += v
         self._clamp_stats()
         mid = mo.get("id", "")
-        self._log(now, "night", "Сергей заночевал в пути", morning=mid, nightKind=kind_id, gain=dict(gain))
+        sid = sc.get("id", "")
+        self._log(now, "night", "Сергей заночевал в пути", morning=mid, nightKind=kind_id, gain=dict(gain), scene=sid)
         self._camp({"id": ""}, now)
         self.s["stop"] = {"type": "night", "morning": mid, "kind": kind_id, "gain": gain}
         if fire:
@@ -1556,6 +1595,14 @@ class Engine:
             self.s["stop"]["nofire"] = burnt == 0 and not free
             if free:
                 self.s["stop"]["free"] = True
+        if sid:
+            self.s["stop"]["scene"] = sid
+        if coins_d:
+            self.s["stop"]["coins"] = coins_d
+        if got_matches:
+            self.s["stop"]["gotMatches"] = got_matches
+        if lost:
+            self.s["stop"]["lost"] = lost
         self.s["nextNightAt"] = first_night_after(self.b, self.s["pos"])
 
     def _pick_wild(self, now: int):
@@ -1602,7 +1649,8 @@ class Engine:
         in_ch = [e for e in self.w.randoms if not e.get("wild")
                  and (ch in e.get("tags", []) or "any" in e.get("tags", []))
                  and not (late and self._has_delay(e))
-                 and (e.get("whenHas") is None or self.has_item(e["whenHas"]))]
+                 and (e.get("whenHas") is None or self.has_item(e["whenHas"]))
+                 and e["id"] not in self.s["randomSeen"]]  # 25.11: в одном пути событие не повторяется
         pool = [e for e in in_ch if e.get("zone") == zone and e["id"] not in recent_z]
         base = [e for e in in_ch if e["id"] not in recent_all]
         if not pool:
@@ -1616,6 +1664,7 @@ class Engine:
             if risky:
                 pool = risky
         e = pool[self.rng.next_u32() % len(pool)]
+        self.s["randomSeen"].append(e["id"])
         self.s["recentRandom"].append(e["id"])
         self.s["recentRandom"] = self.s["recentRandom"][-self.b["randomEvents"]["recentKeep"]:]
         return e
@@ -2066,6 +2115,9 @@ class Engine:
                 return "no_stove"
             if self.gear_uses(tgt) >= self._max_uses(tgt):
                 return "gas_full"
+        if t == "tool" and "uses" in self.w.items[item] and self.s["inv"].get(item, 0) > 0 \
+                and self.gear_uses(item) >= self._max_uses(item):
+            return "tool_full"
         return None
 
     def buy(self, item: str, now: int) -> bool:
@@ -2084,6 +2136,11 @@ class Engine:
             self._gain_gear(item, "market")
         elif t == "refill":
             self._gain_refill(item)
+        elif "uses" in self.w.items[item]:
+            uses = int(self.w.items[item]["uses"])
+            have = self.gear_uses(item) if self.s["inv"].get(item, 0) > 0 else 0
+            self.s["gearUses"][item] = min(self._max_uses(item), have + uses)
+            self.s["inv"][item] = 1
         else:
             self.s["inv"][item] = self.s["inv"].get(item, 0) + 1
         self._log(now, "buy", item, item=item, price=price)
@@ -2149,6 +2206,10 @@ def load_world(root: Path, map_json: dict | None = None, balance: dict | None = 
         p = c / name
         return json.loads(p.read_text(encoding="utf-8")) if p.exists() else default
 
+    if balance is None:  # 25.11: сцены ночёвок — из content/nights.json (как в ContentRepository)
+        nights = j("nights.json", [])
+        if nights:
+            b.setdefault("night", {})["scenes"] = nights
     content = {
         "places": j("places.json", []),
         "chapters": j("chapters.json", []),

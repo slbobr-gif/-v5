@@ -695,6 +695,7 @@ class _OfferRow extends StatelessWidget {
       'gear_full' => l.buyGearFull,
       'no_stove' => l.buyNoStove,
       'gas_full' => l.buyGasFull,
+      'tool_full' => l.buyToolFull,
       'pack_smaller' => l.buyPackSmaller,
       _ => null,
     };
@@ -766,20 +767,29 @@ class _NightScreen extends ConsumerWidget {
       'cold' => l.nightKind_cold,
       _ => l.nightText,
     };
+    // 25.11: сцена ночёвки главы — своя история, бонусы и потери.
+    final scene = m.content!.nights['${st['scene'] ?? ''}'];
+    final got = toI(st['gotMatches']) * m.content!.world.portionsOf('matches');
+    final lost = ((st['lost'] as Map?) ?? const {}).map((k, v) => MapEntry('$k', toI(v)));
     return _OutcomeScreen(
-      title: l.nightTitle,
+      title: scene == null ? l.nightTitle : '${scene['title']}',
       art: 'night',
       outcome: OutcomeView(
-        text: [kind, if (fire.isNotEmpty) fire, if (morning.isNotEmpty) morning].join('\n\n'),
-        coins: 0,
+        text: [
+          if (scene != null) '${scene['text']}',
+          kind,
+          if (fire.isNotEmpty) fire,
+          if (morning.isNotEmpty) morning,
+        ].join('\n\n'),
+        coins: toI(st['coins']),
         stats: gain,
         itemsGained: const {},
-        itemsLost: const {},
+        itemsLost: lost,
         died: false,
         delayHours: 0,
         detourKm: 0,
         shortcutKm: 0,
-        matches: -burnt,
+        matches: got - burnt,
       ),
       onNext: () => c.continueJourney(st),
     );

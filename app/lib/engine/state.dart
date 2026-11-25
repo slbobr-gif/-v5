@@ -96,6 +96,8 @@ class HeroState {
     List<String>? flags,
     List<String>? seen,
     List<String>? recentRandom,
+    List<String>? randomSeen,
+    List<String>? nightSeen,
     List<String>? wildSeen,
     Map<String, int>? wildByChapter,
     List<String>? wildBefore,
@@ -134,6 +136,8 @@ class HeroState {
         flags = flags ?? [],
         seen = seen ?? [],
         recentRandom = recentRandom ?? [],
+        randomSeen = randomSeen ?? [],
+        nightSeen = nightSeen ?? [],
         wildSeen = wildSeen ?? [],
         wildByChapter = wildByChapter ?? {},
         wildBefore = wildBefore ?? [],
@@ -159,6 +163,10 @@ class HeroState {
   List<String> flags;
   List<String> seen;
   List<String> recentRandom;
+  /// Случайные события, что уже были в этом пути: второй раз не выпадают (25.11). Новый путь — заново.
+  List<String> randomSeen;
+  /// Сцены ночёвок текущего круга (25.11): прошли все сцены главы — круг начинается заново.
+  List<String> nightSeen;
   /// Дикие звери (V5-64): встреченные в этом пути, сколько по главам, встреченные в прошлых путях.
   List<String> wildSeen;
   Map<String, int> wildByChapter;
@@ -312,6 +320,8 @@ class HeroState {
         'flags': flags,
         'seen': seen,
         'recentRandom': recentRandom,
+        'randomSeen': randomSeen,
+        'nightSeen': nightSeen,
         'wildSeen': wildSeen,
         'wildByChapter': wildByChapter,
         'wildBefore': wildBefore,
@@ -368,6 +378,8 @@ class HeroState {
       flags: strs(j['flags']),
       seen: strs(j['seen']),
       recentRandom: strs(j['recentRandom']),
+      randomSeen: strs(j['randomSeen']),
+      nightSeen: strs(j['nightSeen']),
       wildSeen: strs(j['wildSeen']),
       wildByChapter: ints(j['wildByChapter']),
       wildBefore: strs(j['wildBefore']),

@@ -44,6 +44,7 @@ class GameContent {
     required this.creatures,
     required this.thoughts,
     this.chats = const {},
+    this.nights = const {},
   });
 
   final World world;
@@ -54,6 +55,8 @@ class GameContent {
 
   /// Переписка Сергея с Сашей после статистики конца главы: номер главы → сообщения.
   final Map<int, ChapterChat> chats;
+  /// Сцены ночёвок (25.11): id → {title, text, эффекты}.
+  final Map<String, Json> nights;
 
   String itemName(String id) => items[id]?['name'] as String? ?? id;
   String itemDesc(String id) => items[id]?['desc'] as String? ?? '';
@@ -163,6 +166,17 @@ Future<GameContent> loadGameContent() async {
     // переписки не обязательны: без файла экран переписки просто пропускается
   }
 
+  // 25.11: сцены ночёвок — движок берёт их из balance.night.scenes, экран — тексты отсюда же
+  final nightsList = <Json>[];
+  try {
+    nightsList.addAll(_list(await _json('$base/nights.json')));
+    if (nightsList.isNotEmpty) {
+      ((balance['night'] ??= <String, dynamic>{}) as Map)['scenes'] = nightsList;
+    }
+  } catch (_) {
+    // без файла — прежние утренние бонусы
+  }
+
   final distances = (mapJson['placeDistances'] as Map).map((k, v) => MapEntry(k as String, toD(v)));
   final world = World(
     balance: balance,
@@ -193,6 +207,7 @@ Future<GameContent> loadGameContent() async {
     creatures: {for (final c in creaturesList) c['id'] as String: c},
     thoughts: thoughtsList.map(Thought.new).toList(),
     chats: chats,
+    nights: {for (final n in nightsList) n['id'] as String: n},
   );
 }
 

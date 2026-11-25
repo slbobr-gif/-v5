@@ -86,6 +86,7 @@ class Zones(unittest.TestCase):
         s["pos"] = 1000.0  # город
         self.assertEqual(e._pick_random(T0)["id"], "r_city")
         s["recentRandom"] = []
+        s["randomSeen"] = []  # 25.11: тест о фильтрах, не о неповторе
         s["pos"] = 45000.0  # окрестности между Б и В
         self.assertEqual(w.zone_at(45000.0), "wild")
         self.assertEqual(e._pick_random(T0)["id"], "r_wild")
@@ -102,6 +103,7 @@ class Zones(unittest.TestCase):
         s["pos"] = 1000.0
         for _ in range(5):
             s["recentRandom"] = []
+            s["randomSeen"] = []  # 25.11: тест о фильтрах, не о неповторе
             self.assertEqual(e._pick_random(T0)["id"], "r_any")
 
     def test_validator_zones_match_engine_on_real_route(self):
@@ -586,7 +588,10 @@ class AddendumA(unittest.TestCase):
         w = make_world(randoms=rnd)
         _, s, e = fresh(w)
         s["pos"] = 1000.0
-        seen = [e._pick_random(T0)["id"] for _ in range(6)]
+        seen = []
+        for _ in range(6):
+            seen.append(e._pick_random(T0)["id"])
+            s["randomSeen"] = []  # 25.11: здесь проверяется окно «недавних», не неповтор за путь
         # пул города 4 → недавними считаются последние 2 городских: подряд одинаковых и «через одно» нет
         for a, b2, c in zip(seen, seen[1:], seen[2:]):
             self.assertNotIn(a, (b2, c))
@@ -1188,11 +1193,13 @@ class Fire(unittest.TestCase):
         s["lastDelayDay"] = e.game_day(T0)
         for _ in range(10):
             s["recentRandom"] = []
+            s["randomSeen"] = []  # 25.11: тест о фильтрах, не о неповторе
             self.assertEqual(e._pick_random(T0)["id"], "r_plain")
         s["lastDelayDay"] = e.game_day(T0) - 1
         got = set()
         for _ in range(30):
             s["recentRandom"] = []
+            s["randomSeen"] = []  # 25.11: тест о фильтрах, не о неповторе
             got.add(e._pick_random(T0)["id"])
         self.assertIn("r_d", got)
 
@@ -1209,6 +1216,7 @@ class Fire(unittest.TestCase):
         _, s, e = fresh(w)
         for _ in range(10):
             s["recentRandom"] = []
+            s["randomSeen"] = []  # 25.11: тест о фильтрах, не о неповторе
             self.assertEqual(e._pick_random(T0)["id"], "r_p")
 
 
@@ -1274,6 +1282,50 @@ class NewGifts(unittest.TestCase):
         self.assertFalse(e._try_rescue(T0 + MS_DAY))
         s["aidLock"] = False
         self.assertTrue(e._try_rescue(T0 + 6 * MS_DAY))
+
+
+class NoRepeat(unittest.TestCase):
+    """25.11: случайное событие в одном пути не повторяется; ночёвки — по кругу сцен главы."""
+
+    def test_random_once_per_journey(self):
+        w = make_world(randoms=[ev(f"c{i}", "city", tags=("any",)) for i in range(5)])
+        _, s, e = fresh(w)
+        s["pos"] = 1000.0
+        got = [e._pick_random(T0) for _ in range(7)]
+        ids = [g["id"] for g in got if g]
+        self.assertEqual(len(ids), 5)
+        self.assertEqual(len(set(ids)), 5)
+        self.assertIsNone(got[5])
+
+    def test_night_scenes_cycle(self):
+        b = copy.deepcopy(BAL)
+        b["night"]["scenes"] = [{"id": f"n{i}", "ch": 1, "title": "t", "text": "x", "satiety": 5} for i in range(3)] + \
+            [{"id": "other", "ch": 2, "title": "t", "text": "x"}]
+        w = make_world(b, randoms=[])
+        _, s, e = fresh(w)
+        got = []
+        for _ in range(6):
+            e._night(T0)
+            got.append(s["stop"]["scene"])
+            s["stop"] = None
+        self.assertEqual(sorted(got[:3]), ["n0", "n1", "n2"])
+        self.assertEqual(sorted(got[3:]), ["n0", "n1", "n2"])
+        self.assertNotIn("other", got)
+
+    def test_night_scene_effects(self):
+        b = copy.deepcopy(BAL)
+        b["night"]["scenes"] = [{"id": "x", "ch": 1, "title": "t", "text": "x", "coins": -500, "lose": {"bread": 1},
+                                 "giveMatches": 1}]
+        w = make_world(b, randoms=[])
+        _, s, e = fresh(w, pack={"bread": 2})
+        m0 = e.matches_left()
+        e._night(T0)
+        st = s["stop"]
+        self.assertEqual(s["coins"], 0)
+        self.assertEqual(st["lost"], {"bread": 1})
+        self.assertEqual(s["inv"]["bread"], 1)
+        self.assertEqual(st["gotMatches"], 1)
+        self.assertEqual(e.matches_left(), m0 + 10 - st["matches"])
 
 
 if __name__ == "__main__":

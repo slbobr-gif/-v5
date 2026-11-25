@@ -1258,8 +1258,23 @@ class Engine {
   /// Остановка как привал: «Дальше» — и герой идёт теми же шагами, ждать следующего дня не нужно.
   void _night(int now) {
     final nb = _m('night');
+    // 25.11: сцены ночёвок главы (content/nights.json → night.scenes) — по кругу без повторов, пока не пройдут все.
+    final scenes = ((nb['scenes'] as List?) ?? const []).map((m) => (m as Map).cast<String, dynamic>()).toList();
+    final chn = w.chapterAt(s.pos);
+    final mine = scenes.where((x) => toI(x['ch']) == chn).toList();
+    var sc = const <String, dynamic>{};
+    if (mine.isNotEmpty) {
+      var pool = mine.where((x) => !s.nightSeen.contains(x['id'])).toList();
+      if (pool.isEmpty) {
+        final ids = mine.map((x) => x['id']).toSet();
+        s.nightSeen.removeWhere(ids.contains);
+        pool = mine;
+      }
+      sc = pool[rng.nextU32() % pool.length];
+      s.nightSeen.add('${sc['id']}');
+    }
     final morning = ((nb['morning'] as List?) ?? const []).map((m) => (m as Map).cast<String, dynamic>()).toList();
-    final mo = morning.isEmpty
+    final mo = sc.isNotEmpty || morning.isEmpty
         ? const <String, dynamic>{}
         : morning[rng.pickWeighted(morning.map((m) => toI(m['weight'])).toList())];
     // V5-60: какая выдалась ночь — тёплая, мягкая, прохладная или холодная (север и непогода холоднее).
@@ -1291,16 +1306,59 @@ class Engine {
     final gain = <String, int>{'warmth': nightWarmth};
     for (final k in statKeys) {
       if (truthy(mo[k])) gain[k] = (gain[k] ?? 0) + toI(mo[k]);
+      if (truthy(sc[k])) gain[k] = (gain[k] ?? 0) + toI(sc[k]);
     }
     if (nb['maxWarmth'] != null) gain['warmth'] = math.min(gain['warmth']!, toI(nb['maxWarmth']));
+    // сцена: монеты, лишние спички, найденный коробок, пропажа из рюкзака (лапоть бережёт)
+    var coinsD = 0;
+    var gotMatches = 0;
+    var lost = <String, int>{};
+    if (sc.isNotEmpty) {
+      if (truthy(sc['coins'])) {
+        final before = s.coins;
+        s.coins = math.max(0, s.coins + toI(sc['coins']));
+        coinsD = s.coins - before;
+      }
+      if (_fireOn && truthy(sc['burn'])) burnt += _burnMatches(_matchCost(toI(sc['burn'])));
+      if (truthy(sc['giveMatches'])) {
+        gotMatches = toI(sc['giveMatches']);
+        giveItems({_matchItem: gotMatches}, 'night');
+      }
+      final keep = <String>{};
+      for (final g in _held()) {
+        final nl = w.itemSpec(g)['noItemLoss'];
+        if (nl is List) keep.addAll(nl.map((e) => '$e'));
+      }
+      final lose = <String, dynamic>{};
+      ((sc['lose'] as Map?) ?? const {}).forEach((k, v) {
+        if ((s.inv['$k'] ?? 0) > 0 && !keep.contains('$k') && !keep.contains(w.itemType('$k'))) lose['$k'] = v;
+      });
+      if (lose.isNotEmpty) {
+        final (l, _) = _removeItems(lose);
+        lost = l.map((k, v) => MapEntry(k, toI((v as Map)['n'])));
+      }
+    }
     gain.forEach((k, v) {
       s.stats[k] = s.stats[k]! + v;
     });
     _clampStats();
     final mid = (mo['id'] as String?) ?? '';
-    _log(now, 'night', {'morning': mid, 'nightKind': kindId, 'gain': Map<String, int>.of(gain)});
+    final sid = (sc['id'] as String?) ?? '';
+    _log(now, 'night', {'morning': mid, 'nightKind': kindId, 'gain': Map<String, int>.of(gain), 'scene': sid});
     _camp(const <String, dynamic>{'id': ''}, now);
-    s.stop = {'type': 'night', 'morning': mid, 'kind': kindId, 'gain': gain, if (_fireOn) 'matches': burnt, if (_fireOn) 'nofire': burnt == 0 && !free, if (free) 'free': true};
+    s.stop = {
+      'type': 'night',
+      'morning': mid,
+      'kind': kindId,
+      'gain': gain,
+      if (_fireOn) 'matches': burnt,
+      if (_fireOn) 'nofire': burnt == 0 && !free,
+      if (free) 'free': true,
+      if (sid.isNotEmpty) 'scene': sid,
+      if (coinsD != 0) 'coins': coinsD,
+      if (gotMatches > 0) 'gotMatches': gotMatches,
+      if (lost.isNotEmpty) 'lost': lost,
+    };
     s.nextNightAt = firstNightAfter(b, s.pos);
   }
 
@@ -1349,7 +1407,8 @@ class Engine {
       return e['wild'] != true &&
           (tags.contains(ch) || tags.contains('any')) &&
           !(late && _hasDelay(e)) &&
-          (need == null || hasItem(need));
+          (need == null || hasItem(need)) &&
+          !s.randomSeen.contains(e['id']); // 25.11: в одном пути событие не повторяется
     }).toList();
     var pool = inCh.where((e) => e['zone'] == zone && !recentZ.contains(e['id'])).toList();
     final base = inCh.where((e) => !recentAll.contains(e['id'])).toList();
@@ -1363,6 +1422,7 @@ class Engine {
       if (risky.isNotEmpty) pool = risky;
     }
     final e = pool[rng.nextU32() % pool.length];
+    s.randomSeen.add(e['id'] as String);
     s.recentRandom.add(e['id'] as String);
     final keep = toI(_m('randomEvents')['recentKeep'] ?? 36);
     if (s.recentRandom.length > keep) {
@@ -1924,6 +1984,10 @@ class Engine {
       if (!s.gear.contains(tgt)) return 'no_stove';
       if (usesLeft(tgt) >= maxUses(tgt)) return 'gas_full';
     }
+    // инструмент с зарядами (грелки и т.п.): полный набор — покупать незачем (25.11)
+    if (t == 'tool' && w.itemSpec(item).containsKey('uses') && (s.inv[item] ?? 0) > 0 && usesLeft(item) >= maxUses(item)) {
+      return 'tool_full';
+    }
     return null;
   }
 
@@ -1944,6 +2008,11 @@ class Engine {
       _gainGear(item, 'market');
     } else if (t == 'refill') {
       _gainRefill(item);
+    } else if (w.itemSpec(item).containsKey('uses')) {
+      // 25.11: купленные грелки приходили с 0 зарядов — заряды как у подаренных (одна ячейка, до maxUses)
+      final uses = toI(w.itemSpec(item)['uses']);
+      s.gearUses[item] = math.min(maxUses(item), ((s.inv[item] ?? 0) > 0 ? usesLeft(item) : 0) + uses);
+      s.inv[item] = 1;
     } else {
       s.inv[item] = (s.inv[item] ?? 0) + 1;
     }

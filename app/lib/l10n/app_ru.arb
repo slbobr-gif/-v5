@@ -2452,5 +2452,6 @@
   "gearPerkRescueCooldown": "раз в {value} дн.",
   "@gearPerkRescueCooldown": {"placeholders": {"value": {"type": "int"}}},
   "gearPerkActionSatiety": "+{value} сытости по кнопке",
-  "@gearPerkActionSatiety": {"placeholders": {"value": {"type": "int"}}}
+  "@gearPerkActionSatiety": {"placeholders": {"value": {"type": "int"}}},
+  "buyToolFull": "Набор и так полный"
 }

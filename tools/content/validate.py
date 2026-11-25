@@ -508,6 +508,34 @@ if thoughts:
     if opened * 3 < len(thoughts):
         errors.append(f"thoughts.json: открытых {opened} из {len(thoughts)}, нужно ≥ трети")
 
+# --- ночёвки (25.11): сцены по главам, эффекты — только известные ключи
+nights = load("nights.json", [])
+NIGHT_KEYS = {"id", "ch", "title", "text", "satiety", "water", "warmth", "coins", "burn", "giveMatches", "lose"}
+seen_n = set()
+for nt in nights:
+    nw = f"nights.json:{nt.get('id')}"
+    if nt.get("id") in seen_n:
+        errors.append(f"{nw}: повтор id")
+    seen_n.add(nt.get("id"))
+    if set(nt) - NIGHT_KEYS:
+        errors.append(f"{nw}: лишние поля {sorted(set(nt) - NIGHT_KEYS)}")
+    if nt.get("ch") not in range(1, 7):
+        errors.append(f"{nw}: ch — глава 1..6")
+    if not 150 <= len(nt.get("text", "")) <= 600:
+        errors.append(f"{nw}: текст {len(nt.get('text', ''))} знаков, нужно 150–600")
+    for k in ("satiety", "water", "warmth"):
+        if k in nt and not (isinstance(nt[k], int) and -25 <= nt[k] <= 30):
+            errors.append(f"{nw}: {k} = {nt[k]!r}, нужно −25..30")
+    for it in (nt.get("lose") or {}):
+        if it not in items:
+            errors.append(f"{nw}: lose — нет предмета {it!r}")
+if nights:
+    from collections import Counter as _C
+    per = _C(nt.get("ch") for nt in nights)
+    for chn in range(1, 7):
+        if per.get(chn, 0) < 4:
+            errors.append(f"nights.json: в главе {chn} меньше 4 сцен ночёвки")
+
 # --- объём MVP
 stats = {
     "авторских событий гл.1": sum(e.get("chapter") == 1 for e in anchored),
