@@ -14,6 +14,7 @@ import '../engine/state.dart';
 import '../engine/world.dart';
 import '../platform/notify_platform.dart';
 import '../platform/steps_platform.dart';
+import 'challenges.dart';
 import 'journal_view.dart';
 import 'notification_planner.dart';
 import 'ui_flags.dart';
@@ -355,6 +356,7 @@ class AppController extends Notifier<AppModel> {
     final rndBefore = state.profile?.randomSeen ?? const <String>[];
     hero.randomBefore = rndAll.every(rndBefore.contains) ? [] : [...rndBefore];
     hero.nightSeen = [...?state.profile?.nightSeen]; // круг ночёвок не сбрасывается с новым путём
+    state.profile?.challenge = null; // испытание привязано к пути — в новом выдаётся своё
     final def = defaultLoadout;
     final chosen = _chosenLoadout;
     var useGear = gear ?? chosen?.gear ?? def.gear;
@@ -457,6 +459,7 @@ class AppController extends Notifier<AppModel> {
         lastSteps: ds,
       );
       await saving;
+      _tickChallenge();
       _daySummary(hero);
       await _replanNotifications();
     } finally {
@@ -666,6 +669,67 @@ class AppController extends Notifier<AppModel> {
 
   /// Раздел приложения открыт: вкладка или экран.
   void screen(String name) => _a.event('screen_view', {'name': name});
+
+  // ------------------------------------------------ испытание недели (25.11)
+
+  /// Выдать новое испытание, когда прежнего нет, оно забрано или неделя кончилась; отметить готовое и сорванное.
+  void _tickChallenge() {
+    final p = state.profile;
+    final h = state.hero;
+    if (p == null || h == null || h.finished || content.challenges.isEmpty) return;
+    var c = p.challenge;
+    var changed = false;
+    final ended = c != null && today.compareTo('${c['end']}') > 0;
+    if (c == null || c['state'] == 'claimed' || (ended && c['state'] != 'done')) {
+      if (c != null && c['state'] == 'active') _a.event('challenge_missed', {'kind': '${c['kind']}'});
+      c = generateChallenge(content, h, p, today);
+      p.challenge = c;
+      changed = true;
+      _a.event('challenge_new', {'kind': '${c['kind']}', 'target': toI(c['target']), 'steps': toI(c['steps'])});
+    }
+    if (c['state'] == 'active') {
+      if (challengeWaitsForWeekEnd(c) && c['failed'] != true && challengeBroken(h, c)) {
+        c['failed'] = true;
+        changed = true;
+      }
+      final (n, of) = challengeProgress(content, h, p, c, today);
+      final complete = challengeWaitsForWeekEnd(c) ? (c['failed'] != true && today == '${c['end']}') : n >= of;
+      if (complete) {
+        c['state'] = 'done';
+        changed = true;
+        _a.event('challenge_done', {'kind': '${c['kind']}'});
+      }
+    }
+    if (changed) updateProfile((_) {});
+  }
+
+  /// Текущее испытание и прогресс для экрана (null — нет).
+  (Json, int, int)? challengeView() {
+    final p = state.profile;
+    final h = state.hero;
+    final c = p?.challenge;
+    if (p == null || h == null || c == null || c['state'] == 'claimed') return null;
+    final (n, of) = challengeProgress(content, h, p, c, today);
+    return (c, n, of);
+  }
+
+  /// Забрать награду: монеты и вещь (вещь может попросить место в рюкзаке — как подарок в событии).
+  Future<void> claimChallenge() async {
+    final p = state.profile;
+    final h = state.hero;
+    final c = p?.challenge;
+    if (p == null || h == null || c == null || c['state'] != 'done') return;
+    h.coins += toI(c['coins']);
+    final item = '${c['item']}';
+    if (item.isNotEmpty) Engine(content.world, h).giveItems({item: 1}, 'challenge');
+    c['state'] = 'claimed';
+    p.challengesDone += 1;
+    _a.event('challenge_claimed', {'kind': '${c['kind']}', 'coins': toI(c['coins']), 'item': item});
+    await updateProfile((_) {});
+    await _save(h);
+    state = state.copyWith(hero: h);
+    _tickChallenge();
+  }
 
   // ------------------------------------------------ записная книжка путника (25.11)
 

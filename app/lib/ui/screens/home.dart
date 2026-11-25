@@ -514,6 +514,11 @@ class _PathTabState extends ConsumerState<PathTab> {
           const SizedBox(height: Gap.s),
           Padding(padding: side, child: _TodayCard(eng: eng, shownSteps: shownSteps)),
           const SizedBox(height: Gap.s),
+          // 25.11: испытание недели
+          if (ref.read(appProvider.notifier).challengeView() != null) ...[
+            Padding(padding: side, child: _ChallengeCard()),
+            const SizedBox(height: Gap.s),
+          ],
           Padding(padding: side, child: _ThoughtCard()),
         ],
       ),
@@ -793,6 +798,78 @@ class _StopBanner extends ConsumerWidget {
           const Icon(Icons.chevron_right, color: Palette.accent),
         ],
       ),
+    );
+  }
+}
+
+/// Испытание недели (25.11): название, примета главы, цель, прогресс, срок и награда.
+class _ChallengeCard extends ConsumerWidget {
+  const _ChallengeCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final m = ref.watch(appProvider);
+    final c = ref.read(appProvider.notifier);
+    final view = c.challengeView();
+    if (view == null) return const SizedBox.shrink();
+    final (ch, n, of) = view;
+    final dict = m.content!.challenges;
+    final kind = (dict['kinds'] as Map?)?['${ch['kind']}'] as Map? ?? const {};
+    final titles = (kind['titles'] as List?) ?? const [];
+    final flavors = (((dict['flavor'] as Map?)?['${ch['chapter']}']) as List?) ?? const [];
+    final title = titles.isEmpty ? '' : '${titles[toI(ch['title']) % titles.length]}';
+    final flavor = flavors.isEmpty ? '' : '${flavors[toI(ch['flavor']) % flavors.length]}';
+    final goal = '${kind['goal'] ?? ''}'
+        .replaceAll('{target}', '${ch['target']}')
+        .replaceAll('{steps}', _num.format(toI(ch['steps'])))
+        .replaceAll('{place}', m.content!.placeName('${ch['place']}'));
+    final done = ch['state'] == 'done';
+    final failed = ch['failed'] == true;
+    final left = DateTime.parse('${ch['end']}').difference(DateTime.parse(c.today)).inDays + 1;
+    final item = '${ch['item']}';
+    final reward = item.isEmpty
+        ? l.challengeRewardCoins(toI(ch['coins']))
+        : l.challengeReward(toI(ch['coins']), m.content!.itemName(item));
+    return SectionCard(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Icon(Icons.flag_outlined, color: Palette.coin, size: 20),
+          const SizedBox(width: Gap.s),
+          Expanded(
+            child: Text(l.challengeKicker.toUpperCase(),
+                style: const TextStyle(color: Palette.coin, fontSize: 12, letterSpacing: 1.2)),
+          ),
+          Text(done ? l.challengeDone : (failed ? l.challengeFailed : l.challengeDaysLeft(left)),
+              style: const TextStyle(color: Palette.parchmentDim, fontSize: 12)),
+        ]),
+        const SizedBox(height: 6),
+        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        if (flavor.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(flavor, style: const TextStyle(fontStyle: FontStyle.italic, color: Palette.accent, fontSize: 13)),
+        ],
+        const SizedBox(height: Gap.s),
+        Text(goal, style: const TextStyle(fontSize: 14)),
+        const SizedBox(height: Gap.s),
+        AccentProgress(value: of == 0 ? 0 : n / of, color: failed ? Palette.ember : Palette.coin),
+        const SizedBox(height: 4),
+        Text('$n / $of · $reward', style: const TextStyle(color: Palette.parchmentDim, fontSize: 12)),
+        if (done) ...[
+          const SizedBox(height: Gap.s),
+          FilledButton.icon(
+            onPressed: () async {
+              await c.claimChallenge();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.challengeClaimed(reward))));
+              }
+            },
+            icon: const Icon(Icons.card_giftcard),
+            label: Text(l.challengeClaim),
+          ),
+        ],
+      ]),
     );
   }
 }

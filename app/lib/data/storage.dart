@@ -28,12 +28,16 @@ class Profile {
     List<String>? nightSeen,
     Map<String, List<String>>? collected,
     Map<String, String>? postcards,
+    this.challenge,
+    List<String>? challengeHistory,
+    this.challengesDone = 0,
   })  : journeys = journeys ?? [],
         wildSeen = wildSeen ?? [],
         randomSeen = randomSeen ?? [],
         nightSeen = nightSeen ?? [],
         collected = collected ?? {},
-        postcards = postcards ?? {};
+        postcards = postcards ?? {},
+        challengeHistory = challengeHistory ?? [];
 
   String name;
   String email;
@@ -73,6 +77,12 @@ class Profile {
   /// Открытки с маршрута: место → дата, когда Сергей туда впервые пришёл (yyyy-MM-dd).
   Map<String, String> postcards;
 
+  /// Испытание недели (25.11): собирается генератором, см. app/challenges.dart. null — ещё не выдано.
+  Map<String, dynamic>? challenge;
+  /// Что уже выпадало (вид, название, примета) — чтобы не повторяться.
+  List<String> challengeHistory;
+  int challengesDone;
+
   Json toJson() => {
         'name': name,
         'email': email,
@@ -93,6 +103,9 @@ class Profile {
         'nightSeen': nightSeen,
         'collected': collected,
         'postcards': postcards,
+        'challenge': challenge,
+        'challengeHistory': challengeHistory,
+        'challengesDone': challengesDone,
       };
 
   static Profile fromJson(Json j) => Profile(
@@ -122,6 +135,9 @@ class Profile {
           for (final e in ((j['postcards'] as Map?) ?? const {}).entries)
             if (e.value is String) '${e.key}': e.value as String,
         },
+        challenge: (j['challenge'] as Map?)?.cast<String, dynamic>(),
+        challengeHistory: [for (final x in (j['challengeHistory'] as List?) ?? const []) if (x is String) x],
+        challengesDone: toI(j['challengesDone'] ?? 0),
       );
 }
 

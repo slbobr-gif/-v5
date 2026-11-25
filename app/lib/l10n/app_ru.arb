@@ -2479,5 +2479,17 @@
   "postcardStart": "Нулевой километр",
   "postcardKm": "{km} км от Кремля",
   "@postcardKm": {"placeholders": {"km": {"type": "String"}}},
-  "postcardHere": "Открытка из этого места"
+  "postcardHere": "Открытка из этого места",
+  "challengeKicker": "Испытание недели",
+  "challengeDone": "Выполнено!",
+  "challengeFailed": "Сорвалось — до конца недели",
+  "challengeDaysLeft": "Осталось дней: {n}",
+  "@challengeDaysLeft": {"placeholders": {"n": {"type": "int"}}},
+  "challengeReward": "Награда: {coins} мон. + {item}",
+  "@challengeReward": {"placeholders": {"coins": {"type": "int"}, "item": {"type": "String"}}},
+  "challengeRewardCoins": "Награда: {coins} мон.",
+  "@challengeRewardCoins": {"placeholders": {"coins": {"type": "int"}}},
+  "challengeClaim": "Забрать награду",
+  "challengeClaimed": "Получено. {reward}",
+  "@challengeClaimed": {"placeholders": {"reward": {"type": "String"}}}
 }

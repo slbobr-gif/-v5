@@ -46,6 +46,7 @@ class GameContent {
     this.chats = const {},
     this.nights = const {},
     this.postcards = const {},
+    this.challenges = const {},
   });
 
   final World world;
@@ -60,6 +61,8 @@ class GameContent {
   final Map<String, Json> nights;
   /// Открытки с маршрута (25.11): место → фраза Сергея.
   final Map<String, String> postcards;
+  /// Словарь недельных испытаний (25.11): виды, названия, приметы глав.
+  final Json challenges;
 
   String itemName(String id) => items[id]?['name'] as String? ?? id;
   String itemDesc(String id) => items[id]?['desc'] as String? ?? '';
@@ -189,6 +192,13 @@ Future<GameContent> loadGameContent() async {
     // без файла — открыток нет
   }
 
+  var challenges = <String, dynamic>{};
+  try {
+    challenges = ((await _json('$base/challenges.json')) as Map).cast<String, dynamic>();
+  } catch (_) {
+    // без файла — испытаний нет
+  }
+
   final distances = (mapJson['placeDistances'] as Map).map((k, v) => MapEntry(k as String, toD(v)));
   final world = World(
     balance: balance,
@@ -221,6 +231,7 @@ Future<GameContent> loadGameContent() async {
     chats: chats,
     nights: {for (final n in nightsList) n['id'] as String: n},
     postcards: postcards,
+    challenges: challenges,
   );
 }
 
