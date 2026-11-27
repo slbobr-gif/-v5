@@ -1,5 +1,7 @@
 // Остановки на пути: событие, привал в городе, конец главы, смерть, финиш.
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -152,7 +154,10 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
     final evId = '${ev['id']}';
     final tones = _tonesFor == evId ? _tones : null;
     final art = (ev['art'] as String?) ?? 'road';
-    final choices = (ev['choices'] as List).cast<Map>().map((x) => x.cast<String, dynamic>()).toList();
+    // 27.11 (V5-75): варианты в случайном порядке — лучший больше не всегда сверху. Порядок стабилен
+    // для этого события в этом пути (seed героя + id события), чтобы не прыгал при перерисовке.
+    final choices = (ev['choices'] as List).cast<Map>().map((x) => x.cast<String, dynamic>()).toList()
+      ..shuffle(math.Random(m.hero!.seed ^ _stableHash(evId)));
     // 27.11 (V5-74): сцены линий подписаны по линии, раздумье — без выбора
     final isReflection = ev['kind'] == 'reflection';
     final kindLabel = switch (ev['line'] ?? ev['kind']) {
@@ -970,4 +975,13 @@ class _DeathScreen extends ConsumerWidget {
     ),
     );
   }
+}
+
+/// Хэш строки, одинаковый между запусками (String.hashCode в Dart не обязан быть стабильным).
+int _stableHash(String s) {
+  var h = 0x811c9dc5;
+  for (final c in s.codeUnits) {
+    h = ((h ^ c) * 0x01000193) & 0x7fffffff;
+  }
+  return h;
 }
