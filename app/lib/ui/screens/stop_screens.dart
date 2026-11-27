@@ -33,6 +33,7 @@ class _StopScreenState extends ConsumerState<StopScreen> {
   OutcomeView? _outcome;
   String? _outcomeTitle;
   String? _outcomeArt;
+  bool _outcomeSpirit = false;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +43,7 @@ class _StopScreenState extends ConsumerState<StopScreen> {
       return _OutcomeScreen(
         title: _outcomeTitle ?? '',
         art: _outcomeArt ?? 'road',
+        music: _outcomeSpirit ? 'spirits' : null,
         outcome: _outcome!,
         onNext: () async {
           final o = _outcome;
@@ -64,10 +66,11 @@ class _StopScreenState extends ConsumerState<StopScreen> {
     switch (st['type']) {
       case 'event':
         return _EventScreen(
-          onOutcome: (o, title, art) => setState(() {
+          onOutcome: (o, title, art, spirit) => setState(() {
             _outcome = o;
             _outcomeTitle = title;
             _outcomeArt = art;
+            _outcomeSpirit = spirit;
           }),
         );
       case 'place':
@@ -114,7 +117,8 @@ String _toneLabel(AppLocalizations l, String tone) => switch (tone) {
 
 class _EventScreen extends ConsumerStatefulWidget {
   const _EventScreen({required this.onOutcome});
-  final void Function(OutcomeView, String, String) onOutcome;
+  /// Итог выбора: текст, заголовок, картинка, встреча ли это с духом (для музыки).
+  final void Function(OutcomeView, String, String, bool) onOutcome;
 
   @override
   ConsumerState<_EventScreen> createState() => _EventScreenState();
@@ -133,7 +137,8 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
     final art = (ev?['art'] as String?) ?? 'road';
     return AmbientScope(
       sound: ambientForArt(art, chapter: m.content!.world.chapterAt(m.hero!.pos)),
-      child: _body(context),
+      // 27.11: встреча с духом — своя тема поверх звуков природы
+      child: AmbientScope.music(sound: ev?['kind'] == 'creature' ? 'spirits' : null, child: _body(context)),
     );
   }
 
@@ -217,7 +222,7 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
                       requirement: _requirementText(l, c, eng, choices[i]),
                       onTap: () {
                         final o = c.choose('${choices[i]['id']}');
-                        if (o != null) widget.onOutcome(o, '${ev['title']}', art);
+                        if (o != null) widget.onOutcome(o, '${ev['title']}', art, ev['kind'] == 'creature');
                       },
                     ),
                     const SizedBox(height: Gap.s),
@@ -418,12 +423,14 @@ class _ItemChips extends ConsumerWidget {
 
 class _OutcomeScreen extends ConsumerWidget {
   const _OutcomeScreen(
-      {required this.title, required this.art, required this.outcome, required this.onNext, this.sound = ''});
+      {required this.title, required this.art, required this.outcome, required this.onNext, this.sound = '', this.music});
 
   final String title;
   final String art;
   /// Звук экрана: '' — по картинке, null — тишина (25.11).
   final String? sound;
+  /// Музыка экрана (27.11): spirits после встречи с духом, иначе null.
+  final String? music;
   final OutcomeView outcome;
   final Future<void> Function() onNext;
 
@@ -456,7 +463,7 @@ class _OutcomeScreen extends ConsumerWidget {
     if (o.shortcutKm > 0) chips.add(chip(Icons.fast_forward, l.fxShortcut(o.shortcutKm.toStringAsFixed(1)), Palette.accent));
     final m0 = ref.watch(appProvider);
     final snd = sound == '' ? ambientForArt(art, chapter: m0.content!.world.chapterAt(m0.hero!.pos)) : sound;
-    return AmbientScope(sound: snd, child: Scaffold(
+    return AmbientScope(sound: snd, child: AmbientScope.music(sound: music, child: Scaffold(
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -497,7 +504,7 @@ class _OutcomeScreen extends ConsumerWidget {
           ],
         ),
       ),
-    ));
+    )));
   }
 }
 

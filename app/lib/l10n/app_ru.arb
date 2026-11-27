@@ -2493,6 +2493,6 @@
   "challengeClaimed": "Получено. {reward}",
   "@challengeClaimed": {"placeholders": {"reward": {"type": "String"}}},
   "settingsSound": "Звук",
-  "settingsSoundOn": "Звуки природы",
-  "settingsSoundHint": "Дождь, ручей, ветер, прибой и костёр на ночёвках и в событиях"
+  "settingsSoundOn": "Музыка и звуки природы",
+  "settingsSoundHint": "Музыка пролога, встреч с духами и финала; дождь, ручей, ветер, прибой и костёр на ночёвках и в событиях"
 }

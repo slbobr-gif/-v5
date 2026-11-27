@@ -10,6 +10,7 @@ import '../../engine/journey_stats.dart';
 import '../../engine/world.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
+import '../widgets/ambient.dart';
 import '../widgets/common.dart';
 import '../widgets/finale_widgets.dart';
 import '../widgets/journey_map.dart';
@@ -60,7 +61,8 @@ class _FinaleFlowState extends ConsumerState<FinaleFlow> {
     final stats = journeyStats(w, hero, today: ref.read(appProvider.notifier).today);
     final first = widget.replay ? ep.length : 0;
     final n = ep.length;
-    return PopScope(
+    // 27.11: тема финала на эпилоге, итогах и медали
+    return AmbientScope.music(sound: 'finale', child: PopScope(
       canPop: _page == first,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) setState(() => _page -= 1);
@@ -77,7 +79,7 @@ class _FinaleFlowState extends ConsumerState<FinaleFlow> {
           : _page == n
               ? _SummaryPage(content: content, stats: stats, onNext: () => setState(() => _page += 1))
               : _MedalPage(data: MedalData.fromStats(stats), busy: _busy, onNext: _finish),
-    );
+    ));
   }
 }
 

@@ -13,6 +13,7 @@ import '../../app/app_controller.dart';
 import '../../app/ui_flags.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
+import '../widgets/ambient.dart';
 import '../widgets/common.dart';
 import '../widgets/item_icon.dart';
 import 'intro_screens.dart';
@@ -1060,7 +1061,8 @@ class _PrologueViewState extends ConsumerState<PrologueView> {
     if (_i >= count) _i = count - 1;
     final last = _i >= count - 1;
     final skip = widget.onSkip;
-    return PopScope(
+    // 27.11: тема пролога
+    return AmbientScope.music(sound: 'prologue', child: PopScope(
       canPop: _i == 0 && widget.onBack == null,
       onPopInvokedWithResult: (bool didPop, Object? result) {
         if (didPop) {
@@ -1144,7 +1146,7 @@ class _PrologueViewState extends ConsumerState<PrologueView> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 
