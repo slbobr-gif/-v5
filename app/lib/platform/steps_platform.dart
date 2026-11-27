@@ -38,6 +38,7 @@ class DailySteps {
     required this.hc,
     this.hcState = 'unavailable',
     this.hcOrigins = const [],
+    this.hcSources = const {},
     this.readAt,
   });
 
@@ -54,6 +55,10 @@ class DailySteps {
 
   /// Приложения, записавшие шаги в Health Connect (сегодня, а если сегодня пусто — за окно чтения).
   final List<String> hcOrigins;
+
+  /// Сегодня по каждому приложению отдельно (имя → шаги). За день в зачёт идёт максимум из них
+  /// и общего итога Health Connect — шаги часов не теряются, даже если телефон выше в приоритете.
+  final Map<String, int> hcSources;
 
   /// Когда прочитано (null — чтения не было).
   final DateTime? readAt;
@@ -110,6 +115,20 @@ class StepsPlatform {
 
   Future<void> startBackgroundTracking() => _bool('startBackgroundTracking');
 
+  /// Имя установленного приложения часов (Mi Fitness, Zepp, Samsung Health…) или null.
+  Future<String?> watchAppName() async {
+    try {
+      return await _ch.invokeMethod<String>('watchAppName');
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    }
+  }
+
+  /// Открыть приложение часов: при открытии оно синхронизирует часы и пишет шаги в Health Connect.
+  Future<bool> openWatchApp() => _bool('openWatchApp');
+
   /// Шаги по локальным дням за последние [days] дней (Health Connect — см. [recentDays]).
   Future<DailySteps> dailySteps({int days = 30}) async {
     final now = DateTime.now();
@@ -127,6 +146,7 @@ class StepsPlatform {
         hc: DailySteps._ints(m['hc']),
         hcState: hcState,
         hcOrigins: ((m['hcOrigins'] as List?) ?? const []).map((e) => '$e').toList(),
+        hcSources: DailySteps._ints(m['hcSources']),
         readAt: now,
       );
     } on MissingPluginException {

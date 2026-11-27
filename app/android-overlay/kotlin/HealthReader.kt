@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.records.metadata.DataOrigin
 import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import java.time.LocalDate
@@ -59,6 +60,8 @@ object HealthReader {
         val days: Map<String, Long>,
         val originsToday: List<String>,
         val originsAll: List<String>,
+        /** Сегодня по каждому приложению отдельно (имя → шаги): для диагностики. */
+        val sourcesToday: Map<String, Long> = emptyMap(),
     )
 
     /**
@@ -91,11 +94,60 @@ object HealthReader {
                 if (key == todayKey) todayPkgs.add(o.packageName)
             }
         }
+        // Общий итог Health Connect считает шаг один раз — по списку приоритетов. Если телефон в нём выше
+        // часов, итог равен шагам телефона, а часы «теряются». Поэтому читаем каждое приложение отдельно
+        // и берём за день максимум: не сумму (двойного счёта нет), но и шаги часов не пропадают.
+        val sources = LinkedHashMap<String, Long>()
+        for (pkg in allPkgs.take(MAX_ORIGINS)) {
+            try {
+                val per = client.aggregateGroupByPeriod(
+                    AggregateGroupByPeriodRequest(
+                        metrics = setOf(StepsRecord.COUNT_TOTAL),
+                        timeRangeFilter = TimeRangeFilter.between(start, end),
+                        timeRangeSlicer = Period.ofDays(1),
+                        dataOriginFilter = setOf(DataOrigin(pkg)),
+                    )
+                )
+                for (bucket in per) {
+                    val count = bucket.result[StepsRecord.COUNT_TOTAL] ?: 0L
+                    val key = bucket.startTime.toLocalDate().toString()
+                    out[key] = maxOf(out[key] ?: 0L, count)
+                    if (key == todayKey && count > 0) {
+                        val name = appName(context, pkg)
+                        sources[name] = maxOf(sources[name] ?: 0L, count)
+                    }
+                }
+            } catch (e: Exception) {
+                // Лимит запросов или сбой одного источника — общий итог уже есть, остальное дочитаем позже
+            }
+        }
         return Daily(
             days = out,
             originsToday = todayPkgs.map { appName(context, it) }.distinct(),
             originsAll = allPkgs.map { appName(context, it) }.distinct(),
+            sourcesToday = sources,
         )
+    }
+
+    /** Больше источников шагов на одном телефоне почти не бывает; ограничение бережёт лимит запросов. */
+    private const val MAX_ORIGINS = 6
+
+    /** Приложения часов: открыть, чтобы часы синхронизировались и записали шаги в Health Connect. */
+    val WATCH_APPS = listOf(
+        "com.mi.health", "com.xiaomi.wearable", "com.xiaomi.hm.health", "com.huami.watch.hmwatchmanager",
+        "com.sec.android.app.shealth", "com.samsung.android.app.watchmanager", "com.huawei.health",
+        "com.honor.health", "com.heytap.health", "com.garmin.android.apps.connectmobile",
+        "com.fitbit.FitbitMobile", "com.google.android.apps.fitness", "nl.appyhapps.healthsync",
+    )
+
+    /** Первое установленное приложение часов: (имя, запуск) или null. */
+    fun watchApp(context: Context): Pair<String, Intent>? {
+        val pm = context.packageManager
+        for (pkg in WATCH_APPS) {
+            val launch = try { pm.getLaunchIntentForPackage(pkg) } catch (e: Exception) { null } ?: continue
+            return appName(context, pkg) to launch
+        }
+        return null
     }
 
     /** Имя приложения-источника. Известные — по пакету (видимость пакетов на Android 11+ может скрыть подпись). */
@@ -126,6 +178,7 @@ object HealthReader {
         "com.garmin.android.apps.connectmobile" to "Garmin Connect",
         "com.heytap.health" to "OHealth",
         "com.honor.health" to "Honor Health",
+        "com.samsung.android.app.watchmanager" to "Galaxy Wearable",
     )
 
     /** Магазин с экраном установки/обновления Health Connect (официальная ссылка с onboarding). */

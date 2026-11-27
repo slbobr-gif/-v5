@@ -121,6 +121,8 @@ class SettingsScreen extends ConsumerWidget {
             await c.refreshPermissions();
             await c.refresh();
           }),
+          const SizedBox(height: Gap.s),
+          _WatchSyncButton(name: c.watchAppName, open: c.openWatchApp),
           const SizedBox(height: Gap.m),
           Text(l.batteryHint, style: const TextStyle(color: Palette.parchmentDim, fontSize: 12, height: 1.35)),
           SectionHeader(l.settingsSound),
@@ -309,10 +311,57 @@ class _StepsDiagnostics extends StatelessWidget {
           const SizedBox(height: Gap.xs),
           Text(at == null ? l.stepsDiagNever : l.stepsDiagSync(DateFormat('HH:mm').format(at)), style: dim),
           Text(hcLine, style: dim),
+          if (ds != null && ds.hcSources.isNotEmpty)
+            Text(
+                l.stepsDiagSources(ds.hcSources.entries.map((e) => '${e.key} ${fmt.format(e.value)}').join(' · ')),
+                style: dim),
           if (!p.stepsSensor) Text(l.stepsDiagSensorIgnored, style: dim),
           if (!p.stepsHc) Text(l.stepsDiagHcIgnored, style: dim),
         ],
       ),
+    );
+  }
+}
+
+/// «Синхронизировать Mi Fitness»: открывает приложение часов — при открытии оно забирает шаги с часов
+/// и пишет их в Health Connect. Вернулся в «Путник» — шаги перечитаны. Нет известного приложения — кнопки нет.
+class _WatchSyncButton extends StatefulWidget {
+  const _WatchSyncButton({required this.name, required this.open});
+
+  final Future<String?> Function() name;
+  final Future<bool> Function() open;
+
+  @override
+  State<_WatchSyncButton> createState() => _WatchSyncButtonState();
+}
+
+class _WatchSyncButtonState extends State<_WatchSyncButton> {
+  String? _app;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.name().then((v) {
+      if (mounted) setState(() => _app = v);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final app = _app;
+    if (app == null) return const SizedBox.shrink();
+    final l = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        OutlinedButton.icon(
+          icon: const Icon(Icons.watch_outlined),
+          label: Text(l.watchSyncButton(app)),
+          onPressed: widget.open,
+        ),
+        const SizedBox(height: Gap.xs),
+        Text(l.watchSyncHint(app), style: const TextStyle(color: Palette.parchmentDim, fontSize: 12, height: 1.35)),
+      ],
     );
   }
 }

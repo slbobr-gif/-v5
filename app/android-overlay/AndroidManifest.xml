@@ -15,6 +15,20 @@
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
         <package android:name="ru.vk.store" />
+        <!-- Приложения часов: кнопка «Синхронизировать часы» и имена источников шагов -->
+        <package android:name="com.mi.health" />
+        <package android:name="com.xiaomi.wearable" />
+        <package android:name="com.xiaomi.hm.health" />
+        <package android:name="com.huami.watch.hmwatchmanager" />
+        <package android:name="com.sec.android.app.shealth" />
+        <package android:name="com.samsung.android.app.watchmanager" />
+        <package android:name="com.huawei.health" />
+        <package android:name="com.honor.health" />
+        <package android:name="com.heytap.health" />
+        <package android:name="com.garmin.android.apps.connectmobile" />
+        <package android:name="com.fitbit.FitbitMobile" />
+        <package android:name="com.google.android.apps.fitness" />
+        <package android:name="nl.appyhapps.healthsync" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />

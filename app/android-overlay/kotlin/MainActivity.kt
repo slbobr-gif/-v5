@@ -91,6 +91,16 @@ class MainActivity : FlutterFragmentActivity() {
                 }
                 "requestActivityPermission" -> requestActivityPermission(result)
                 "requestHealthPermission" -> requestHealthPermission(result)
+                // Имя установленного приложения часов (null — нет ни одного известного)
+                "watchAppName" -> result.success(HealthReader.watchApp(this)?.first)
+                // Открыть приложение часов: при открытии оно синхронизирует часы и пишет шаги в Health Connect
+                "openWatchApp" -> {
+                    val app = HealthReader.watchApp(this)
+                    val ok = app != null && try {
+                        startActivity(app.second.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true
+                    } catch (e: Exception) { false }
+                    result.success(ok)
+                }
                 "openHealthConnectInstall" -> {
                     openHealthConnectInstall()
                     result.success(true)
@@ -191,6 +201,7 @@ class MainActivity : FlutterFragmentActivity() {
         val sensor: Map<String, Long> = StepStore(applicationContext).days().mapValues { it.value.toLong() }
         var hc: Map<String, Long> = emptyMap()
         var origins: List<String> = emptyList()
+        var sources: Map<String, Long> = emptyMap()
         // ok | no_permission | unavailable | failed — для экрана диагностики
         var hcState = "unavailable"
         if (HealthReader.statusString(this) == "available") {
@@ -201,6 +212,7 @@ class MainActivity : FlutterFragmentActivity() {
                     val r = HealthReader.dailySteps(this, hcDays)
                     hc = r.days
                     origins = r.originsToday.ifEmpty { r.originsAll }
+                    sources = r.sourcesToday
                     hcState = "ok"
                 } catch (e: Exception) {
                     // Например, превышен лимит запросов Health Connect: шаги не теряются, дочитаем в следующий раз
@@ -219,6 +231,7 @@ class MainActivity : FlutterFragmentActivity() {
             "hcState" to hcState,
             "hcDays" to hcDays,
             "hcOrigins" to origins,
+            "hcSources" to sources,
         )
     }
 

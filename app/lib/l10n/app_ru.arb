@@ -1925,7 +1925,7 @@
   "watchAppleTitle": "Apple Watch",
   "watchAppleBody": "Apple Watch работает только в паре с iPhone и к Android-телефону не подключается, поэтому шаги с неё «Путник» получить не может. На Android шаги считает телефон или часы, которые работают с Android.",
   "watchPriorityTitle": "Если шаги не совпадают с часами",
-  "watchPriorityBody": "Открой Health Connect → Данные и доступ → Активность → Шаги → Источники данных и приоритет и поставь приложение часов первым. Health Connect считает каждый шаг один раз — по этому списку.",
+  "watchPriorityBody": "«Путник» читает каждое приложение в Health Connect отдельно и засчитывает за день больший счёт, так что порядок источников в Health Connect не важен. Если шагов всё равно меньше, чем на часах, открой приложение часов, дождись синхронизации и вернись — или нажми «Синхронизировать» в настройках, в карточке «Диагностика шагов».",
   "watchHelpCheck": "Проверить, что шаги приходят, можно в настройках, в карточке «Диагностика шагов»: в строке источников должно появиться приложение часов.",
   "stepsDiagTitle": "Диагностика шагов",
   "stepsDiagToday": "Шаги сегодня: телефон {sensor} · Health Connect {hc} · в игру пошло {game}",
@@ -1955,6 +1955,30 @@
   "@stepsDiagOrigins": {
     "placeholders": {
       "names": {
+        "type": "String"
+      }
+    }
+  },
+  "stepsDiagSources": "По приложениям сегодня: {list}. В зачёт идёт больший счёт",
+  "@stepsDiagSources": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "watchSyncButton": "Синхронизировать {app}",
+  "@watchSyncButton": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "watchSyncHint": "Откроется {app}: подожди, пока часы передадут шаги, и вернись в «Путник» — шаги обновятся сами.",
+  "@watchSyncHint": {
+    "placeholders": {
+      "app": {
         "type": "String"
       }
     }

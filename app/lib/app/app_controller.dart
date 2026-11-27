@@ -260,6 +260,17 @@ class AppController extends Notifier<AppModel> {
 
   Future<void> openHealthConnectInstall() => _steps.openHealthConnectInstall();
 
+  /// Приложение часов на телефоне (для кнопки «Синхронизировать») или null.
+  Future<String?> watchAppName() => _steps.watchAppName();
+
+  /// Открыть приложение часов: оно синхронизирует часы и запишет шаги в Health Connect.
+  /// При возврате в «Путник» шаги перечитаются сами (resumed → refresh).
+  Future<bool> openWatchApp() async {
+    final ok = await _steps.openWatchApp();
+    _a.event('watch_sync_open', {'ok': ok});
+    return ok;
+  }
+
   bool get _useSensor => state.profile?.stepsSensor ?? true;
   bool get _useHc => state.profile?.stepsHc ?? true;
 
