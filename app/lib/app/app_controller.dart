@@ -831,6 +831,9 @@ class AppController extends Notifier<AppModel> {
         if (ev != null) {
           if (ev['wild'] == true) _collect('animals', '${ev['id']}');
           if (ev['kind'] == 'random' && ev['wild'] != true) _collect('meetings', '${ev['id']}');
+          // 27.11 (V5-74): сцены сквозных линий
+          if (ev['line'] == 'parents' || ev['line'] == 'sasha') _collect('talks', '${ev['id']}');
+          if (ev['line'] == 'life') _collect('reflections', '${ev['id']}');
           final cr = ev['creature'];
           if (cr is String && content.creatures.containsKey(cr)) _collect('spirits', cr);
         }
@@ -957,6 +960,18 @@ class AppController extends Notifier<AppModel> {
       'chapter': chapterNow,
       if (creature != null) 'creature': '$creature',
     });
+    // 27.11 (V5-74): сквозные линии — какой ответ выбран и открылся ли герой (флаг линии)
+    if (ev['line'] != null) {
+      final flag = eff['flag'];
+      _a.event('line_choice', {
+        'line': '${ev['line']}',
+        'who': '${ev['who'] ?? ''}',
+        'id': '${ev['id']}',
+        'choice': choiceId,
+        'open': flag != null,
+        'chapter': chapterNow,
+      });
+    }
     // Отношения с духами: исход встречи — на пользу, во вред или ровно (по сумме показателей, монет и вещей).
     if (creature != null) {
       final score = view.stats.values.fold<int>(0, (a, b) => a + b) +

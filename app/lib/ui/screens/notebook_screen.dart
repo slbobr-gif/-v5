@@ -43,7 +43,7 @@ class NotebookScreen extends ConsumerStatefulWidget {
 class _NotebookScreenState extends ConsumerState<NotebookScreen> {
   late String _cat = widget.initial;
 
-  static const cats = ['spirits', 'animals', 'postcards', 'nights', 'meetings', 'thoughts'];
+  static const cats = ['spirits', 'animals', 'postcards', 'nights', 'meetings', 'talks', 'reflections', 'thoughts'];
 
   List<_Entry> _entries(GameContent content, String cat) {
     final w = content.world;
@@ -64,6 +64,19 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
         return [
           for (final e in w.randoms.where((e) => e['wild'] != true))
             _Entry('${e['id']}', '${e['title']}', '${e['text']}', chapter: _chapterOf(e)),
+        ]..sort((a, b) => a.chapter.compareTo(b.chapter));
+      // 27.11 (V5-74): сцены линий — разговоры с родителями и Сашей, раздумья
+      case 'talks':
+        return [
+          for (final e in w.eventsById.values.where((e) => e['line'] == 'parents' || e['line'] == 'sasha'))
+            _Entry('${e['id']}', '${e['title']}', '${e['text']}', chapter: toI(e['chapter'])),
+        ]..sort((a, b) => a.chapter.compareTo(b.chapter));
+      case 'reflections':
+        return [
+          for (final e in w.eventsById.values.where((e) => e['line'] == 'life'))
+            _Entry('${e['id']}', '${e['title']}',
+                '${e['text']}\n\n${(((e['choices'] as List).first as Map)['outcomes'] as List).first['text']}',
+                chapter: toI(e['chapter'])),
         ]..sort((a, b) => a.chapter.compareTo(b.chapter));
       case 'nights':
         return [
@@ -98,6 +111,8 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
         'postcards' => l.nbPostcards,
         'nights' => l.nbNights,
         'meetings' => l.nbMeetings,
+        'talks' => l.nbTalks,
+        'reflections' => l.nbReflections,
         _ => l.nbThoughts,
       };
 

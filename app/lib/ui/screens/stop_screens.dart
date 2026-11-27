@@ -153,7 +153,12 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
     final tones = _tonesFor == evId ? _tones : null;
     final art = (ev['art'] as String?) ?? 'road';
     final choices = (ev['choices'] as List).cast<Map>().map((x) => x.cast<String, dynamic>()).toList();
-    final kindLabel = switch (ev['kind']) {
+    // 27.11 (V5-74): сцены линий подписаны по линии, раздумье — без выбора
+    final isReflection = ev['kind'] == 'reflection';
+    final kindLabel = switch (ev['line'] ?? ev['kind']) {
+      'parents' => l.kindParents,
+      'sasha' => l.kindSasha,
+      'life' || 'reflection' => l.kindReflection,
       'creature' => l.kindCreature,
       'chapter' => l.kindChapter,
       'companion' => l.kindCompanion,
@@ -191,7 +196,18 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
                   const SizedBox(height: Gap.m),
                   StoryText('${ev['text']}'),
                   const SizedBox(height: Gap.l),
-                  if (clew == 'ready' || clew == 'cooldown' || clew == 'not_here') ...[
+                  if (isReflection) ...[
+                    _ThoughtBox(text: '${((choices.first['outcomes'] as List).first as Map)['text']}'),
+                    const SizedBox(height: Gap.l),
+                    FilledButton(
+                      onPressed: () async {
+                        final o = c.choose('${choices.first['id']}');
+                        if (o != null && !o.died) await c.afterEvent();
+                      },
+                      child: Text(l.reflectionGo),
+                    ),
+                  ],
+                  if (!isReflection && (clew == 'ready' || clew == 'cooldown' || clew == 'not_here')) ...[
                     _ClewRow(
                       item: clewItem ?? 'ball_yaga',
                       name: c.content.itemName(clewItem ?? 'ball_yaga'),
@@ -212,6 +228,7 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
                     ),
                     const SizedBox(height: Gap.m),
                   ],
+                  if (!isReflection)
                   for (var i = 0; i < choices.length; i++) ...[
                     _ChoiceButton(
                       choice: choices[i],
@@ -251,6 +268,26 @@ class _EventScreenState extends ConsumerState<_EventScreen> {
     }
     if (req['flag'] != null) return l.needFlag;
     return null;
+  }
+}
+
+/// Мысль-ориентир раздумья: выделена бирюзовой чертой слева, без выбора — дальше только «Идти дальше».
+class _ThoughtBox extends StatelessWidget {
+  const _ThoughtBox({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(Gap.m, Gap.s, Gap.s, Gap.s),
+      decoration: const BoxDecoration(
+        color: Palette.inkRaised,
+        border: Border(left: BorderSide(color: Palette.accent, width: 3)),
+      ),
+      child: StoryText(text,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, height: 1.5)),
+    );
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/app_controller.dart';
+import '../../app/lines.dart';
 import '../../data/content_repository.dart';
 import '../../engine/journey_stats.dart';
 import '../../engine/world.dart';
@@ -30,8 +31,8 @@ class _FinaleFlowState extends ConsumerState<FinaleFlow> {
   late int _page; // 0..n-1 — эпилог, n — итог, n+1 — медаль
   bool _busy = false;
 
-  List<Json> _epilogue(World w) =>
-      [for (final p in (w.chapterById(w.chapters.length)['epilogue'] as List?) ?? const []) (p as Map).cast<String, dynamic>()];
+  // 27.11 (V5-74): после страницы с китом — финалы линий «Родители» и «Саша» по скрытым счётчикам
+  List<Json> _epilogue(World w) => epilogueWithLines(w, ref.read(appProvider).hero!);
 
   @override
   void initState() {

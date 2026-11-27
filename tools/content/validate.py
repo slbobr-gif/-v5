@@ -49,7 +49,8 @@ quest_ids = {q.get("id") for q in quests}
 
 LEVELS = set(B["levels"]["coins"])
 STATS = ("satiety", "water", "warmth")
-KINDS = {"random", "regional", "chapter", "creature", "companion"}
+KINDS = {"random", "regional", "chapter", "creature", "companion", "reflection"}
+LINES = {"parents", "sasha", "life"}  # V5-74: сквозные линии
 ARTS = {"forest", "field", "river", "lake", "village", "town", "road", "night", "rain", "swamp",
         "bathhouse", "hut", "campfire", "station"}
 RISKS = {"none", "low", "high", "fatal"}
@@ -189,8 +190,23 @@ def check_event(where, e, anchored_ok=True, need_anchor=False):
         errors.append(f"{w}: у всех вариантов есть requires — игрок может застрять; нужен хотя бы один без требований")
     # V5-65: у шагов квестов с духами четыре варианта (один — «чужой», по вкусу другого духа)
     max_ch = 4 if e.get("kind") == "creature" else 3
-    if not 2 <= len(ch) <= max_ch:
+    if e.get("kind") == "reflection":  # V5-74: раздумье без выбора — один вариант «Идти дальше», исход = мысль
+        if len(ch) != 1:
+            errors.append(f"{w}: у раздумья ровно один вариант, есть {len(ch)}")
+        if e.get("line") != "life":
+            errors.append(f"{w}: раздумье должно быть в линии life")
+    elif not 2 <= len(ch) <= max_ch:
         errors.append(f"{w}: вариантов {len(ch)}, нужно 2–{max_ch}")
+    if "line" in e:
+        if e["line"] not in LINES:
+            errors.append(f"{w}: line {e['line']!r} ({'/'.join(sorted(LINES))})")
+        if e["line"] == "parents" and e.get("who") not in ("mama", "papa"):
+            errors.append(f"{w}: у сцены родителей нужно who: mama | papa")
+        for c in ch:
+            for o in c.get("outcomes", []):
+                f = (o.get("effects") or {}).get("flag")
+                if f and not str(f).startswith(("bond_mama_", "bond_papa_", "care_sasha_")):
+                    errors.append(f"{w}: флаг линии {f!r} — нужен bond_mama_*/bond_papa_*/care_sasha_*")
     cids = set()
     for c in ch:
         cw = f"{w}/{c.get('id')}"

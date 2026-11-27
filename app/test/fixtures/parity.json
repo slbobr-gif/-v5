@@ -174,7 +174,7 @@
     "rng": 2726892157,
     "zone": "city",
     "delayUntil": 1777665600000,
-    "nextRandomAt": 16000.0,
+    "nextRandomAt": 29898.8,
     "nextNightAt": 19500.0
    }
   },
@@ -230,7 +230,111 @@
     },
     {
      "op": "choose",
-     "choice": "open",
+     "choice": "fix",
+     "now": 1777744800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777744800000,
+     "ret": 1
+    },
+    {
+     "op": "continueJourney",
+     "now": 1777744800000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1777744800000,
+     "ret": 1
+    },
+    {
+     "op": "continueJourney",
+     "now": 1777744800000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1777744800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "read",
+     "now": 1777744800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777744800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "story",
+     "now": 1777744800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777744800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "body",
+     "now": 1777744800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777744800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "closed",
+     "now": 1777744800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777744800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "closed",
+     "now": 1777744800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777744800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "full",
      "now": 1777744800000,
      "ret": {
       "ok": true,
@@ -258,13 +362,13 @@
     }
    ],
    "expected": {
-    "pos": 16000.0,
-    "buffer": 40250.0,
-    "coins": 60,
+    "pos": 39898.8,
+    "buffer": 16351.2,
+    "coins": 65,
     "stats": {
-     "satiety": 90.319,
-     "water": 91.292,
-     "warmth": 100.0
+     "satiety": 37.233,
+     "water": 100.0,
+     "warmth": 80.332
     },
     "inv": {
      "ball_yaga": 1,
@@ -288,6 +392,7 @@
     "overflow": [],
     "aidLock": false,
     "portionsLeft": {
+     "matches": 9,
      "thermos": 3
     },
     "abilityReady": {},
@@ -297,33 +402,33 @@
     "undoKeys": null,
     "stop": null,
     "deaths": 0,
-    "seen": 3,
-    "journal": 12,
+    "seen": 9,
+    "journal": 20,
     "journalTail": [
-     "login",
+     "event",
      "event",
      "event",
      "event"
     ],
     "journalPos": [
-     3000,
-     9000,
-     13000,
-     16000
+     29899,
+     32899,
+     38499,
+     39899
     ],
     "lastEvent": {
-     "event": "rnd_sub_letter",
-     "cid": "open",
-     "oi": 1,
-     "pos": 16000,
-     "quest": null,
-     "step": null
+     "event": "qc_s1_file",
+     "cid": "full",
+     "oi": 0,
+     "pos": 39899,
+     "quest": "q_chat",
+     "step": 0
     },
-    "rng": 3364893915,
-    "zone": "suburb",
+    "rng": 4121112547,
+    "zone": "city",
     "delayUntil": 1777752000000,
-    "nextRandomAt": 29898.8,
-    "nextNightAt": 19500.0
+    "nextRandomAt": 47117.6,
+    "nextNightAt": 45500.0
    }
   },
   {
@@ -359,141 +464,13 @@
      "ret": 1
     },
     {
-     "op": "continueJourney",
-     "now": 1777831200000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 1
-    },
-    {
      "op": "askClew",
      "now": 1777831200000,
      "ret": {
-      "read": "neutral",
-      "reply": "reward"
+      "pies": "mixed",
+      "cart": "reward",
+      "ride": "penalty"
      }
-    },
-    {
-     "op": "choose",
-     "choice": "reply",
-     "now": 1777831200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "chester",
-     "now": 1777831200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "tree",
-     "now": 1777831200000,
-     "ret": {
-      "ok": true,
-      "died": true
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 0
-    },
-    {
-     "op": "dismissDeath",
-     "ret": null
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 1
-    },
-    {
-     "op": "buy",
-     "item": "bread",
-     "now": 1777831200000,
-     "ret": true
-    },
-    {
-     "op": "continueJourney",
-     "now": 1777831200000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "park",
-     "now": 1777831200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "wave",
-     "now": 1777831200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "ignore",
-     "now": 1777831200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 1
-    },
-    {
-     "op": "continueJourney",
-     "now": 1777831200000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1777831200000,
-     "ret": 1
     },
     {
      "op": "choose",
@@ -521,7 +498,7 @@
     },
     {
      "op": "choose",
-     "choice": "go",
+     "choice": "help",
      "now": 1777831200000,
      "ret": {
       "ok": true,
@@ -536,6 +513,76 @@
     {
      "op": "choose",
      "choice": "go",
+     "now": 1777831200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777831200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "back",
+     "now": 1777831200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777831200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1777831200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777831200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "talk",
+     "now": 1777831200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777831200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "bargain",
+     "now": 1777831200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777831200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "bread",
      "now": 1777831200000,
      "ret": {
       "ok": true,
@@ -570,22 +617,31 @@
      "swapItem": null,
      "now": 1777831200000,
      "ret": null
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "stash",
+     "swapAction": "drop",
+     "swapItem": "bread",
+     "now": 1777831200000,
+     "ret": null
     }
    ],
    "expected": {
-    "pos": 50499.0,
+    "pos": 68250.0,
     "buffer": 0.0,
-    "coins": 40,
+    "coins": 67,
     "stats": {
-     "satiety": 65.055,
-     "water": 71.276,
-     "warmth": 96.654
+     "satiety": 80.948,
+     "water": 87.647,
+     "warmth": 100.0
     },
     "inv": {
      "ball_yaga": 1,
-     "bread": 2,
      "matches": 1,
-     "pie": 5
+     "pie": 5,
+     "thermos": 1,
+     "water": 1
     },
     "gear": [
      "gas_stove",
@@ -602,7 +658,8 @@
     "overflow": [],
     "aidLock": false,
     "portionsLeft": {
-     "matches": 7
+     "matches": 7,
+     "thermos": 3
     },
     "abilityReady": {
      "ball_yaga": 20579
@@ -612,33 +669,33 @@
     "dayMark": 20576,
     "undoKeys": null,
     "stop": null,
-    "deaths": 1,
-    "seen": 9,
-    "journal": 30,
+    "deaths": 0,
+    "seen": 16,
+    "journal": 34,
     "journalTail": [
      "event",
-     "night",
      "event",
+     "eat",
      "event"
     ],
     "journalPos": [
-     44118,
-     45500,
-     47118,
-     50118
+     61118,
+     62899,
+     63899,
+     66118
     ],
     "lastEvent": {
-     "event": "omen_leshy",
-     "cid": "go",
+     "event": "ch1_chester_photo",
+     "cid": "bread",
      "oi": 0,
-     "pos": 50118,
+     "pos": 66118,
      "quest": null,
      "step": null
     },
-    "rng": 30368089,
-    "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 58117.6,
+    "rng": 1338151266,
+    "zone": "city",
+    "delayUntil": 1777752000000,
+    "nextRandomAt": 111023.0,
     "nextNightAt": 71500.0
    }
   },
@@ -666,7 +723,37 @@
     },
     {
      "op": "choose",
-     "choice": "back",
+     "choice": "go",
+     "now": 1777917600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "buy",
+     "item": "bread",
+     "now": 1777917600000,
+     "ret": false
+    },
+    {
+     "op": "continueJourney",
+     "now": 1777917600000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "pass",
      "now": 1777917600000,
      "ret": {
       "ok": true,
@@ -680,7 +767,7 @@
     },
     {
      "op": "choose",
-     "choice": "pack",
+     "choice": "walk",
      "now": 1777917600000,
      "ret": {
       "ok": true,
@@ -694,7 +781,7 @@
     },
     {
      "op": "choose",
-     "choice": "talk",
+     "choice": "break",
      "now": 1777917600000,
      "ret": {
       "ok": true,
@@ -708,7 +795,143 @@
     },
     {
      "op": "choose",
-     "choice": "bargain",
+     "choice": "go",
+     "now": 1777917600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "mute",
+     "now": 1777917600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "refuse",
+     "now": 1777917600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "use",
+     "swapAction": null,
+     "swapItem": null,
+     "now": 1777917600000,
+     "ret": null
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1777917600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "buy",
+     "item": "bread",
+     "now": 1777917600000,
+     "ret": false
+    },
+    {
+     "op": "continueJourney",
+     "now": 1777917600000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1777917600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1777917600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "sleep",
+     "now": 1777917600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "decline",
+     "now": 1777917600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1777917600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "share",
      "now": 1777917600000,
      "ret": {
       "ok": true,
@@ -727,19 +950,20 @@
     }
    ],
    "expected": {
-    "pos": 62898.8,
-    "buffer": 32600.2,
-    "coins": 64,
+    "pos": 110250.0,
+    "buffer": 0.0,
+    "coins": 86,
     "stats": {
-     "satiety": 37.077,
-     "water": 52.454,
-     "warmth": 93.746
+     "satiety": 58.719,
+     "water": 69.195,
+     "warmth": 90.85
     },
     "inv": {
      "ball_yaga": 1,
-     "bread": 2,
      "matches": 1,
-     "pie": 5
+     "pie": 5,
+     "thermos": 1,
+     "water": 1
     },
     "gear": [
      "gas_stove",
@@ -756,7 +980,8 @@
     "overflow": [],
     "aidLock": false,
     "portionsLeft": {
-     "matches": 7
+     "matches": 7,
+     "thermos": 3
     },
     "abilityReady": {
      "ball_yaga": 20579
@@ -766,9 +991,9 @@
     "dayMark": 20577,
     "undoKeys": null,
     "stop": null,
-    "deaths": 1,
-    "seen": 12,
-    "journal": 39,
+    "deaths": 0,
+    "seen": 29,
+    "journal": 55,
     "journalTail": [
      "event",
      "event",
@@ -776,24 +1001,24 @@
      "heat"
     ],
     "journalPos": [
-     58118,
-     61118,
-     62899,
-     62899
+     100423,
+     103923,
+     108023,
+     110250
     ],
     "lastEvent": {
-     "event": "qc_s2_sidejob",
-     "cid": "bargain",
+     "event": "ch1_sasha_told_mama",
+     "cid": "share",
      "oi": 0,
-     "pos": 62899,
-     "quest": "q_chat",
-     "step": 1
+     "pos": 108023,
+     "quest": null,
+     "step": null
     },
-    "rng": 1298144586,
+    "rng": 2821642469,
     "zone": "wild",
-    "delayUntil": 1777924800000,
-    "nextRandomAt": 69117.6,
-    "nextNightAt": 71500.0
+    "delayUntil": 1777752000000,
+    "nextRandomAt": 111023.0,
+    "nextNightAt": 123500.0
    }
   },
   {
@@ -816,176 +1041,24 @@
     {
      "op": "advance",
      "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "bread",
-     "now": 1778004000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "swing",
-     "now": 1778004000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "buy",
-     "item": "bread",
-     "now": 1778004000000,
-     "ret": true
-    },
-    {
-     "op": "continueJourney",
-     "now": 1778004000000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "pass",
-     "now": 1778004000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "walk",
-     "now": 1778004000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "break",
-     "now": 1778004000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "go",
-     "now": 1778004000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "mute",
-     "now": 1778004000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "refuse",
-     "now": 1778004000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "pass",
-     "now": 1778004000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778004000000,
      "ret": 0
-    },
-    {
-     "op": "heat",
-     "now": 1778004000000,
-     "ret": "heated"
-    },
-    {
-     "op": "useItem",
-     "item": "pie",
-     "now": 1778004000000,
-     "ret": true
     }
    ],
    "expected": {
-    "pos": 95499.0,
+    "pos": 110250.0,
     "buffer": 0.0,
-    "coins": 60,
+    "coins": 91,
     "stats": {
-     "satiety": 79.585,
-     "water": 40.783,
-     "warmth": 72.939
+     "satiety": 52.719,
+     "water": 61.995,
+     "warmth": 87.25
     },
     "inv": {
      "ball_yaga": 1,
-     "bread": 2,
      "matches": 1,
-     "pie": 4
+     "pie": 5,
+     "thermos": 1,
+     "water": 1
     },
     "gear": [
      "gas_stove",
@@ -995,14 +1068,15 @@
     ],
     "gearUses": {
      "first_aid": 2,
-     "gas_stove": 7
+     "gas_stove": 8
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
     "portionsLeft": {
-     "matches": 7
+     "matches": 7,
+     "thermos": 3
     },
     "abilityReady": {
      "ball_yaga": 20579
@@ -1012,34 +1086,34 @@
     "dayMark": 20578,
     "undoKeys": null,
     "stop": null,
-    "deaths": 1,
-    "seen": 19,
-    "journal": 53,
+    "deaths": 0,
+    "seen": 29,
+    "journal": 56,
     "journalTail": [
-     "eat",
      "event",
      "event",
-     "heat"
+     "heat",
+     "login"
     ],
     "journalPos": [
-     89649,
-     89925,
-     92925,
-     95499
+     103923,
+     108023,
+     110250,
+     110250
     ],
     "lastEvent": {
-     "event": "rnd_city_book_shelf",
-     "cid": "pass",
+     "event": "ch1_sasha_told_mama",
+     "cid": "share",
      "oi": 0,
-     "pos": 92925,
+     "pos": 108023,
      "quest": null,
      "step": null
     },
-    "rng": 3060815149,
-    "zone": "city",
-    "delayUntil": 1777924800000,
-    "nextRandomAt": 106923.0,
-    "nextNightAt": 97500.0
+    "rng": 2821642469,
+    "zone": "wild",
+    "delayUntil": 1777752000000,
+    "nextRandomAt": 111023.0,
+    "nextNightAt": 123500.0
    }
   },
   {
@@ -1065,89 +1139,17 @@
      "ret": 1
     },
     {
-     "op": "buy",
-     "item": "gas",
-     "now": 1778090400000,
-     "ret": true
-    },
-    {
-     "op": "continueJourney",
-     "now": 1778090400000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1778090400000,
-     "ret": 1
-    },
-    {
      "op": "askClew",
      "now": 1778090400000,
      "ret": {
-      "listen": "reward",
-      "knock": "reward",
-      "go": "reward"
+      "inside_out": "reward",
+      "bread": "mixed",
+      "push": "penalty"
      }
     },
     {
      "op": "choose",
-     "choice": "go",
-     "now": 1778090400000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778090400000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "go",
-     "now": 1778090400000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778090400000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "sleep",
-     "now": 1778090400000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778090400000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "decline",
-     "now": 1778090400000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778090400000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "pass",
+     "choice": "push",
      "now": 1778090400000,
      "ret": {
       "ok": true,
@@ -1175,7 +1177,89 @@
     },
     {
      "op": "choose",
-     "choice": "leave",
+     "choice": "go",
+     "now": 1778090400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778090400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1778090400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778090400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "rush",
+     "now": 1778090400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778090400000,
+     "ret": 1
+    },
+    {
+     "op": "continueJourney",
+     "now": 1778090400000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778090400000,
+     "ret": 1
+    },
+    {
+     "op": "buy",
+     "item": "bread",
+     "now": 1778090400000,
+     "ret": false
+    },
+    {
+     "op": "continueJourney",
+     "now": 1778090400000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778090400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "decline",
+     "now": 1778090400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778090400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "morning",
      "now": 1778090400000,
      "ret": {
       "ok": true,
@@ -1208,19 +1292,20 @@
     }
    ],
    "expected": {
-    "pos": 118749.0,
+    "pos": 127500.0,
     "buffer": 0.0,
-    "coins": 61,
+    "coins": 106,
     "stats": {
-     "satiety": 38.227,
-     "water": 26.449,
-     "warmth": 97.116
+     "satiety": 36.361,
+     "water": 49.908,
+     "warmth": 98.933
     },
     "inv": {
      "ball_yaga": 1,
-     "bread": 2,
      "matches": 1,
-     "pie": 4
+     "pie": 5,
+     "thermos": 1,
+     "water": 1
     },
     "gear": [
      "gas_stove",
@@ -1231,14 +1316,15 @@
     ],
     "gearUses": {
      "first_aid": 2,
-     "gas_stove": 17
+     "gas_stove": 8
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
     "portionsLeft": {
-     "matches": 7
+     "matches": 5,
+     "thermos": 3
     },
     "abilityReady": {
      "ball_yaga": 20582
@@ -1248,34 +1334,34 @@
     "dayMark": 20579,
     "undoKeys": null,
     "stop": null,
-    "deaths": 1,
-    "seen": 24,
-    "journal": 66,
+    "deaths": 0,
+    "seen": 35,
+    "journal": 70,
     "journalTail": [
+     "night",
+     "place",
      "event",
-     "event",
-     "detour",
      "event"
     ],
     "journalPos": [
-     106923,
-     111098,
-     111098,
-     115028
+     123500,
+     124242,
+     125242,
+     125899
     ],
     "lastEvent": {
-     "event": "rnd_wild_ch1_orchard_ruins",
-     "cid": "leave",
+     "event": "qc_s4_night",
+     "cid": "morning",
      "oi": 0,
-     "pos": 115028,
-     "quest": null,
-     "step": null
+     "pos": 125899,
+     "quest": "q_chat",
+     "step": 3
     },
-    "rng": 2942822788,
+    "rng": 884616369,
     "zone": "wild",
-    "delayUntil": 1777924800000,
-    "nextRandomAt": 121242.32,
-    "nextNightAt": 123500.0
+    "delayUntil": 1777752000000,
+    "nextRandomAt": 128242.5,
+    "nextNightAt": 149500.0
    }
   },
   {
@@ -1302,7 +1388,101 @@
     },
     {
      "op": "choose",
-     "choice": "wait",
+     "choice": "log",
+     "now": 1778176800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778176800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1778176800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778176800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "inside_out",
+     "now": 1778176800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778176800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "share",
+     "now": 1778176800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778176800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "open",
+     "now": 1778176800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778176800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "open",
+     "now": 1778176800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778176800000,
+     "ret": 1
+    },
+    {
+     "op": "continueJourney",
+     "now": 1778176800000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778176800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "hide",
      "now": 1778176800000,
      "ret": {
       "ok": true,
@@ -1338,22 +1518,23 @@
     }
    ],
    "expected": {
-    "pos": 121242.32,
-    "buffer": 27506.68,
-    "coins": 78,
+    "pos": 150303.0,
+    "buffer": 7197.0,
+    "coins": 123,
     "stats": {
-     "satiety": 69.819,
-     "water": 27.585,
+     "satiety": 68.334,
+     "water": 14.166,
      "warmth": 100.0
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 2,
      "hook_vodyanoy": 1,
      "matches": 1,
      "pearl_rusalka": 1,
-     "pie": 3
+     "pie": 4,
+     "thermos": 1,
+     "water": 1
     },
     "gear": [
      "gas_stove",
@@ -1365,7 +1546,7 @@
     ],
     "gearUses": {
      "first_aid": 2,
-     "gas_stove": 16,
+     "gas_stove": 7,
      "hook_vodyanoy": 5
     },
     "heated": false,
@@ -1373,7 +1554,8 @@
     "overflow": [],
     "aidLock": false,
     "portionsLeft": {
-     "matches": 7
+     "matches": 4,
+     "thermos": 3
     },
     "abilityReady": {
      "ball_yaga": 20582
@@ -1383,34 +1565,34 @@
     "dayMark": 20580,
     "undoKeys": null,
     "stop": null,
-    "deaths": 1,
-    "seen": 24,
-    "journal": 71,
+    "deaths": 0,
+    "seen": 41,
+    "journal": 82,
     "journalTail": [
-     "goal",
-     "login",
+     "event",
+     "night",
      "event",
      "heat"
     ],
     "journalPos": [
-     118749,
-     118749,
-     121242,
-     121242
+     148042,
+     149500,
+     150303,
+     150303
     ],
     "lastEvent": {
-     "event": "rnd_moose_crossing",
-     "cid": "wait",
-     "oi": 0,
-     "pos": 121242,
-     "quest": null,
-     "step": null
+     "event": "fq_domovoy_s1",
+     "cid": "hide",
+     "oi": 1,
+     "pos": 150303,
+     "quest": "q_domovoy",
+     "step": 0
     },
-    "rng": 3421418232,
-    "zone": "wild",
-    "delayUntil": 1778191200000,
-    "nextRandomAt": 130708.01,
-    "nextNightAt": 123500.0
+    "rng": 3406497981,
+    "zone": "suburb",
+    "delayUntil": 1778184000000,
+    "nextRandomAt": 165913.6,
+    "nextNightAt": 175500.0
    }
   },
   {
@@ -1436,34 +1618,16 @@
      "ret": 1
     },
     {
-     "op": "choose",
-     "choice": "rush",
-     "now": 1778263200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "useGift",
-     "item": "bead_kikimora",
-     "now": 1778263200000,
-     "ret": "ok"
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "continueJourney",
+     "op": "buy",
+     "item": "bread",
      "now": 1778263200000,
      "ret": true
     },
     {
-     "op": "advance",
+     "op": "useGift",
+     "item": "hook_vodyanoy",
      "now": 1778263200000,
-     "ret": 1
+     "ret": "ok"
     },
     {
      "op": "sell",
@@ -1472,157 +1636,12 @@
      "ret": true
     },
     {
-     "op": "continueJourney",
+     "op": "resolveBackpackOverflow",
+     "action": "drop",
+     "swapAction": null,
+     "swapItem": null,
      "now": 1778263200000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "decline",
-     "now": 1778263200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "morning",
-     "now": 1778263200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "useGift",
-     "item": "twig_leshy",
-     "now": 1778263200000,
-     "ret": "ok"
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "askClew",
-     "now": 1778263200000,
-     "ret": {
-      "watch": "reward",
-      "photo": "reward",
-      "go": "mixed"
-     }
-    },
-    {
-     "op": "choose",
-     "choice": "go",
-     "now": 1778263200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "inside_out",
-     "now": 1778263200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "go",
-     "now": 1778263200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "reply",
-     "now": 1778263200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "go",
-     "now": 1778263200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "continueJourney",
-     "now": 1778263200000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "hide",
-     "now": 1778263200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778263200000,
-     "ret": 1
-    },
-    {
-     "op": "useGift",
-     "item": "hook_vodyanoy",
-     "now": 1778263200000,
-     "ret": "ok"
+     "ret": null
     },
     {
      "op": "continueJourney",
@@ -1672,9 +1691,23 @@
      }
     },
     {
+     "op": "useGift",
+     "item": "bead_kikimora",
+     "now": 1778263200000,
+     "ret": "ok"
+    },
+    {
      "op": "advance",
      "now": 1778263200000,
      "ret": 1
+    },
+    {
+     "op": "askClew",
+     "now": 1778263200000,
+     "ret": {
+      "rest": "mixed",
+      "go": "penalty"
+     }
     },
     {
      "op": "choose",
@@ -1706,7 +1739,7 @@
     },
     {
      "op": "choose",
-     "choice": "hang",
+     "choice": "pass",
      "now": 1778263200000,
      "ret": {
       "ok": true,
@@ -1734,7 +1767,7 @@
     },
     {
      "op": "choose",
-     "choice": "leave",
+     "choice": "tent",
      "now": 1778263200000,
      "ret": {
       "ok": true,
@@ -1758,7 +1791,93 @@
     },
     {
      "op": "choose",
-     "choice": "finish",
+     "choice": "mama",
+     "now": 1778263200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778263200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "pass",
+     "now": 1778263200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778263200000,
+     "ret": 1
+    },
+    {
+     "op": "buy",
+     "item": "bread",
+     "now": 1778263200000,
+     "ret": true
+    },
+    {
+     "op": "buy",
+     "item": "gas",
+     "now": 1778263200000,
+     "ret": true
+    },
+    {
+     "op": "continueJourney",
+     "now": 1778263200000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778263200000,
+     "ret": 0
+    },
+    {
+     "op": "buy",
+     "item": "bread",
+     "now": 1778263200000,
+     "ret": true
+    },
+    {
+     "op": "continueJourney",
+     "now": 1778263200000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778263200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "talk",
+     "now": 1778263200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "useGift",
+     "item": "twig_leshy",
+     "now": 1778263200000,
+     "ret": "ok"
+    },
+    {
+     "op": "advance",
+     "now": 1778263200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
      "now": 1778263200000,
      "ret": {
       "ok": true,
@@ -1772,23 +1891,22 @@
     }
    ],
    "expected": {
-    "pos": 175898.8,
-    "buffer": 28988.79,
-    "coins": 146,
+    "pos": 192004.6,
+    "buffer": 21745.4,
+    "coins": 148,
     "stats": {
-     "satiety": 55.913,
-     "water": 19.183,
-     "warmth": 81.879
+     "satiety": 22.05,
+     "water": 52.578,
+     "warmth": 88.823
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 1,
-     "chocolate": 1,
-     "fish": 1,
+     "bread": 2,
      "hook_vodyanoy": 1,
      "matches": 1,
-     "pie": 3
+     "pie": 4,
+     "thermos": 1
     },
     "gear": [
      "gas_stove",
@@ -1799,8 +1917,8 @@
      "twig_leshy"
     ],
     "gearUses": {
-     "first_aid": 1,
-     "gas_stove": 16,
+     "first_aid": 2,
+     "gas_stove": 17,
      "hook_vodyanoy": 4
     },
     "heated": false,
@@ -1808,7 +1926,8 @@
     "overflow": [],
     "aidLock": false,
     "portionsLeft": {
-     "matches": 2
+     "matches": 2,
+     "thermos": 3
     },
     "abilityReady": {
      "ball_yaga": 20582,
@@ -1822,33 +1941,33 @@
     "dayMark": 20581,
     "undoKeys": null,
     "stop": null,
-    "deaths": 1,
-    "seen": 37,
-    "journal": 108,
+    "deaths": 0,
+    "seen": 50,
+    "journal": 114,
     "journalTail": [
+     "buy",
      "event",
-     "night",
-     "quest",
+     "gift",
      "event"
     ],
     "journalPos": [
-     175066,
-     175500,
-     175899,
-     175899
+     183922,
+     189995,
+     189995,
+     192005
     ],
     "lastEvent": {
-     "event": "qc_final_office",
-     "cid": "finish",
-     "oi": 0,
-     "pos": 175899,
-     "quest": "q_chat",
-     "step": 4
+     "event": "fq_bannik_s2",
+     "cid": "go",
+     "oi": 1,
+     "pos": 192005,
+     "quest": "q_bannik",
+     "step": 1
     },
-    "rng": 3169105701,
+    "rng": 482348528,
     "zone": "suburb",
-    "delayUntil": 1778277600000,
-    "nextRandomAt": 182526.28,
+    "delayUntil": 1778270400000,
+    "nextRandomAt": 198582.26,
     "nextNightAt": 201500.0
    }
   },
@@ -1878,102 +1997,14 @@
      "op": "askClew",
      "now": 1778349600000,
      "ret": {
-      "stand": "reward",
-      "run": "penalty",
-      "surface": "penalty"
+      "dam": "risk",
+      "around": "mixed",
+      "wait": "mixed"
      }
     },
     {
      "op": "choose",
-     "choice": "surface",
-     "now": 1778349600000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778349600000,
-     "ret": 1
-    },
-    {
-     "op": "buy",
-     "item": "bread",
-     "now": 1778349600000,
-     "ret": true
-    },
-    {
-     "op": "useGift",
-     "item": "hook_vodyanoy",
-     "now": 1778349600000,
-     "ret": "ok"
-    },
-    {
-     "op": "resolveBackpackOverflow",
-     "action": "stash",
-     "swapAction": "drop",
-     "swapItem": "bread",
-     "now": 1778349600000,
-     "ret": null
-    },
-    {
-     "op": "continueJourney",
-     "now": 1778349600000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1778349600000,
-     "ret": 0
-    },
-    {
-     "op": "buy",
-     "item": "bread",
-     "now": 1778349600000,
-     "ret": false
-    },
-    {
-     "op": "continueJourney",
-     "now": 1778349600000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1778349600000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "ask_way",
-     "now": 1778349600000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778349600000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "go",
-     "now": 1778349600000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778349600000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "walk",
+     "choice": "wait",
      "now": 1778349600000,
      "ret": {
       "ok": true,
@@ -2017,7 +2048,7 @@
     },
     {
      "op": "choose",
-     "choice": "log",
+     "choice": "swim",
      "now": 1778349600000,
      "ret": {
       "ok": true,
@@ -2040,9 +2071,9 @@
     },
     {
      "op": "resolveBackpackOverflow",
-     "action": "use",
-     "swapAction": null,
-     "swapItem": null,
+     "action": "stash",
+     "swapAction": "drop",
+     "swapItem": "bread",
      "now": 1778349600000,
      "ret": null
     },
@@ -2053,7 +2084,7 @@
     },
     {
      "op": "choose",
-     "choice": "listen",
+     "choice": "go",
      "now": 1778349600000,
      "ret": {
       "ok": true,
@@ -2067,7 +2098,7 @@
     },
     {
      "op": "choose",
-     "choice": "choco",
+     "choice": "eat",
      "now": 1778349600000,
      "ret": {
       "ok": true,
@@ -2086,9 +2117,43 @@
      "ret": true
     },
     {
+     "op": "useGift",
+     "item": "hook_vodyanoy",
+     "now": 1778349600000,
+     "ret": "ok"
+    },
+    {
      "op": "continueJourney",
      "now": 1778349600000,
      "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778349600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "pass",
+     "now": 1778349600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778349600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1778349600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
     },
     {
      "op": "advance",
@@ -2118,23 +2183,24 @@
     }
    ],
    "expected": {
-    "pos": 215317.8,
+    "pos": 225000.0,
     "buffer": 0.0,
-    "coins": 133,
+    "coins": 139,
     "stats": {
-     "satiety": 66.042,
-     "water": 33.674,
-     "warmth": 99.901
+     "satiety": 38.126,
+     "water": 28.557,
+     "warmth": 86.826
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 2,
+     "bread": 1,
      "fish": 2,
      "hook_vodyanoy": 1,
      "matches": 1,
      "pie": 3,
-     "sheaf_ovinnik": 1
+     "sheaf_ovinnik": 1,
+     "thermos": 1
     },
     "gear": [
      "gas_stove",
@@ -2147,8 +2213,8 @@
      "socks"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 16,
+     "first_aid": 2,
+     "gas_stove": 17,
      "hook_vodyanoy": 3,
      "sheaf_ovinnik": 4
     },
@@ -2157,7 +2223,8 @@
     "overflow": [],
     "aidLock": false,
     "portionsLeft": {
-     "matches": 1
+     "matches": 1,
+     "thermos": 3
     },
     "abilityReady": {
      "ball_yaga": 20585,
@@ -2171,33 +2238,33 @@
     "dayMark": 20582,
     "undoKeys": null,
     "stop": null,
-    "deaths": 1,
-    "seen": 42,
-    "journal": 128,
+    "deaths": 0,
+    "seen": 55,
+    "journal": 130,
     "journalTail": [
+     "buy",
+     "gift",
      "event",
-     "event",
-     "place",
-     "buy"
+     "event"
     ],
     "journalPos": [
-     213162,
-     214003,
      215165,
-     215165
+     215165,
+     217165,
+     220165
     ],
     "lastEvent": {
-     "event": "fq_domovoy_s2",
-     "cid": "choco",
+     "event": "rnd_wild_poles_grandpa",
+     "cid": "go",
      "oi": 0,
-     "pos": 214003,
-     "quest": "q_domovoy",
-     "step": 1
+     "pos": 220165,
+     "quest": null,
+     "step": null
     },
-    "rng": 1802695736,
-    "zone": "suburb",
-    "delayUntil": 1778277600000,
-    "nextRandomAt": 222285.6,
+    "rng": 3880022569,
+    "zone": "wild",
+    "delayUntil": 1778270400000,
+    "nextRandomAt": 226732.29,
     "nextNightAt": 227500.0
    }
   },
@@ -2224,45 +2291,32 @@
      "ret": 1
     },
     {
-     "op": "choose",
-     "choice": "pass",
-     "now": 1778436000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778436000000,
-     "ret": 1
-    },
-    {
      "op": "askClew",
      "now": 1778436000000,
      "ret": {
-      "talk": "reward",
-      "photo": "reward",
-      "save": "reward"
+      "through": "penalty",
+      "bow": "penalty",
+      "shade": "mixed",
+      "edge": "penalty"
      }
-    },
-    {
-     "op": "choose",
-     "choice": "save",
-     "now": 1778436000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778436000000,
-     "ret": 1
     },
     {
      "op": "choose",
      "choice": "edge",
+     "now": 1778436000000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778436000000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
      "now": 1778436000000,
      "ret": {
       "ok": true,
@@ -2286,7 +2340,7 @@
     },
     {
      "op": "choose",
-     "choice": "wade",
+     "choice": "open",
      "now": 1778436000000,
      "ret": {
       "ok": true,
@@ -2314,7 +2368,7 @@
     },
     {
      "op": "choose",
-     "choice": "pass",
+     "choice": "wade",
      "now": 1778436000000,
      "ret": {
       "ok": true,
@@ -2338,18 +2392,85 @@
     {
      "op": "advance",
      "now": 1778436000000,
-     "ret": 0
+     "ret": 1
     },
     {
-     "op": "heat",
+     "op": "choose",
+     "choice": "sasha",
      "now": 1778436000000,
-     "ret": "heated"
+     "ret": {
+      "ok": true,
+      "died": false
+     }
     },
     {
-     "op": "useItem",
-     "item": "pie",
+     "op": "advance",
+     "now": 1778436000000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "all",
+     "now": 1778436000000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778436000000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "ask",
+     "now": 1778436000000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778436000000,
+     "ret": 1
+    },
+    {
+     "op": "buy",
+     "item": "bread",
+     "now": 1778436000000,
+     "ret": false
+    },
+    {
+     "op": "useGift",
+     "item": "sheaf_ovinnik",
+     "now": 1778436000000,
+     "ret": "ok"
+    },
+    {
+     "op": "continueJourney",
      "now": 1778436000000,
      "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778436000000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "pass",
+     "now": 1778436000000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778436000000,
+     "ret": 0
     },
     {
      "op": "dropItem",
@@ -2364,7 +2485,7 @@
     {
      "op": "dropItem",
      "item": "bread",
-     "ret": null
+     "ret": "no_item"
     },
     {
      "op": "dropItem",
@@ -2373,21 +2494,24 @@
     }
    ],
    "expected": {
-    "pos": 241567.8,
+    "pos": 253884.5,
     "buffer": 0.0,
-    "coins": 153,
+    "coins": 159,
     "stats": {
-     "satiety": 74.685,
-     "water": 0.269,
-     "warmth": 65.951
+     "satiety": 26.769,
+     "water": 27.872,
+     "warmth": 77.734
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
      "fish": 2,
      "hook_vodyanoy": 1,
-     "pie": 2,
-     "sheaf_ovinnik": 1
+     "matches": 1,
+     "pie": 3,
+     "sheaf_ovinnik": 1,
+     "tea": 1,
+     "thermos": 1
     },
     "gear": [
      "gas_stove",
@@ -2399,20 +2523,24 @@
      "stone_bannik"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 15,
+     "first_aid": 2,
+     "gas_stove": 17,
      "hook_vodyanoy": 3,
-     "sheaf_ovinnik": 4
+     "sheaf_ovinnik": 3
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
-    "portionsLeft": {},
+    "portionsLeft": {
+     "matches": 1,
+     "thermos": 2
+    },
     "abilityReady": {
      "ball_yaga": 20585,
      "bead_kikimora": 20584,
      "hook_vodyanoy": 20583,
+     "sheaf_ovinnik": 20584,
      "twig_leshy": 20583,
      "twig_leshy:hint": 20585
     },
@@ -2421,34 +2549,34 @@
     "dayMark": 20583,
     "undoKeys": null,
     "stop": null,
-    "deaths": 1,
-    "seen": 46,
-    "journal": 140,
+    "deaths": 0,
+    "seen": 62,
+    "journal": 147,
     "journalTail": [
      "event",
-     "event",
-     "event",
-     "heat"
+     "place",
+     "gift",
+     "event"
     ],
     "journalPos": [
-     233004,
-     239693,
-     240098,
-     241568
+     249165,
+     251801,
+     251801,
+     252801
     ],
     "lastEvent": {
-     "event": "fq_leshy_s5",
-     "cid": "none",
+     "event": "ch2_torzhok_cutlets",
+     "cid": "pass",
      "oi": 0,
-     "pos": 240098,
-     "quest": "q_leshy",
-     "step": 4
+     "pos": 252801,
+     "quest": null,
+     "step": null
     },
-    "rng": 2467450428,
-    "zone": "wild",
-    "delayUntil": 1778277600000,
-    "nextRandomAt": 249165.4,
-    "nextNightAt": 253500.0
+    "rng": 1477159479,
+    "zone": "city",
+    "delayUntil": 1778270400000,
+    "nextRandomAt": 260300.9,
+    "nextNightAt": 279500.0
    }
   },
   {
@@ -2474,7 +2602,68 @@
      "ret": 1
     },
     {
-     "op": "dismissDeath",
+     "op": "choose",
+     "choice": "pass",
+     "now": 1778522400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778522400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "push",
+     "now": 1778522400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "useGift",
+     "item": "bead_kikimora",
+     "now": 1778522400000,
+     "ret": "ok"
+    },
+    {
+     "op": "advance",
+     "now": 1778522400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "swim",
+     "now": 1778522400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778522400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "hang",
+     "now": 1778522400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "use",
+     "swapAction": null,
+     "swapItem": null,
+     "now": 1778522400000,
      "ret": null
     },
     {
@@ -2483,21 +2672,85 @@
      "ret": 1
     },
     {
-     "op": "buy",
-     "item": "bread",
+     "op": "choose",
+     "choice": "inside_out",
      "now": 1778522400000,
-     "ret": true
+     "ret": {
+      "ok": true,
+      "died": false
+     }
     },
     {
      "op": "useGift",
-     "item": "hook_vodyanoy",
+     "item": "twig_leshy",
      "now": 1778522400000,
      "ret": "ok"
+    },
+    {
+     "op": "advance",
+     "now": 1778522400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1778522400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778522400000,
+     "ret": 1
     },
     {
      "op": "continueJourney",
      "now": 1778522400000,
      "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778522400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "joke",
+     "now": 1778522400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778522400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1778522400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778522400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "open",
+     "now": 1778522400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
     },
     {
      "op": "advance",
@@ -2525,21 +2778,23 @@
     }
    ],
    "expected": {
-    "pos": 242889.23,
+    "pos": 288866.77,
     "buffer": 0.0,
-    "coins": 118,
+    "coins": 176,
     "stats": {
-     "satiety": 67.397,
-     "water": 44.984,
-     "warmth": 77.685
+     "satiety": 88.166,
+     "water": 15.474,
+     "warmth": 44.304
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 1,
      "fish": 2,
      "hook_vodyanoy": 1,
-     "sheaf_ovinnik": 1
+     "pie": 1,
+     "sheaf_ovinnik": 1,
+     "tea": 1,
+     "thermos": 1
     },
     "gear": [
      "gas_stove",
@@ -2552,21 +2807,24 @@
      "wreath_poludnitsa"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 14,
-     "hook_vodyanoy": 2,
-     "sheaf_ovinnik": 4
+     "first_aid": 1,
+     "gas_stove": 16,
+     "hook_vodyanoy": 3,
+     "sheaf_ovinnik": 3
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
-    "portionsLeft": {},
+    "portionsLeft": {
+     "thermos": 1
+    },
     "abilityReady": {
      "ball_yaga": 20585,
-     "bead_kikimora": 20584,
-     "hook_vodyanoy": 20585,
-     "twig_leshy": 20583,
+     "bead_kikimora": 20587,
+     "hook_vodyanoy": 20583,
+     "sheaf_ovinnik": 20584,
+     "twig_leshy": 20585,
      "twig_leshy:hint": 20585
     },
     "fed": {},
@@ -2576,34 +2834,34 @@
     "dayMark": 20584,
     "undoKeys": null,
     "stop": null,
-    "deaths": 2,
-    "seen": 46,
-    "journal": 148,
+    "deaths": 0,
+    "seen": 68,
+    "journal": 168,
     "journalTail": [
-     "place",
-     "buy",
-     "gift",
+     "event",
+     "eat",
+     "event",
      "heat"
     ],
     "journalPos": [
-     215165,
-     215165,
-     215165,
-     242889
+     282001,
+     282251,
+     288001,
+     288867
     ],
     "lastEvent": {
-     "event": "fq_leshy_s5",
-     "cid": "none",
+     "event": "ch2_mama_galya_photos",
+     "cid": "open",
      "oi": 0,
-     "pos": 240098,
-     "quest": "q_leshy",
-     "step": 4
+     "pos": 288001,
+     "quest": null,
+     "step": null
     },
-    "rng": 2467450428,
-    "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 249165.4,
-    "nextNightAt": 253500.0
+    "rng": 1940086478,
+    "zone": "suburb",
+    "delayUntil": 1778270400000,
+    "nextRandomAt": 295482.4,
+    "nextNightAt": 305500.0
    }
   },
   {
@@ -2632,14 +2890,15 @@
      "op": "askClew",
      "now": 1778608800000,
      "ret": {
-      "call": "reward",
-      "father": "reward",
-      "sasha": "reward"
+      "ignore": "penalty",
+      "joke": "neutral",
+      "ask": "reward",
+      "scold": "penalty"
      }
     },
     {
      "op": "choose",
-     "choice": "call",
+     "choice": "ignore",
      "now": 1778608800000,
      "ret": {
       "ok": true,
@@ -2647,32 +2906,10 @@
      }
     },
     {
-     "op": "advance",
+     "op": "useGift",
+     "item": "twig_leshy",
      "now": 1778608800000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "broom",
-     "now": 1778608800000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778608800000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "crank",
-     "now": 1778608800000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
+     "ret": "ok"
     },
     {
      "op": "advance",
@@ -2703,27 +2940,7 @@
     },
     {
      "op": "choose",
-     "choice": "dine",
-     "now": 1778608800000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "useGift",
-     "item": "bead_kikimora",
-     "now": 1778608800000,
-     "ret": "ok"
-    },
-    {
-     "op": "advance",
-     "now": 1778608800000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "answer",
+     "choice": "tea",
      "now": 1778608800000,
      "ret": {
       "ok": true,
@@ -2739,14 +2956,14 @@
      "op": "askClew",
      "now": 1778608800000,
      "ret": {
-      "smoke": "risk",
-      "run": "risk",
-      "cover": "penalty"
+      "listen": "reward",
+      "tie": "reward",
+      "take": "reward"
      }
     },
     {
      "op": "choose",
-     "choice": "run",
+     "choice": "listen",
      "now": 1778608800000,
      "ret": {
       "ok": true,
@@ -2760,7 +2977,87 @@
     },
     {
      "op": "choose",
-     "choice": "dip",
+     "choice": "keep",
+     "now": 1778608800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778608800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "fix",
+     "now": 1778608800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778608800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "praise",
+     "now": 1778608800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778608800000,
+     "ret": 1
+    },
+    {
+     "op": "continueJourney",
+     "now": 1778608800000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778608800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "left",
+     "now": 1778608800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778608800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "pay",
+     "now": 1778608800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778608800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "freeze",
      "now": 1778608800000,
      "ret": {
       "ok": true,
@@ -2788,7 +3085,65 @@
     },
     {
      "op": "choose",
-     "choice": "swap",
+     "choice": "buy",
+     "now": 1778608800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778608800000,
+     "ret": 1
+    },
+    {
+     "op": "buy",
+     "item": "bread",
+     "now": 1778608800000,
+     "ret": false
+    },
+    {
+     "op": "useGift",
+     "item": "hook_vodyanoy",
+     "now": 1778608800000,
+     "ret": "ok"
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "drop",
+     "swapAction": null,
+     "swapItem": null,
+     "now": 1778608800000,
+     "ret": null
+    },
+    {
+     "op": "continueJourney",
+     "now": 1778608800000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778608800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "coin",
+     "now": 1778608800000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778608800000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "sorry",
      "now": 1778608800000,
      "ret": {
       "ok": true,
@@ -2802,13 +3157,13 @@
     }
    ],
    "expected": {
-    "pos": 274139.23,
+    "pos": 330116.77,
     "buffer": 0.0,
-    "coins": 133,
+    "coins": 179,
     "stats": {
-     "satiety": 69.727,
-     "water": 17.3,
-     "warmth": 71.639
+     "satiety": 61.713,
+     "water": 39.646,
+     "warmth": 67.151
     },
     "inv": {
      "ball_yaga": 1,
@@ -2816,6 +3171,7 @@
      "bread": 1,
      "fish": 3,
      "hook_vodyanoy": 1,
+     "pie": 3,
      "sheaf_ovinnik": 1
     },
     "gear": [
@@ -2829,10 +3185,10 @@
      "wreath_poludnitsa"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 14,
+     "first_aid": 1,
+     "gas_stove": 16,
      "hook_vodyanoy": 2,
-     "sheaf_ovinnik": 3
+     "sheaf_ovinnik": 2
     },
     "heated": false,
     "heatedDay": 0,
@@ -2841,10 +3197,10 @@
     "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20588,
-     "bead_kikimora": 20588,
-     "hook_vodyanoy": 20585,
+     "bead_kikimora": 20587,
+     "hook_vodyanoy": 20586,
      "sheaf_ovinnik": 20586,
-     "twig_leshy": 20583,
+     "twig_leshy": 20586,
      "twig_leshy:hint": 20587
     },
     "fed": {},
@@ -2854,34 +3210,34 @@
     "dayMark": 20585,
     "undoKeys": null,
     "stop": null,
-    "deaths": 2,
-    "seen": 52,
-    "journal": 170,
+    "deaths": 0,
+    "seen": 77,
+    "journal": 202,
     "journalTail": [
-     "quest",
      "event",
-     "detour",
+     "kept",
+     "quest",
      "event"
     ],
     "journalPos": [
-     268098,
-     268098,
-     268098,
-     268694
+     326920,
+     330003,
+     330003,
+     330003
     ],
     "lastEvent": {
-     "event": "rnd_oncoming_walker",
-     "cid": "swap",
-     "oi": 1,
-     "pos": 268694,
-     "quest": null,
-     "step": null
+     "event": "fq_domovoy_angry",
+     "cid": "sorry",
+     "oi": 0,
+     "pos": 330003,
+     "quest": "q_domovoy",
+     "step": 3
     },
-    "rng": 1526222715,
-    "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 274660.59,
-    "nextNightAt": 279500.0
+    "rng": 2918930216,
+    "zone": "suburb",
+    "delayUntil": 1778270400000,
+    "nextRandomAt": 339920.5,
+    "nextNightAt": 331500.0
    }
   },
   {
@@ -2908,18 +3264,12 @@
     },
     {
      "op": "choose",
-     "choice": "take",
+     "choice": "go",
      "now": 1778695200000,
      "ret": {
       "ok": true,
       "died": false
      }
-    },
-    {
-     "op": "useGift",
-     "item": "twig_leshy",
-     "now": 1778695200000,
-     "ret": "ok"
     },
     {
      "op": "advance",
@@ -2938,7 +3288,7 @@
     },
     {
      "op": "choose",
-     "choice": "onion",
+     "choice": "sorry",
      "now": 1778695200000,
      "ret": {
       "ok": true,
@@ -2952,7 +3302,7 @@
     },
     {
      "op": "choose",
-     "choice": "listen",
+     "choice": "ribbon",
      "now": 1778695200000,
      "ret": {
       "ok": true,
@@ -2963,16 +3313,27 @@
      "op": "advance",
      "now": 1778695200000,
      "ret": 0
+    },
+    {
+     "op": "heat",
+     "now": 1778695200000,
+     "ret": "heated"
+    },
+    {
+     "op": "useItem",
+     "item": "pie",
+     "now": 1778695200000,
+     "ret": true
     }
    ],
    "expected": {
-    "pos": 281639.23,
+    "pos": 337616.77,
     "buffer": 0.0,
-    "coins": 138,
+    "coins": 183,
     "stats": {
-     "satiety": 41.482,
-     "water": 29.452,
-     "warmth": 84.645
+     "satiety": 88.468,
+     "water": 37.399,
+     "warmth": 59.385
     },
     "inv": {
      "ball_yaga": 1,
@@ -2980,7 +3341,7 @@
      "bread": 1,
      "fish": 3,
      "hook_vodyanoy": 1,
-     "matches": 1,
+     "pie": 2,
      "sheaf_ovinnik": 1
     },
     "gear": [
@@ -2994,10 +3355,10 @@
      "wreath_poludnitsa"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 14,
+     "first_aid": 1,
+     "gas_stove": 15,
      "hook_vodyanoy": 2,
-     "sheaf_ovinnik": 3
+     "sheaf_ovinnik": 2
     },
     "heated": false,
     "heatedDay": 0,
@@ -3006,10 +3367,10 @@
     "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20588,
-     "bead_kikimora": 20588,
-     "hook_vodyanoy": 20585,
+     "bead_kikimora": 20587,
+     "hook_vodyanoy": 20586,
      "sheaf_ovinnik": 20586,
-     "twig_leshy": 20587,
+     "twig_leshy": 20586,
      "twig_leshy:hint": 20587
     },
     "fed": {},
@@ -3019,34 +3380,34 @@
     "dayMark": 20586,
     "undoKeys": null,
     "stop": null,
-    "deaths": 2,
-    "seen": 53,
-    "journal": 176,
+    "deaths": 0,
+    "seen": 80,
+    "journal": 209,
     "journalTail": [
-     "gift",
-     "night",
+     "quest",
      "event",
-     "event"
+     "event",
+     "heat"
     ],
     "journalPos": [
-     274661,
-     279500,
-     280004,
-     281225
+     336004,
+     336004,
+     336920,
+     337617
     ],
     "lastEvent": {
-     "event": "rnd_wild_ch2_bell_pine",
-     "cid": "listen",
-     "oi": 1,
-     "pos": 281225,
+     "event": "omen_rusalka",
+     "cid": "ribbon",
+     "oi": 0,
+     "pos": 336920,
      "quest": null,
      "step": null
     },
-    "rng": 3117699175,
+    "rng": 544657035,
     "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 295482.4,
-    "nextNightAt": 305500.0
+    "delayUntil": 1778270400000,
+    "nextRandomAt": 339920.5,
+    "nextNightAt": 357500.0
    }
   },
   {
@@ -3073,7 +3434,7 @@
     },
     {
      "op": "choose",
-     "choice": "ignore",
+     "choice": "flag",
      "now": 1778781600000,
      "ret": {
       "ok": true,
@@ -3085,6 +3446,34 @@
      "item": "twig_leshy",
      "now": 1778781600000,
      "ret": "ok"
+    },
+    {
+     "op": "advance",
+     "now": 1778781600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "promise",
+     "now": 1778781600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778781600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "answer",
+     "now": 1778781600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
     },
     {
      "op": "advance",
@@ -3114,8 +3503,17 @@
      "ret": 1
     },
     {
+     "op": "askClew",
+     "now": 1778781600000,
+     "ret": {
+      "closed": "neutral",
+      "neutral": "neutral",
+      "open": "neutral"
+     }
+    },
+    {
      "op": "choose",
-     "choice": "swap",
+     "choice": "closed",
      "now": 1778781600000,
      "ret": {
       "ok": true,
@@ -3129,35 +3527,7 @@
     },
     {
      "op": "choose",
-     "choice": "give",
-     "now": 1778781600000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778781600000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "keep",
-     "now": 1778781600000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778781600000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "praise",
+     "choice": "count",
      "now": 1778781600000,
      "ret": {
       "ok": true,
@@ -3177,30 +3547,45 @@
     {
      "op": "advance",
      "now": 1778781600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "refuse",
+     "now": 1778781600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778781600000,
      "ret": 0
     }
    ],
    "expected": {
-    "pos": 307889.23,
+    "pos": 363866.77,
     "buffer": 0.0,
-    "coins": 147,
+    "coins": 185,
     "stats": {
-     "satiety": 39.083,
-     "water": 29.805,
-     "warmth": 97.667
+     "satiety": 84.525,
+     "water": 41.433,
+     "warmth": 96.758
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 1,
-     "fish": 5,
+     "bread": 2,
+     "fish": 3,
      "hook_vodyanoy": 1,
-     "matches": 1,
+     "pie": 2,
      "sheaf_ovinnik": 1
     },
     "gear": [
      "gas_stove",
      "first_aid",
+     "trekking_poles",
      "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
@@ -3208,10 +3593,10 @@
      "wreath_poludnitsa"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 14,
+     "first_aid": 1,
+     "gas_stove": 15,
      "hook_vodyanoy": 2,
-     "sheaf_ovinnik": 2
+     "sheaf_ovinnik": 1
     },
     "heated": false,
     "heatedDay": 0,
@@ -3220,11 +3605,11 @@
     "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20588,
-     "bead_kikimora": 20588,
-     "hook_vodyanoy": 20585,
+     "bead_kikimora": 20587,
+     "hook_vodyanoy": 20586,
      "sheaf_ovinnik": 20588,
      "twig_leshy": 20588,
-     "twig_leshy:hint": 20587
+     "twig_leshy:hint": 20589
     },
     "fed": {},
     "expires": {
@@ -3233,34 +3618,34 @@
     "dayMark": 20587,
     "undoKeys": null,
     "stop": null,
-    "deaths": 2,
-    "seen": 57,
-    "journal": 189,
+    "deaths": 0,
+    "seen": 83,
+    "journal": 223,
     "journalTail": [
-     "kept",
      "event",
      "event",
-     "night"
+     "night",
+     "event"
     ],
     "journalPos": [
-     299004,
-     299004,
-     305482,
-     305500
+     350920,
+     354652,
+     357500,
+     358500
     ],
     "lastEvent": {
-     "event": "ch2_ilya_reads",
-     "cid": "praise",
+     "event": "fq_rusalka_s1",
+     "cid": "refuse",
      "oi": 0,
-     "pos": 305482,
-     "quest": null,
-     "step": null
+     "pos": 358500,
+     "quest": "q_rusalka",
+     "step": 0
     },
-    "rng": 1770848147,
+    "rng": 401868225,
     "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 308482.4,
-    "nextNightAt": 331500.0
+    "delayUntil": 1778270400000,
+    "nextRandomAt": 363871.09,
+    "nextNightAt": 383500.0
    }
   },
   {
@@ -3315,12 +3700,48 @@
      "ret": 1
     },
     {
-     "op": "askClew",
+     "op": "useGift",
+     "item": "sheaf_ovinnik",
+     "now": 1778868000000,
+     "ret": "ok"
+    },
+    {
+     "op": "continueJourney",
+     "now": 1778868000000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778868000000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "buy",
      "now": 1778868000000,
      "ret": {
-      "take": "reward",
-      "ask": "reward"
+      "ok": true,
+      "died": false
      }
+    },
+    {
+     "op": "useGift",
+     "item": "bead_kikimora",
+     "now": 1778868000000,
+     "ret": "ok"
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "stash",
+     "swapAction": "drop",
+     "swapItem": "bread",
+     "now": 1778868000000,
+     "ret": null
+    },
+    {
+     "op": "advance",
+     "now": 1778868000000,
+     "ret": 1
     },
     {
      "op": "choose",
@@ -3338,76 +3759,12 @@
     },
     {
      "op": "choose",
-     "choice": "freeze",
+     "choice": "join",
      "now": 1778868000000,
      "ret": {
       "ok": true,
       "died": false
      }
-    },
-    {
-     "op": "advance",
-     "now": 1778868000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "sorry",
-     "now": 1778868000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "useGift",
-     "item": "bead_kikimora",
-     "now": 1778868000000,
-     "ret": "ok"
-    },
-    {
-     "op": "advance",
-     "now": 1778868000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "show",
-     "now": 1778868000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778868000000,
-     "ret": 1
-    },
-    {
-     "op": "buy",
-     "item": "bread",
-     "now": 1778868000000,
-     "ret": true
-    },
-    {
-     "op": "useGift",
-     "item": "hook_vodyanoy",
-     "now": 1778868000000,
-     "ret": "ok"
-    },
-    {
-     "op": "resolveBackpackOverflow",
-     "action": "drop",
-     "swapAction": null,
-     "swapItem": null,
-     "now": 1778868000000,
-     "ret": null
-    },
-    {
-     "op": "continueJourney",
-     "now": 1778868000000,
-     "ret": true
     },
     {
      "op": "advance",
@@ -3430,34 +3787,12 @@
     },
     {
      "op": "choose",
-     "choice": "sorry",
+     "choice": "go",
      "now": 1778868000000,
      "ret": {
       "ok": true,
       "died": false
      }
-    },
-    {
-     "op": "advance",
-     "now": 1778868000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "push",
-     "now": 1778868000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "resolveBackpackOverflow",
-     "action": "stash",
-     "swapAction": "drop",
-     "swapItem": "bread",
-     "now": 1778868000000,
-     "ret": null
     },
     {
      "op": "advance",
@@ -3476,7 +3811,7 @@
     },
     {
      "op": "choose",
-     "choice": "sorry",
+     "choice": "sit",
      "now": 1778868000000,
      "ret": {
       "ok": true,
@@ -3490,7 +3825,7 @@
     },
     {
      "op": "choose",
-     "choice": "ribbon",
+     "choice": "wormwood",
      "now": 1778868000000,
      "ret": {
       "ok": true,
@@ -3513,57 +3848,52 @@
     }
    ],
    "expected": {
-    "pos": 337139.23,
+    "pos": 390116.77,
     "buffer": 0.0,
-    "coins": 147,
+    "coins": 199,
     "stats": {
-     "satiety": 7.379,
-     "water": 31.69,
-     "warmth": 84.605
+     "satiety": 95.031,
+     "water": 28.043,
+     "warmth": 96.651
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
      "bread": 1,
-     "fish": 5,
+     "fish": 3,
      "hook_vodyanoy": 1,
-     "matches": 1,
-     "pie": 1,
-     "sheaf_ovinnik": 1,
+     "pie": 3,
      "thread_yaga": 1
     },
     "gear": [
      "gas_stove",
      "first_aid",
+     "trekking_poles",
      "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "stone_bannik",
      "wreath_poludnitsa",
-     "ear_poludnitsa",
      "shell_vodyanoy"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 14,
-     "hook_vodyanoy": 1,
-     "sheaf_ovinnik": 2,
+     "first_aid": 1,
+     "gas_stove": 15,
+     "hook_vodyanoy": 2,
      "thread_yaga": 2
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
-    "portionsLeft": {
-     "matches": 9
-    },
+    "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20591,
      "bead_kikimora": 20591,
-     "hook_vodyanoy": 20589,
-     "sheaf_ovinnik": 20588,
+     "hook_vodyanoy": 20586,
+     "sheaf_ovinnik": 20589,
      "twig_leshy": 20589,
-     "twig_leshy:hint": 20590
+     "twig_leshy:hint": 20589
     },
     "fed": {},
     "expires": {
@@ -3572,34 +3902,34 @@
     "dayMark": 20588,
     "undoKeys": null,
     "stop": null,
-    "deaths": 2,
-    "seen": 63,
-    "journal": 214,
+    "deaths": 0,
+    "seen": 88,
+    "journal": 239,
     "journalTail": [
+     "event",
      "night",
-     "quest",
      "event",
      "event"
     ],
     "journalPos": [
-     331500,
-     336004,
-     336004,
-     336920
+     381973,
+     383500,
+     384973,
+     385500
     ],
     "lastEvent": {
-     "event": "omen_rusalka",
-     "cid": "ribbon",
+     "event": "fq_rusalka_s2",
+     "cid": "wormwood",
      "oi": 0,
-     "pos": 336920,
-     "quest": null,
-     "step": null
+     "pos": 385500,
+     "quest": "q_rusalka",
+     "step": 1
     },
-    "rng": 4242085390,
+    "rng": 4154797649,
     "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 340281.97,
-    "nextNightAt": 357500.0
+    "delayUntil": 1778270400000,
+    "nextRandomAt": 392571.18,
+    "nextNightAt": 409500.0
    }
   },
   {
@@ -3628,14 +3958,14 @@
      "op": "askClew",
      "now": 1778954400000,
      "ret": {
-      "still": "mixed",
-      "swim": "reward",
-      "camp": "mixed"
+      "bread": "mixed",
+      "hello": "reward",
+      "ignore": "penalty"
      }
     },
     {
      "op": "choose",
-     "choice": "still",
+     "choice": "bread",
      "now": 1778954400000,
      "ret": {
       "ok": true,
@@ -3651,14 +3981,14 @@
      "op": "askClew",
      "now": 1778954400000,
      "ret": {
-      "promise": "neutral",
-      "joke": "neutral",
-      "leave": "neutral"
+      "quiet": "reward",
+      "shiny": "mixed",
+      "answer": "penalty"
      }
     },
     {
      "op": "choose",
-     "choice": "promise",
+     "choice": "quiet",
      "now": 1778954400000,
      "ret": {
       "ok": true,
@@ -3674,14 +4004,14 @@
      "op": "askClew",
      "now": 1778954400000,
      "ret": {
-      "rake": "mixed",
-      "haystack": "mixed",
-      "pass": "penalty"
+      "fix": "neutral",
+      "listen": "neutral",
+      "share": "neutral"
      }
     },
     {
      "op": "choose",
-     "choice": "rake",
+     "choice": "fix",
      "now": 1778954400000,
      "ret": {
       "ok": true,
@@ -3700,12 +4030,6 @@
      "ret": true
     },
     {
-     "op": "useGift",
-     "item": "sheaf_ovinnik",
-     "now": 1778954400000,
-     "ret": "ok"
-    },
-    {
      "op": "continueJourney",
      "now": 1778954400000,
      "ret": true
@@ -3717,7 +4041,38 @@
     },
     {
      "op": "choose",
-     "choice": "truth",
+     "choice": "ask",
+     "now": 1778954400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "use",
+     "swapAction": null,
+     "swapItem": null,
+     "now": 1778954400000,
+     "ret": null
+    },
+    {
+     "op": "advance",
+     "now": 1778954400000,
+     "ret": 1
+    },
+    {
+     "op": "askClew",
+     "now": 1778954400000,
+     "ret": {
+      "pay": "penalty",
+      "around": "penalty",
+      "wade": "penalty"
+     }
+    },
+    {
+     "op": "choose",
+     "choice": "pay",
      "now": 1778954400000,
      "ret": {
       "ok": true,
@@ -3731,7 +4086,7 @@
     },
     {
      "op": "choose",
-     "choice": "flag",
+     "choice": "shade",
      "now": 1778954400000,
      "ret": {
       "ok": true,
@@ -3750,32 +4105,8 @@
      "ret": 1
     },
     {
-     "op": "continueJourney",
-     "now": 1778954400000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1778954400000,
-     "ret": 1
-    },
-    {
      "op": "choose",
-     "choice": "refuse",
-     "now": 1778954400000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1778954400000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "look",
+     "choice": "riddle",
      "now": 1778954400000,
      "ret": {
       "ok": true,
@@ -3791,28 +4122,6 @@
      "op": "continueJourney",
      "now": 1778954400000,
      "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1778954400000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "buy",
-     "now": 1778954400000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "resolveBackpackOverflow",
-     "action": "use",
-     "swapAction": null,
-     "swapItem": null,
-     "now": 1778954400000,
-     "ret": null
     },
     {
      "op": "advance",
@@ -3835,7 +4144,7 @@
     },
     {
      "op": "choose",
-     "choice": "left",
+     "choice": "honest",
      "now": 1778954400000,
      "ret": {
       "ok": true,
@@ -3849,7 +4158,7 @@
     },
     {
      "op": "choose",
-     "choice": "coin",
+     "choice": "break",
      "now": 1778954400000,
      "ret": {
       "ok": true,
@@ -3859,60 +4168,150 @@
     {
      "op": "advance",
      "now": 1778954400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "bow",
+     "now": 1778954400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778954400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "buy",
+     "now": 1778954400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778954400000,
+     "ret": 1
+    },
+    {
+     "op": "buy",
+     "item": "bread",
+     "now": 1778954400000,
+     "ret": false
+    },
+    {
+     "op": "useGift",
+     "item": "hook_vodyanoy",
+     "now": 1778954400000,
+     "ret": "ok"
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "drop",
+     "swapAction": null,
+     "swapItem": null,
+     "now": 1778954400000,
+     "ret": null
+    },
+    {
+     "op": "continueJourney",
+     "now": 1778954400000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1778954400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "go",
+     "now": 1778954400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1778954400000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "stay",
+     "now": 1778954400000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "stash",
+     "swapAction": "drop",
+     "swapItem": "bread",
+     "now": 1778954400000,
+     "ret": null
+    },
+    {
+     "op": "advance",
+     "now": 1778954400000,
      "ret": 0
     }
    ],
    "expected": {
-    "pos": 382889.23,
-    "buffer": 0.0,
-    "coins": 157,
+    "pos": 426715.2,
+    "buffer": 3151.57,
+    "coins": 204,
     "stats": {
-     "satiety": 85.7,
-     "water": 56.872,
-     "warmth": 81.327
+     "satiety": 91.276,
+     "water": 61.874,
+     "warmth": 100.0
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 2,
-     "fish": 5,
+     "bread": 1,
+     "fish": 3,
      "hook_vodyanoy": 1,
-     "matches": 1,
-     "sheaf_ovinnik": 1
+     "pie": 3
     },
     "gear": [
      "gas_stove",
      "first_aid",
+     "trekking_poles",
      "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "stone_bannik",
      "wreath_poludnitsa",
-     "ear_poludnitsa",
      "shell_vodyanoy"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 14,
-     "hook_vodyanoy": 1,
-     "sheaf_ovinnik": 1
+     "first_aid": 1,
+     "gas_stove": 15,
+     "hook_vodyanoy": 1
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
-    "portionsLeft": {
-     "matches": 9
-    },
+    "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20591,
      "bead_kikimora": 20591,
-     "hook_vodyanoy": 20589,
-     "sheaf_ovinnik": 20590,
+     "hook_vodyanoy": 20590,
+     "sheaf_ovinnik": 20589,
      "shell_vodyanoy:hint": 20591,
      "thread_yaga": 20589,
      "twig_leshy": 20590,
-     "twig_leshy:hint": 20590
+     "twig_leshy:hint": 20591
     },
     "fed": {},
     "expires": {
@@ -3921,34 +4320,34 @@
     "dayMark": 20589,
     "undoKeys": null,
     "stop": null,
-    "deaths": 2,
-    "seen": 69,
-    "journal": 241,
+    "deaths": 0,
+    "seen": 98,
+    "journal": 272,
     "journalTail": [
-     "event",
+     "gift",
      "event",
      "detour",
      "event"
     ],
     "journalPos": [
-     372773,
-     375773,
-     375773,
-     380773
+     425715,
+     426715,
+     426715,
+     426715
     ],
     "lastEvent": {
-     "event": "qb_s1_fog",
-     "cid": "coin",
+     "event": "ch2_valday_iversky_return",
+     "cid": "stay",
      "oi": 0,
-     "pos": 380773,
-     "quest": "q_bell",
-     "step": 0
+     "pos": 426715,
+     "quest": null,
+     "step": null
     },
-    "rng": 772920794,
-    "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 385779.39,
-    "nextNightAt": 383500.0
+    "rng": 2466018985,
+    "zone": "city",
+    "delayUntil": 1778961600000,
+    "nextRandomAt": 433509.94,
+    "nextNightAt": 435500.0
    }
   },
   {
@@ -3975,56 +4374,52 @@
     }
    ],
    "expected": {
-    "pos": 382889.23,
+    "pos": 429866.77,
     "buffer": 0.0,
-    "coins": 162,
+    "coins": 209,
     "stats": {
-     "satiety": 79.7,
-     "water": 49.672,
-     "warmth": 77.727
+     "satiety": 82.232,
+     "water": 52.299,
+     "warmth": 94.041
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 2,
-     "fish": 5,
+     "bread": 1,
+     "fish": 3,
      "hook_vodyanoy": 1,
-     "matches": 1,
-     "sheaf_ovinnik": 1
+     "pie": 3
     },
     "gear": [
      "gas_stove",
      "first_aid",
+     "trekking_poles",
      "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "stone_bannik",
      "wreath_poludnitsa",
-     "ear_poludnitsa",
      "shell_vodyanoy"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 14,
-     "hook_vodyanoy": 1,
-     "sheaf_ovinnik": 1
+     "first_aid": 1,
+     "gas_stove": 15,
+     "hook_vodyanoy": 1
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
-    "portionsLeft": {
-     "matches": 9
-    },
+    "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20591,
      "bead_kikimora": 20591,
-     "hook_vodyanoy": 20589,
-     "sheaf_ovinnik": 20590,
+     "hook_vodyanoy": 20590,
+     "sheaf_ovinnik": 20589,
      "shell_vodyanoy:hint": 20591,
      "thread_yaga": 20589,
      "twig_leshy": 20590,
-     "twig_leshy:hint": 20590
+     "twig_leshy:hint": 20591
     },
     "fed": {},
     "expires": {
@@ -4033,9 +4428,9 @@
     "dayMark": 20590,
     "undoKeys": null,
     "stop": null,
-    "deaths": 2,
-    "seen": 69,
-    "journal": 242,
+    "deaths": 0,
+    "seen": 98,
+    "journal": 273,
     "journalTail": [
      "event",
      "detour",
@@ -4043,24 +4438,24 @@
      "login"
     ],
     "journalPos": [
-     375773,
-     375773,
-     380773,
-     382889
+     426715,
+     426715,
+     426715,
+     426715
     ],
     "lastEvent": {
-     "event": "qb_s1_fog",
-     "cid": "coin",
+     "event": "ch2_valday_iversky_return",
+     "cid": "stay",
      "oi": 0,
-     "pos": 380773,
-     "quest": "q_bell",
-     "step": 0
+     "pos": 426715,
+     "quest": null,
+     "step": null
     },
-    "rng": 772920794,
-    "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 385779.39,
-    "nextNightAt": 383500.0
+    "rng": 2466018985,
+    "zone": "suburb",
+    "delayUntil": 1778961600000,
+    "nextRandomAt": 433509.94,
+    "nextNightAt": 435500.0
    }
   },
   {
@@ -4086,6 +4481,51 @@
      "ret": 1
     },
     {
+     "op": "askClew",
+     "now": 1779127200000,
+     "ret": {
+      "trust": "mixed",
+      "ask": "mixed",
+      "alone": "penalty"
+     }
+    },
+    {
+     "op": "choose",
+     "choice": "trust",
+     "now": 1779127200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1779127200000,
+     "ret": 1
+    },
+    {
+     "op": "askClew",
+     "now": 1779127200000,
+     "ret": {
+      "tie": "reward",
+      "book": "reward"
+     }
+    },
+    {
+     "op": "choose",
+     "choice": "tie",
+     "now": 1779127200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1779127200000,
+     "ret": 1
+    },
+    {
      "op": "continueJourney",
      "now": 1779127200000,
      "ret": true
@@ -4099,15 +4539,14 @@
      "op": "askClew",
      "now": 1779127200000,
      "ret": {
-      "wormwood": "neutral",
-      "parsley": "penalty",
-      "dill": "penalty",
-      "silent": "penalty"
+      "congrats": "reward",
+      "scroll": "penalty",
+      "off": "reward"
      }
     },
     {
      "op": "choose",
-     "choice": "wormwood",
+     "choice": "congrats",
      "now": 1779127200000,
      "ret": {
       "ok": true,
@@ -4121,7 +4560,85 @@
     },
     {
      "op": "choose",
-     "choice": "sit",
+     "choice": "flatter",
+     "now": 1779127200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1779127200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "closed",
+     "now": 1779127200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1779127200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "stack",
+     "now": 1779127200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "useGift",
+     "item": "twig_leshy",
+     "now": 1779127200000,
+     "ret": "ok"
+    },
+    {
+     "op": "advance",
+     "now": 1779127200000,
+     "ret": 1
+    },
+    {
+     "op": "buy",
+     "item": "bread",
+     "now": 1779127200000,
+     "ret": false
+    },
+    {
+     "op": "continueJourney",
+     "now": 1779127200000,
+     "ret": true
+    },
+    {
+     "op": "advance",
+     "now": 1779127200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "quick",
+     "now": 1779127200000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1779127200000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "walk_cut",
      "now": 1779127200000,
      "ret": {
       "ok": true,
@@ -4155,110 +4672,7 @@
     },
     {
      "op": "choose",
-     "choice": "culvert",
-     "now": 1779127200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "useGift",
-     "item": "twig_leshy",
-     "now": 1779127200000,
-     "ret": "ok"
-    },
-    {
-     "op": "advance",
-     "now": 1779127200000,
-     "ret": 1
-    },
-    {
-     "op": "useGift",
-     "item": "sheaf_ovinnik",
-     "now": 1779127200000,
-     "ret": "ok"
-    },
-    {
-     "op": "continueJourney",
-     "now": 1779127200000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1779127200000,
-     "ret": 1
-    },
-    {
-     "op": "askClew",
-     "now": 1779127200000,
-     "ret": {
-      "ask": "reward",
-      "go": "neutral"
-     }
-    },
-    {
-     "op": "choose",
-     "choice": "ask",
-     "now": 1779127200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "resolveBackpackOverflow",
-     "action": "drop",
-     "swapAction": null,
-     "swapItem": null,
-     "now": 1779127200000,
-     "ret": null
-    },
-    {
-     "op": "advance",
-     "now": 1779127200000,
-     "ret": 1
-    },
-    {
-     "op": "askClew",
-     "now": 1779127200000,
-     "ret": {
-      "pay": "penalty",
-      "around": "penalty",
-      "wade": "penalty"
-     }
-    },
-    {
-     "op": "choose",
-     "choice": "pay",
-     "now": 1779127200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779127200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "answer",
-     "now": 1779127200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779127200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "riddle",
+     "choice": "thanks",
      "now": 1779127200000,
      "ret": {
       "ok": true,
@@ -4282,21 +4696,7 @@
     },
     {
      "op": "choose",
-     "choice": "join",
-     "now": 1779127200000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779127200000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "honest",
+     "choice": "pole",
      "now": 1779127200000,
      "ret": {
       "ok": true,
@@ -4310,49 +4710,48 @@
     }
    ],
    "expected": {
-    "pos": 416639.23,
+    "pos": 466701.63,
     "buffer": 0.0,
-    "coins": 178,
+    "coins": 225,
     "stats": {
-     "satiety": 95.276,
-     "water": 21.036,
-     "warmth": 95.225
+     "satiety": 67.366,
+     "water": 20.361,
+     "warmth": 90.266
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 2,
-     "fish": 5,
+     "bread": 1,
+     "fish": 3,
      "hook_vodyanoy": 1,
-     "matches": 1
+     "pie": 3
     },
     "gear": [
      "gas_stove",
      "first_aid",
+     "trekking_poles",
      "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "stone_bannik",
-     "ear_poludnitsa",
-     "shell_vodyanoy"
+     "shell_vodyanoy",
+     "ribbon_rusalka"
     ],
     "gearUses": {
-     "first_aid": 0,
-     "gas_stove": 24,
+     "first_aid": 1,
+     "gas_stove": 15,
      "hook_vodyanoy": 1
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
-    "portionsLeft": {
-     "matches": 8
-    },
+    "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20594,
      "bead_kikimora": 20594,
-     "hook_vodyanoy": 20589,
-     "sheaf_ovinnik": 20592,
+     "hook_vodyanoy": 20590,
+     "sheaf_ovinnik": 20589,
      "shell_vodyanoy:hint": 20593,
      "thread_yaga": 20589,
      "twig_leshy": 20592,
@@ -4363,34 +4762,34 @@
     "dayMark": 20591,
     "undoKeys": null,
     "stop": null,
-    "deaths": 2,
-    "seen": 75,
-    "journal": 265,
+    "deaths": 0,
+    "seen": 106,
+    "journal": 297,
     "journalTail": [
+     "gift",
      "event",
      "night",
-     "event",
      "event"
     ],
     "journalPos": [
-     407773,
-     409500,
-     411749,
-     413773
+     456503,
+     456907,
+     461500,
+     462907
     ],
     "lastEvent": {
-     "event": "qb_s4_hills",
-     "cid": "honest",
+     "event": "ch2_yazhelbitsy_kikimora",
+     "cid": "pole",
      "oi": 0,
-     "pos": 413773,
-     "quest": "q_bell",
-     "step": 3
+     "pos": 462907,
+     "quest": null,
+     "step": null
     },
-    "rng": 3710476233,
+    "rng": 2233677496,
     "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 421712.86,
-    "nextNightAt": 435500.0
+    "delayUntil": 1778961600000,
+    "nextRandomAt": 475906.8,
+    "nextNightAt": 487500.0
    }
   },
   {
@@ -4417,7 +4816,55 @@
     },
     {
      "op": "choose",
-     "choice": "break",
+     "choice": "go",
+     "now": 1779213600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1779213600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "help",
+     "now": 1779213600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "useGift",
+     "item": "twig_leshy",
+     "now": 1779213600000,
+     "ret": "ok"
+    },
+    {
+     "op": "advance",
+     "now": 1779213600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "trick",
+     "now": 1779213600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1779213600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "shoo",
      "now": 1779213600000,
      "ret": {
       "ok": true,
@@ -4444,32 +4891,10 @@
      "ret": 1
     },
     {
-     "op": "choose",
-     "choice": "buy",
+     "op": "buy",
+     "item": "bread",
      "now": 1779213600000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779213600000,
-     "ret": 1
-    },
-    {
-     "op": "useGift",
-     "item": "hook_vodyanoy",
-     "now": 1779213600000,
-     "ret": "ok"
-    },
-    {
-     "op": "resolveBackpackOverflow",
-     "action": "stash",
-     "swapAction": "drop",
-     "swapItem": "bread",
-     "now": 1779213600000,
-     "ret": null
+     "ret": false
     },
     {
      "op": "continueJourney",
@@ -4483,32 +4908,12 @@
     },
     {
      "op": "choose",
-     "choice": "go",
+     "choice": "open",
      "now": 1779213600000,
      "ret": {
       "ok": true,
       "died": false
      }
-    },
-    {
-     "op": "advance",
-     "now": 1779213600000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "stay",
-     "now": 1779213600000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "useGift",
-     "item": "twig_leshy",
-     "now": 1779213600000,
-     "ret": "ok"
     },
     {
      "op": "resolveBackpackOverflow",
@@ -4525,21 +4930,7 @@
     },
     {
      "op": "choose",
-     "choice": "one",
-     "now": 1779213600000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779213600000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "tie",
+     "choice": "buy",
      "now": 1779213600000,
      "ret": {
       "ok": true,
@@ -4559,52 +4950,118 @@
     {
      "op": "advance",
      "now": 1779213600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "buy",
+     "now": 1779213600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "drop",
+     "swapAction": null,
+     "swapItem": null,
+     "now": 1779213600000,
+     "ret": null
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "stash",
+     "swapAction": "drop",
+     "swapItem": "bread",
+     "now": 1779213600000,
+     "ret": null
+    },
+    {
+     "op": "advance",
+     "now": 1779213600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "help",
+     "now": 1779213600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "resolveBackpackOverflow",
+     "action": "use",
+     "swapAction": null,
+     "swapItem": null,
+     "now": 1779213600000,
+     "ret": null
+    },
+    {
+     "op": "advance",
+     "now": 1779213600000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "talk",
+     "now": 1779213600000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1779213600000,
      "ret": 0
     }
    ],
    "expected": {
-    "pos": 437639.23,
+    "pos": 496701.63,
     "buffer": 0.0,
-    "coins": 198,
+    "coins": 228,
     "stats": {
-     "satiety": 97.934,
-     "water": 26.151,
-     "warmth": 94.822
+     "satiety": 77.386,
+     "water": 56.701,
+     "warmth": 99.437
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
-     "bread": 1,
-     "fish": 6,
-     "matches": 1
+     "berries": 1,
+     "fish": 3,
+     "hook_vodyanoy": 1,
+     "pie": 3
     },
     "gear": [
      "gas_stove",
      "first_aid",
+     "trekking_poles",
      "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "stone_bannik",
-     "ear_poludnitsa",
      "shell_vodyanoy",
      "ribbon_rusalka"
     ],
     "gearUses": {
      "first_aid": 0,
-     "gas_stove": 24
+     "gas_stove": 15,
+     "hook_vodyanoy": 1
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
-    "portionsLeft": {
-     "matches": 8
-    },
+    "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20594,
      "bead_kikimora": 20594,
-     "hook_vodyanoy": 20593,
-     "sheaf_ovinnik": 20592,
+     "hook_vodyanoy": 20590,
+     "sheaf_ovinnik": 20589,
      "shell_vodyanoy:hint": 20593,
      "thread_yaga": 20589,
      "twig_leshy": 20593,
@@ -4615,34 +5072,34 @@
     "dayMark": 20592,
     "undoKeys": null,
     "stop": null,
-    "deaths": 2,
-    "seen": 80,
-    "journal": 284,
+    "deaths": 0,
+    "seen": 113,
+    "journal": 315,
     "journalTail": [
+     "night",
      "event",
-     "quest",
      "event",
-     "night"
+     "event"
     ],
     "journalPos": [
-     430257,
-     434000,
-     434000,
-     435500
+     487500,
+     488125,
+     493125,
+     496125
     ],
     "lastEvent": {
-     "event": "fq_rusalka_kind",
-     "cid": "tie",
+     "event": "rnd_wild_ch2_hill_call",
+     "cid": "talk",
      "oi": 0,
-     "pos": 434000,
-     "quest": "q_rusalka",
-     "step": 2
+     "pos": 496125,
+     "quest": null,
+     "step": null
     },
-    "rng": 1848191577,
+    "rng": 665907066,
     "zone": "wild",
-    "delayUntil": 0,
-    "nextRandomAt": 440715.2,
-    "nextNightAt": 461500.0
+    "delayUntil": 1778961600000,
+    "nextRandomAt": 502133.65,
+    "nextNightAt": 513500.0
    }
   },
   {
@@ -4671,152 +5128,15 @@
      "op": "askClew",
      "now": 1779300000000,
      "ret": {
-      "congrats": "reward",
-      "scroll": "penalty",
-      "off": "reward"
+      "knock": "penalty",
+      "oil": "mixed",
+      "water": "penalty",
+      "around": "penalty"
      }
     },
     {
      "op": "choose",
-     "choice": "congrats",
-     "now": 1779300000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "body",
-     "now": 1779300000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "flatter",
-     "now": 1779300000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "buy",
-     "item": "bread",
-     "now": 1779300000000,
-     "ret": false
-    },
-    {
-     "op": "continueJourney",
-     "now": 1779300000000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "quick",
-     "now": 1779300000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "trust",
-     "now": 1779300000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "bread",
-     "now": 1779300000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "thanks",
-     "now": 1779300000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "continueJourney",
-     "now": 1779300000000,
-     "ret": true
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "pole",
-     "now": 1779300000000,
-     "ret": {
-      "ok": true,
-      "died": false
-     }
-    },
-    {
-     "op": "advance",
-     "now": 1779300000000,
-     "ret": 1
-    },
-    {
-     "op": "choose",
-     "choice": "sew",
+     "choice": "knock",
      "now": 1779300000000,
      "ret": {
       "ok": true,
@@ -4835,8 +5155,36 @@
      "ret": 1
     },
     {
-     "op": "dismissDeath",
-     "ret": null
+     "op": "askClew",
+     "now": 1779300000000,
+     "ret": {
+      "sing": "risk",
+      "listen": "reward",
+      "pass": "neutral"
+     }
+    },
+    {
+     "op": "choose",
+     "choice": "sing",
+     "now": 1779300000000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
+    },
+    {
+     "op": "advance",
+     "now": 1779300000000,
+     "ret": 1
+    },
+    {
+     "op": "choose",
+     "choice": "around",
+     "now": 1779300000000,
+     "ret": {
+      "ok": true,
+      "died": false
+     }
     },
     {
      "op": "advance",
@@ -4845,48 +5193,49 @@
     }
    ],
    "expected": {
-    "pos": 448484.53,
-    "buffer": 0.0,
-    "coins": 164,
+    "pos": 505496.8,
+    "buffer": 28704.83,
+    "coins": 247,
     "stats": {
-     "satiety": 48.574,
-     "water": 44.192,
-     "warmth": 51.85
+     "satiety": 72.89,
+     "water": 41.204,
+     "warmth": 96.849
     },
     "inv": {
      "ball_yaga": 1,
      "bead_kikimora": 1,
+     "berries": 1,
      "fish": 3,
-     "matches": 1
+     "hook_vodyanoy": 1,
+     "pie": 3
     },
     "gear": [
      "gas_stove",
      "first_aid",
+     "trekking_poles",
      "amulet_leshy",
      "twig_leshy",
      "lapot_domovoy",
      "stone_bannik",
-     "ear_poludnitsa",
      "shell_vodyanoy",
      "ribbon_rusalka"
     ],
     "gearUses": {
      "first_aid": 0,
-     "gas_stove": 24
+     "gas_stove": 15,
+     "hook_vodyanoy": 1
     },
     "heated": false,
     "heatedDay": 0,
     "overflow": [],
     "aidLock": false,
-    "portionsLeft": {
-     "matches": 7
-    },
+    "portionsLeft": {},
     "abilityReady": {
      "ball_yaga": 20594,
      "bead_kikimora": 20594,
-     "hook_vodyanoy": 20593,
-     "sheaf_ovinnik": 20592,
-     "shell_vodyanoy:hint": 20593,
+     "hook_vodyanoy": 20590,
+     "sheaf_ovinnik": 20589,
+     "shell_vodyanoy:hint": 20595,
      "thread_yaga": 20589,
      "twig_leshy": 20594,
      "twig_leshy:hint": 20595
@@ -4896,34 +5245,34 @@
     "dayMark": 20593,
     "undoKeys": null,
     "stop": null,
-    "deaths": 3,
-    "seen": 86,
-    "journal": 302,
+    "deaths": 0,
+    "seen": 115,
+    "journal": 326,
     "journalTail": [
+     "zone_fallback",
+     "ability",
      "event",
-     "event",
-     "gift",
-     "death"
+     "event"
     ],
     "journalPos": [
-     462907,
-     465907,
-     465907,
-     436657
+     502134,
+     502134,
+     502134,
+     505497
     ],
     "lastEvent": {
-     "event": "rnd_strap_snap",
-     "cid": "sew",
-     "oi": 0,
-     "pos": 465907,
-     "quest": null,
-     "step": null
+     "event": "fq_kikimora_s2",
+     "cid": "around",
+     "oi": 1,
+     "pos": 505497,
+     "quest": "q_kikimora",
+     "step": 1
     },
-    "rng": 376968963,
-    "zone": "suburb",
-    "delayUntil": 0,
-    "nextRandomAt": 475906.8,
-    "nextNightAt": 487500.0
+    "rng": 2930029653,
+    "zone": "wild",
+    "delayUntil": 1779307200000,
+    "nextRandomAt": 515124.6,
+    "nextNightAt": 513500.0
    }
   }
  ],
