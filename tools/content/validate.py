@@ -539,7 +539,7 @@ if postcards:
 
 # --- ночёвки (25.11): сцены по главам, эффекты — только известные ключи
 nights = load("nights.json", [])
-NIGHT_KEYS = {"id", "ch", "title", "text", "satiety", "water", "warmth", "coins", "burn", "giveMatches", "lose"}
+NIGHT_KEYS = {"id", "ch", "title", "text", "satiety", "water", "warmth", "coins", "burn", "giveMatches", "lose", "shelter", "kind"}
 seen_n = set()
 for nt in nights:
     nw = f"nights.json:{nt.get('id')}"
@@ -558,6 +558,17 @@ for nt in nights:
     for it in (nt.get("lose") or {}):
         if it not in items:
             errors.append(f"{nw}: lose — нет предмета {it!r}")
+    if nt.get("shelter") not in (None, "roof", "open"):
+        errors.append(f"{nw}: shelter — roof или open")
+    if nt.get("kind") not in (None, "warm", "mild", "cool", "cold"):
+        errors.append(f"{nw}: kind — warm/mild/cool/cold")
+    if nt.get("shelter") and (nt.get("kind") or nt.get("burn")):
+        errors.append(f"{nw}: сцена без палатки не может задавать ночь и тратить спички")
+    # текст сцены против места: «палатку/в палатке» — только в сценах с палаткой
+    if nt.get("shelter") and re.search(r"палатк|тент", nt.get("text", ""), re.I) and "палатку у своей" not in nt.get("text", ""):
+        errors.append(f"{nw}: в тексте палатка, а сцена без палатки (shelter)")
+    if not nt.get("shelter") and re.search(r"койк|кровать|в кабине|хостел|в номер|на чердаке", nt.get("text", ""), re.I):
+        errors.append(f"{nw}: в тексте крыша над головой — добавьте shelter")
 if nights:
     from collections import Counter as _C
     per = _C(nt.get("ch") for nt in nights)

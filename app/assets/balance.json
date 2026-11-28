@@ -1108,6 +1108,8 @@
       "snow"
     ],
     "maxWarmth": 30,
+    "roofWarmth": 20,
+    "openWarmth": 10,
     "morning": [
       {
         "id": "quiet",

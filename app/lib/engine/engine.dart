@@ -1288,15 +1288,26 @@ class Engine {
         for (var i = 0; i < kinds.length; i++)
           math.max(1, toI(kinds[i]['weight']) + (i >= kinds.length - 2 ? shift : -shift)),
       ];
-      final k = kinds[rng.pickWeighted(weights)];
+      var k = kinds[rng.pickWeighted(weights)];
+      // 28.11: сцена может сама задать ночь (дождь, шторм, снег — «холодная»; тёплый камень — «тёплая»), чтобы текст не спорил с бонусом
+      final forced = '${sc['kind'] ?? ''}';
+      if (forced.isNotEmpty) k = kinds.firstWhere((x) => '${x['id']}' == forced, orElse: () => k);
       kindId = '${k['id']}';
       nightWarmth = toI(k['warmth']);
+    }
+    // 28.11: сцена под крышей (дом, кабина, хостел) или без палатки (скамейка, чужой костёр): нет «палатки и костерка»,
+    // нет своего костра и спичек; тепло задаёт место, а не погода ночи.
+    final shelter = '${sc['shelter'] ?? ''}';
+    final roofed = shelter == 'roof' || shelter == 'open';
+    if (roofed) {
+      kindId = '';
+      nightWarmth = toI(nb[shelter == 'roof' ? 'roofWarmth' : 'openWarmth']);
     }
     // Костёр на ночёвке (24.11): спички; в непогоду уходит больше. Нет спичек — тепла ночи меньше.
     var burnt = 0;
     var want = 0;
     var free = false;
-    if (_fireOn) {
+    if (_fireOn && !roofed) {
       final bad = ((nb['coldWeather'] as List?) ?? const []).contains(w.weatherAt(s.seed, s.pos));
       want = toI(_fire['nightBurn']) + (bad ? toI(_fire['badWeatherBurn']) : 0);
       free = _fireFree('night', bad);
@@ -1351,8 +1362,8 @@ class Engine {
       'morning': mid,
       'kind': kindId,
       'gain': gain,
-      if (_fireOn) 'matches': burnt,
-      if (_fireOn) 'nofire': burnt == 0 && !free,
+      if (_fireOn && !roofed) 'matches': burnt,
+      if (_fireOn && !roofed) 'nofire': burnt == 0 && !free,
       if (free) 'free': true,
       if (sid.isNotEmpty) 'scene': sid,
       if (coinsD != 0) 'coins': coinsD,

@@ -1542,12 +1542,20 @@ class Engine:
             weights = [max(1, int(k["weight"]) + (shift if i >= len(kinds) - 2 else -shift))
                        for i, k in enumerate(kinds)]
             kk = kinds[self.rng.pick_weighted(weights)]
+            forced = sc.get("kind") or ""
+            if forced:
+                kk = next((x for x in kinds if x["id"] == forced), kk)
             kind_id = kk["id"]
             night_warmth = int(kk["warmth"])
+        shelter = sc.get("shelter") or ""
+        roofed = shelter in ("roof", "open")
+        if roofed:
+            kind_id = ""
+            night_warmth = int(nb["roofWarmth" if shelter == "roof" else "openWarmth"])
         burnt = 0
         free = False
         fire = self._fire
-        if fire:
+        if fire and not roofed:
             bad = self.w.weather_at(self.s["seed"], self.s["pos"]) in nb.get("coldWeather", [])
             want = int(fire["nightBurn"]) + (int(fire["badWeatherBurn"]) if bad else 0)
             free = self._fire_free("night", bad)
@@ -1591,7 +1599,7 @@ class Engine:
         self._log(now, "night", "Сергей заночевал в пути", morning=mid, nightKind=kind_id, gain=dict(gain), scene=sid)
         self._camp({"id": ""}, now)
         self.s["stop"] = {"type": "night", "morning": mid, "kind": kind_id, "gain": gain}
-        if fire:
+        if fire and not roofed:
             self.s["stop"]["matches"] = burnt
             self.s["stop"]["nofire"] = burnt == 0 and not free
             if free:

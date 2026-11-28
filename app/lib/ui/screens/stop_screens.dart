@@ -840,15 +840,20 @@ class _NightScreen extends ConsumerWidget {
     final burnt = toI(st['matches']);
     final fire = st['nofire'] == true ? l.nightNoFire : (burnt > 0 ? l.nightFire(burnt) : '');
     // V5-60: какая выдалась ночь — от неё тепло.
-    final kind = switch ('${st['kind'] ?? ''}') {
-      'warm' => l.nightKind_warm,
-      'mild' => l.nightKind_mild,
-      'cool' => l.nightKind_cool,
-      'cold' => l.nightKind_cold,
-      _ => l.nightText,
-    };
     // 25.11: сцена ночёвки главы — своя история, бонусы и потери.
     final scene = m.content!.nights['${st['scene'] ?? ''}'];
+    // 28.11: у сцены своя история ночи — общий вступительный абзац («сворачиваю с дороги: палатка, костерок») только без неё;
+    // у сцены под крышей или без палатки погоды ночи в тексте нет совсем.
+    final noKind = '${st['kind'] ?? ''}'.isEmpty && scene != null;
+    final kind = noKind
+        ? ''
+        : switch ('${st['kind'] ?? ''}') {
+            'warm' => scene == null ? l.nightKind_warm : l.nightSceneKind_warm,
+            'mild' => scene == null ? l.nightKind_mild : l.nightSceneKind_mild,
+            'cool' => scene == null ? l.nightKind_cool : l.nightSceneKind_cool,
+            'cold' => scene == null ? l.nightKind_cold : l.nightSceneKind_cold,
+            _ => l.nightText,
+          };
     final got = toI(st['gotMatches']) * m.content!.world.portionsOf('matches');
     final lost = ((st['lost'] as Map?) ?? const {}).map((k, v) => MapEntry('$k', toI(v)));
     return _OutcomeScreen(
@@ -857,7 +862,7 @@ class _NightScreen extends ConsumerWidget {
       outcome: OutcomeView(
         text: [
           if (scene != null) '${scene['text']}',
-          kind,
+          if (kind.isNotEmpty) kind,
           if (fire.isNotEmpty) fire,
           if (morning.isNotEmpty) morning,
         ].join('\n\n'),
